@@ -10,5 +10,6 @@ public record BoothCreateRequest(
         String description,
         BigDecimal locationLat,
         BigDecimal locationLng,
-        @Size(max = 500) String imageUrl
+        @Size(max = 500) String imageUrl,
+        @NotBlank String adminPassword
 ) {}

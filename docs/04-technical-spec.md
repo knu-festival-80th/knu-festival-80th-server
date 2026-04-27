@@ -14,6 +14,7 @@
 | v1.0 | 2026-04-25 | 초안 작성 | - |
 | v1.1 | 2026-04-25 | 대기열 스키마 재설계, 인덱스 추가, 캐싱/WebSocket 설계 보완, 일정 제거 | - |
 | v1.2 | 2026-04-27 | 동시성 감사 반영 — waiting 에 phone_lookup_hash·version 컬럼 추가, 부스 락 기반 채번/순서 변경, booth like atomic UPDATE, like_count 인덱스, status+called_at 인덱스 | - |
+| v1.3 | 2026-04-27 | 인증을 부스별 비밀번호 + 세션 기반으로 단순화 — member 테이블 제거, booth 에 admin_password 컬럼 추가, 인증 아키텍처 재정의 | - |
 
 ---
 
@@ -121,11 +122,13 @@ CREATE TABLE booth (
     like_count      INT DEFAULT 0,
     image_url       VARCHAR(500),
     is_waiting_open BOOLEAN DEFAULT TRUE,
+    admin_password  VARCHAR(255),
     created_at      DATETIME NOT NULL,
     updated_at      DATETIME NOT NULL,
     deleted_at      DATETIME,
     INDEX idx_booth_like_count (like_count)
 );
+-- admin_password: BCrypt 해시 저장. 부스 운영진이 로그인할 때 사용.
 -- like_count 는 atomic UPDATE 로 증감 (UPDATE booth SET like_count = like_count ± 1 WHERE booth_id = ?)
 -- 부스 단위 직렬화가 필요한 작업(대기 등록·중간 삽입·순서 변경·삭제)에서는 SELECT ... FOR UPDATE 사용
 ```
@@ -294,23 +297,11 @@ CREATE TABLE feed (
 );
 ```
 
-### 3.11 member (관리자)
+### 3.11 관리자 인증 (member 테이블 없음)
 
-```sql
-CREATE TABLE member (
-    member_id  BIGINT AUTO_INCREMENT PRIMARY KEY,
-    username   VARCHAR(50) NOT NULL UNIQUE,
-    password   VARCHAR(255) NOT NULL,
-    role       VARCHAR(20) NOT NULL DEFAULT 'BOOTH_ADMIN',
-    booth_id   BIGINT,
-    created_at DATETIME NOT NULL,
-    updated_at DATETIME NOT NULL,
-    FOREIGN KEY (booth_id) REFERENCES booth(booth_id)
-);
--- role: SUPER_ADMIN, BOOTH_ADMIN
--- BOOTH_ADMIN은 booth_id로 담당 부스 연결
--- password: BCrypt 해시 저장
-```
+별도 회원 테이블을 두지 않는다. 인증 정보는 다음 두 곳에 저장된다:
+- **SUPER_ADMIN**: 환경변수 `ADMIN_MASTER_PASSWORD` (평문 비교)
+- **BOOTH_ADMIN**: `booth.admin_password` 컬럼 (BCrypt 해시)
 
 ### 3.12 photo_asset (포토부스 에셋)
 
@@ -335,24 +326,24 @@ CREATE TABLE photo_asset (
 [Request]
     │
     ▼
-JwtAuthenticationFilter
+SessionAuthFilter (HttpSession 확인)
     │
-    ├── /api/** → 통과 (인증 불필요)
+    ├── /api/** → 통과 (인증 불필요, 세션 생성 안 함)
     │
-    └── /admin/** → JWT 검증
+    └── /admin/** → 세션에서 AdminInfo 확인
             │
             ├── 유효 → SecurityContext에 인증 정보 설정
             │         │
             │         ├── SUPER_ADMIN → 모든 /admin/** 접근 가능
             │         └── BOOTH_ADMIN → 담당 부스 리소스만 접근 가능
             │
-            └── 무효 → 401 Unauthorized
+            └── 세션 없음/만료 → 401 Unauthorized
 ```
 
-- Access Token: Authorization 헤더 (`Bearer {token}`)
-- Refresh Token: Redis에 저장, 로그아웃 시 삭제
-- `@MemberId` 커스텀 어노테이션으로 인증된 관리자 ID 주입
-- BOOTH_ADMIN의 부스 소유권 검증: 요청 대상 booth-id와 관리자의 담당 booth-id 일치 확인
+- 로그인 시 HttpSession에 `AdminInfo(role, boothId)` 저장, JSESSIONID 쿠키 자동 발급
+- 프론트엔드는 fetch 시 `credentials: 'include'` 만 추가하면 쿠키가 자동 전송
+- `@CurrentAdmin` 커스텀 어노테이션으로 인증된 관리자 정보(`AdminInfo`) 컨트롤러에 주입
+- BOOTH_ADMIN의 부스 소유권 검증: `AdminInfo.validateBoothAccess(targetBoothId)` 호출
 
 ---
 
@@ -365,7 +356,7 @@ JwtAuthenticationFilter
 | 공연 목록 | String (`performance:list`) TTL 5분 | 변경 시 키 삭제 |
 | 대기열 현황 | String (`waiting:{booth-id}:count`) TTL 10초 | 변경 시 키 삭제 |
 | 축제 상태 | String (`festival:info`) TTL 1분 | 변경 시 키 삭제 |
-| Refresh Token | String (`refresh:{member-id}`) TTL 7일 | 로그아웃 시 삭제 |
+| 관리자 세션 | 서버 메모리(HttpSession), 기본 30분 TTL | 로그아웃 시 무효화 |
 
 ---
 

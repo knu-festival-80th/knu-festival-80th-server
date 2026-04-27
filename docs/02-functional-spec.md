@@ -14,6 +14,7 @@
 | v1.0 | 2026-04-25 | 초안 작성 | - |
 | v1.1 | 2026-04-25 | 대기열 현장 전용 재설계, API 보안/설계 이슈 반영, 누락 API 추가 | - |
 | v1.2 | 2026-04-27 | 대기열을 웹 온라인 등록 모델로 전환 (현장 태블릿 전제 폐기), 본인 취소 API 추가, 어뷰즈 방지 규칙 보강 | - |
+| v1.3 | 2026-04-27 | 관리자 인증을 부스별 비밀번호 + 세션 기반으로 단순화, member 도메인 제거, 부스 비밀번호 변경 API 추가, 모든 admin API에 소유권 검증 적용 | - |
 
 ---
 
@@ -38,7 +39,7 @@
 | `matching` | 두근두근 인스타팅 | REQ-USR-04 |
 | `photo` | 웹 포토부스 | REQ-USR-05 |
 | `feed` | 호반우스타그램 피드 | REQ-USR-05 |
-| `member` | 관리자 인증/인가/계정 관리 | REQ-ADM-03 |
+| `auth` | 관리자 인증 (부스별 비밀번호 + 세션) | REQ-ADM-03 |
 
 ---
 
@@ -373,29 +374,28 @@
 
 ---
 
-### 3.12 관리자 인증/계정 (member)
+### 3.12 관리자 인증 (auth — 부스별 비밀번호)
 
-#### FS-ADM-03: 관리자 인증 및 계정 관리
+#### FS-ADM-03: 관리자 인증 (세션 기반)
+
+> 별도 회원 체계 없이 **부스 = 계정** 모델을 사용한다. 부스 생성 시 설정한 비밀번호로 로그인하면 세션 쿠키가 발급된다.
 
 **API 목록**
 
 | Method | Endpoint | 설명 | 인증 |
 |--------|----------|------|------|
-| POST | `/admin/v1/auth/login` | 관리자 로그인 | 불필요 |
-| POST | `/admin/v1/auth/refresh` | 토큰 갱신 | Refresh Token |
-| POST | `/admin/v1/auth/logout` | 로그아웃 (토큰 무효화) | 관리자 |
-| POST | `/admin/v1/members` | 관리자 계정 생성 | 슈퍼 관리자 |
-| GET | `/admin/v1/members` | 관리자 계정 목록 | 슈퍼 관리자 |
-| DELETE | `/admin/v1/members/{member-id}` | 관리자 계정 삭제 | 슈퍼 관리자 |
+| POST | `/admin/v1/auth/login` | 관리자 로그인 (boothId + password 또는 masterPassword) | 불필요 |
+| POST | `/admin/v1/auth/logout` | 로그아웃 (세션 무효화) | 관리자 |
+| PATCH | `/admin/v1/booths/{booth-id}/password` | 부스 비밀번호 변경 | 슈퍼 관리자 |
 
 **비즈니스 규칙**
-- BR-AUTH-01: JWT 기반 인증 (Access Token + Refresh Token)
-- BR-AUTH-02: `/admin/**` 엔드포인트는 관리자 토큰 필수
+- BR-AUTH-01: 세션 기반 인증 — 로그인 시 서버가 JSESSIONID 쿠키 발급, 프론트는 `credentials: 'include'` 만 세팅
+- BR-AUTH-02: `/admin/**` 엔드포인트는 유효한 세션 필수
 - BR-AUTH-03: `/api/**` 엔드포인트는 인증 불필요 (공개 API)
-- BR-AUTH-04: 관리자 역할: `SUPER_ADMIN` (전체 접근) / `BOOTH_ADMIN` (담당 부스만)
-- BR-AUTH-05: BOOTH_ADMIN은 담당 부스의 메뉴/대기열만 관리 가능 (소유권 검증)
-- BR-AUTH-06: 로그인 실패 시 Rate Limiting 적용 (brute force 방지)
-- BR-AUTH-07: 로그아웃 시 Refresh Token 무효화
+- BR-AUTH-04: 관리자 역할: `SUPER_ADMIN` (환경변수 마스터 비밀번호) / `BOOTH_ADMIN` (부스별 비밀번호)
+- BR-AUTH-05: BOOTH_ADMIN은 자기 부스의 메뉴·대기열만 관리 가능 (소유권 검증)
+- BR-AUTH-06: 로그인 실패 시 Rate Limiting 적용 (brute force 방지, 후속 과제)
+- BR-AUTH-07: 로그아웃 시 세션 무효화
 
 ---
 

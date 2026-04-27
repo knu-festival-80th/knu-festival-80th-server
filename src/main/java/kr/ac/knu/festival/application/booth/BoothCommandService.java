@@ -10,6 +10,7 @@ import kr.ac.knu.festival.presentation.booth.dto.request.BoothCreateRequest;
 import kr.ac.knu.festival.presentation.booth.dto.request.BoothUpdateRequest;
 import kr.ac.knu.festival.presentation.booth.dto.response.BoothResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,6 +25,7 @@ public class BoothCommandService {
 
     private final BoothRepository boothRepository;
     private final WaitingRepository waitingRepository;
+    private final PasswordEncoder passwordEncoder;
 
     public BoothResponse createBooth(BoothCreateRequest request) {
         Booth booth = Booth.createBooth(
@@ -31,7 +33,8 @@ public class BoothCommandService {
                 request.description(),
                 request.locationLat(),
                 request.locationLng(),
-                request.imageUrl()
+                request.imageUrl(),
+                passwordEncoder.encode(request.adminPassword())
         );
         return BoothResponse.fromEntity(boothRepository.save(booth));
     }
@@ -50,7 +53,6 @@ public class BoothCommandService {
     }
 
     public void deleteBooth(Long boothId) {
-        // 부스 행을 잡고 active waiting 검사 → 같은 트랜잭션에서 삭제. 신규 등록과의 TOCTOU 차단.
         Booth booth = boothRepository.findByIdForUpdate(boothId)
                 .orElseThrow(() -> new BusinessException(BusinessErrorCode.BOOTH_NOT_FOUND));
         long activeCount = waitingRepository.countByBoothIdAndStatusIn(boothId, ACTIVE_STATUSES);
@@ -58,6 +60,12 @@ public class BoothCommandService {
             throw new BusinessException(BusinessErrorCode.BOOTH_HAS_ACTIVE_WAITINGS);
         }
         boothRepository.delete(booth);
+    }
+
+    public void changeBoothPassword(Long boothId, String newRawPassword) {
+        Booth booth = boothRepository.findById(boothId)
+                .orElseThrow(() -> new BusinessException(BusinessErrorCode.BOOTH_NOT_FOUND));
+        booth.changeAdminPassword(passwordEncoder.encode(newRawPassword));
     }
 
     public BoothResponse likeBooth(Long boothId) {
@@ -71,7 +79,7 @@ public class BoothCommandService {
     }
 
     public BoothResponse unlikeBooth(Long boothId) {
-        boothRepository.decrementLike(boothId); // 0 미만으로 안 떨어지도록 쿼리 차원에서 가드
+        boothRepository.decrementLike(boothId);
         Booth booth = boothRepository.findById(boothId)
                 .orElseThrow(() -> new BusinessException(BusinessErrorCode.BOOTH_NOT_FOUND));
         return BoothResponse.fromEntity(booth);

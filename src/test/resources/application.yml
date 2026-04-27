@@ -24,11 +24,9 @@ spring:
 cors:
   allowed-origins: http://localhost:3000
 
-jwt:
-  secret: test-secret-key-for-tests-only
-  access-token-expiration: 3600000
-  refresh-token-expiration: 604800000
-
 phone:
   encryption-key: test-phone-encryption-key-32bytes
   lookup-hash-key: test-phone-lookup-hash-key-32bytes
+
+admin:
+  master-password: test-master-password

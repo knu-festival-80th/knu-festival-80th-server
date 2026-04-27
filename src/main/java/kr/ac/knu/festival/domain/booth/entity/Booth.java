@@ -57,6 +57,9 @@ public class Booth extends BaseTimeEntity {
     @Column(name = "is_waiting_open", nullable = false)
     private boolean waitingOpen;
 
+    @Column(name = "admin_password", length = 255)
+    private String adminPassword;
+
     @Column(name = "deleted_at")
     private LocalDateTime deletedAt;
 
@@ -65,7 +68,8 @@ public class Booth extends BaseTimeEntity {
             String description,
             BigDecimal locationLat,
             BigDecimal locationLng,
-            String imageUrl
+            String imageUrl,
+            String encodedAdminPassword
     ) {
         return Booth.builder()
                 .name(name)
@@ -75,6 +79,7 @@ public class Booth extends BaseTimeEntity {
                 .imageUrl(imageUrl)
                 .likeCount(0)
                 .waitingOpen(true)
+                .adminPassword(encodedAdminPassword)
                 .build();
     }
 
@@ -114,5 +119,9 @@ public class Booth extends BaseTimeEntity {
 
     public void toggleWaitingOpen(boolean waitingOpen) {
         this.waitingOpen = waitingOpen;
+    }
+
+    public void changeAdminPassword(String encodedPassword) {
+        this.adminPassword = encodedPassword;
     }
 }

@@ -1,8 +1,10 @@
 package kr.ac.knu.festival.presentation.waiting.controller.docs;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import kr.ac.knu.festival.global.auth.AdminInfo;
 import kr.ac.knu.festival.global.response.ApiResponse;
 import kr.ac.knu.festival.presentation.waiting.dto.request.WaitingCreateRequest;
 import kr.ac.knu.festival.presentation.waiting.dto.request.WaitingInsertRequest;
@@ -22,35 +24,33 @@ public interface WaitingCommandControllerDocs {
     })
     ResponseEntity<ApiResponse<WaitingRegisterResponse>> registerWaiting(Long boothId, WaitingCreateRequest request);
 
-    @Operation(summary = "본인 대기 취소", description = "전화번호 뒤 4자리로 본인 확인 후 자신의 대기를 취소합니다.")
-    @ApiResponses({
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "취소 성공"),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "전화번호 본인 확인 실패"),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "이미 종결된 대기")
-    })
+    @Operation(summary = "본인 대기 취소", description = "전화번호 뒤 4자리로 본인 확인 후 취소")
     ResponseEntity<ApiResponse<Void>> cancelWaitingByOwner(Long waitingId, String phoneLast4);
 
     @Operation(summary = "대기팀 호출", description = "관리자가 대기팀을 호출합니다. SMS 발송 비동기.")
-    ResponseEntity<ApiResponse<Void>> callWaiting(Long waitingId);
+    ResponseEntity<ApiResponse<Void>> callWaiting(@Parameter(hidden = true) AdminInfo admin, Long waitingId);
 
     @Operation(summary = "입장 완료 처리")
-    ResponseEntity<ApiResponse<Void>> enterWaiting(Long waitingId);
+    ResponseEntity<ApiResponse<Void>> enterWaiting(@Parameter(hidden = true) AdminInfo admin, Long waitingId);
 
     @Operation(summary = "대기 취소 (관리자)")
-    ResponseEntity<ApiResponse<Void>> cancelWaiting(Long waitingId);
+    ResponseEntity<ApiResponse<Void>> cancelWaiting(@Parameter(hidden = true) AdminInfo admin, Long waitingId);
 
     @Operation(summary = "미방문 건너뛰기")
-    ResponseEntity<ApiResponse<Void>> skipWaiting(Long waitingId);
+    ResponseEntity<ApiResponse<Void>> skipWaiting(@Parameter(hidden = true) AdminInfo admin, Long waitingId);
 
     @Operation(summary = "대기열 중간 삽입")
-    ResponseEntity<ApiResponse<WaitingRegisterResponse>> insertWaiting(Long boothId, WaitingInsertRequest request);
+    ResponseEntity<ApiResponse<WaitingRegisterResponse>> insertWaiting(
+            @Parameter(hidden = true) AdminInfo admin, Long boothId, WaitingInsertRequest request);
 
     @Operation(summary = "대기 순서 변경")
-    ResponseEntity<ApiResponse<Void>> reorderWaiting(Long waitingId, WaitingReorderRequest request);
+    ResponseEntity<ApiResponse<Void>> reorderWaiting(
+            @Parameter(hidden = true) AdminInfo admin, Long waitingId, WaitingReorderRequest request);
 
     @Operation(summary = "부스 대기 접수 ON/OFF")
-    ResponseEntity<ApiResponse<Void>> toggleBoothWaiting(Long boothId, WaitingToggleRequest request);
+    ResponseEntity<ApiResponse<Void>> toggleBoothWaiting(
+            @Parameter(hidden = true) AdminInfo admin, Long boothId, WaitingToggleRequest request);
 
     @Operation(summary = "SMS 재발송")
-    ResponseEntity<ApiResponse<Void>> resendSms(Long waitingId);
+    ResponseEntity<ApiResponse<Void>> resendSms(@Parameter(hidden = true) AdminInfo admin, Long waitingId);
 }

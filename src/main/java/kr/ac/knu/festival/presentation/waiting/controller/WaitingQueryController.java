@@ -4,6 +4,8 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import kr.ac.knu.festival.application.waiting.WaitingQueryService;
 import kr.ac.knu.festival.domain.waiting.entity.WaitingStatus;
+import kr.ac.knu.festival.global.auth.AdminInfo;
+import kr.ac.knu.festival.global.auth.CurrentAdmin;
 import kr.ac.knu.festival.global.response.ApiResponse;
 import kr.ac.knu.festival.presentation.waiting.controller.docs.WaitingQueryControllerDocs;
 import kr.ac.knu.festival.presentation.waiting.dto.response.MyWaitingResponse;
@@ -40,7 +42,9 @@ public class WaitingQueryController implements WaitingQueryControllerDocs {
     @GetMapping("/api/v1/waitings/{waiting-id}")
     public ResponseEntity<ApiResponse<MyWaitingResponse>> getMyWaiting(
             @PathVariable("waiting-id") Long waitingId,
-            @RequestParam("phoneLast4") @NotBlank @Pattern(regexp = "^\\d{4}$", message = "전화번호 뒤 4자리를 입력해주세요.") String phoneLast4
+            @RequestParam("phoneLast4")
+            @NotBlank @Pattern(regexp = "^\\d{4}$", message = "전화번호 뒤 4자리를 입력해주세요.")
+            String phoneLast4
     ) {
         return ResponseEntity.ok(ApiResponse.success(waitingQueryService.getMyWaiting(waitingId, phoneLast4)));
     }
@@ -48,9 +52,11 @@ public class WaitingQueryController implements WaitingQueryControllerDocs {
     @Override
     @GetMapping("/admin/v1/booths/{booth-id}/waitings")
     public ResponseEntity<ApiResponse<List<WaitingResponse>>> getWaitings(
+            @CurrentAdmin AdminInfo admin,
             @PathVariable("booth-id") Long boothId,
             @RequestParam(value = "status", required = false) WaitingStatus status
     ) {
+        admin.validateBoothAccess(boothId);
         return ResponseEntity.ok(ApiResponse.success(waitingQueryService.getWaitings(boothId, status)));
     }
 }

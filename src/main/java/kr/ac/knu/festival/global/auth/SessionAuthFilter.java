@@ -1,0 +1,40 @@
+package kr.ac.knu.festival.global.auth;
+
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.stereotype.Component;
+import org.springframework.web.filter.OncePerRequestFilter;
+
+import java.io.IOException;
+import java.util.List;
+
+@Component
+public class SessionAuthFilter extends OncePerRequestFilter {
+
+    public static final String SESSION_ADMIN_KEY = "adminInfo";
+
+    @Override
+    protected void doFilterInternal(HttpServletRequest request,
+                                    HttpServletResponse response,
+                                    FilterChain filterChain) throws ServletException, IOException {
+        HttpSession session = request.getSession(false);
+        if (session != null) {
+            Object principal = session.getAttribute(SESSION_ADMIN_KEY);
+            if (principal instanceof AdminInfo adminInfo) {
+                var authentication = new UsernamePasswordAuthenticationToken(
+                        adminInfo,
+                        null,
+                        List.of(new SimpleGrantedAuthority("ROLE_" + adminInfo.role()))
+                );
+                SecurityContextHolder.getContext().setAuthentication(authentication);
+            }
+        }
+        filterChain.doFilter(request, response);
+    }
+}
