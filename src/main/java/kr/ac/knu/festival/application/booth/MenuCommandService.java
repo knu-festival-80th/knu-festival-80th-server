@@ -52,11 +52,7 @@ public class MenuCommandService {
     }
 
     private Menu findMenuOwnedByBooth(Long boothId, Long menuId) {
-        Menu menu = menuRepository.findById(menuId)
+        return menuRepository.findByIdAndBoothId(menuId, boothId)
                 .orElseThrow(() -> new BusinessException(BusinessErrorCode.MENU_NOT_FOUND));
-        if (!menu.getBooth().getId().equals(boothId)) {
-            throw new BusinessException(BusinessErrorCode.MENU_NOT_FOUND);
-        }
-        return menu;
     }
 }

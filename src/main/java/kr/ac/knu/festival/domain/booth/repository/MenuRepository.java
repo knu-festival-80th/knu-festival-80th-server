@@ -8,4 +8,6 @@ import java.util.List;
 public interface MenuRepository extends JpaRepository<Menu, Long> {
 
     List<Menu> findAllByBoothIdOrderByIdAsc(Long boothId);
+
+    java.util.Optional<Menu> findByIdAndBoothId(Long id, Long boothId);
 }

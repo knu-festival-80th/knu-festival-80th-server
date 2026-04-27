@@ -13,6 +13,7 @@
 |------|------|-----------|--------|
 | v1.0 | 2026-04-25 | 초안 작성 | - |
 | v1.1 | 2026-04-25 | 대기열 스키마 재설계, 인덱스 추가, 캐싱/WebSocket 설계 보완, 일정 제거 | - |
+| v1.2 | 2026-04-27 | 동시성 감사 반영 — waiting 에 phone_lookup_hash·version 컬럼 추가, 부스 락 기반 채번/순서 변경, booth like atomic UPDATE, like_count 인덱스, status+called_at 인덱스 | - |
 
 ---
 
@@ -122,8 +123,11 @@ CREATE TABLE booth (
     is_waiting_open BOOLEAN DEFAULT TRUE,
     created_at      DATETIME NOT NULL,
     updated_at      DATETIME NOT NULL,
-    deleted_at      DATETIME
+    deleted_at      DATETIME,
+    INDEX idx_booth_like_count (like_count)
 );
+-- like_count 는 atomic UPDATE 로 증감 (UPDATE booth SET like_count = like_count ± 1 WHERE booth_id = ?)
+-- 부스 단위 직렬화가 필요한 작업(대기 등록·중간 삽입·순서 변경·삭제)에서는 SELECT ... FOR UPDATE 사용
 ```
 
 ### 3.3 menu (메뉴)
@@ -189,27 +193,34 @@ CREATE TABLE notice (
 
 ```sql
 CREATE TABLE waiting (
-    waiting_id     BIGINT AUTO_INCREMENT PRIMARY KEY,
-    booth_id       BIGINT NOT NULL,
-    waiting_number INT NOT NULL,
-    sort_order     INT NOT NULL,
-    name           VARCHAR(50) NOT NULL,
-    party_size     INT NOT NULL,
-    phone_number   VARCHAR(100) NOT NULL,
-    status         VARCHAR(20) NOT NULL DEFAULT 'WAITING',
-    sms_sent       BOOLEAN DEFAULT FALSE,
-    called_at      DATETIME,
-    entered_at     DATETIME,
-    created_at     DATETIME NOT NULL,
-    updated_at     DATETIME NOT NULL,
-    deleted_at     DATETIME,
+    waiting_id        BIGINT AUTO_INCREMENT PRIMARY KEY,
+    booth_id          BIGINT NOT NULL,
+    waiting_number    INT NOT NULL,
+    sort_order        INT NOT NULL,
+    name              VARCHAR(50) NOT NULL,
+    party_size        INT NOT NULL,
+    phone_number      VARCHAR(100) NOT NULL,
+    phone_lookup_hash VARCHAR(64) NOT NULL,
+    status            VARCHAR(20) NOT NULL DEFAULT 'WAITING',
+    sms_sent          BOOLEAN DEFAULT FALSE,
+    called_at         DATETIME,
+    entered_at        DATETIME,
+    version           BIGINT NOT NULL DEFAULT 0,
+    created_at        DATETIME NOT NULL,
+    updated_at        DATETIME NOT NULL,
+    deleted_at        DATETIME,
     FOREIGN KEY (booth_id) REFERENCES booth(booth_id),
     INDEX idx_waiting_booth_status (booth_id, status),
-    INDEX idx_waiting_booth_sort (booth_id, sort_order)
+    INDEX idx_waiting_booth_sort (booth_id, sort_order),
+    INDEX idx_waiting_booth_lookup_status (booth_id, phone_lookup_hash, status),
+    INDEX idx_waiting_status_called_at (status, called_at)
 );
 -- status: WAITING, CALLED, ENTERED, SKIPPED, CANCELLED
--- phone_number: 암호화된 값 저장 (VARCHAR(100)으로 여유 확보)
--- sort_order: 대기열 순서 관리 (중간 삽입/순서 변경용)
+-- phone_number: AES-GCM 암호문 저장 (IV 포함). 매 등록마다 ciphertext 가 달라 직접 dedup 불가.
+-- phone_lookup_hash: HMAC-SHA256(평문 전화번호) 결정적 해시 (PHONE_LOOKUP_HASH_KEY 사용)
+--                   → 같은 부스·같은 전화번호 활성 대기 중복 검사·인덱스 검색에 사용.
+-- sort_order: 대기열 순서 관리. 중간 삽입은 단일 UPDATE 로 일괄 시프트 (부스 행 PESSIMISTIC_WRITE 전제).
+-- version: JPA @Version 낙관적 락 (스케줄러 ↔ 관리자 동시 상태 변경 충돌 감지).
 ```
 
 ### 3.7 review (리뷰)

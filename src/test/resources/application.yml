@@ -31,3 +31,4 @@ jwt:
 
 phone:
   encryption-key: test-phone-encryption-key-32bytes
+  lookup-hash-key: test-phone-lookup-hash-key-32bytes

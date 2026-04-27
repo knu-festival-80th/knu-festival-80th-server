@@ -32,6 +32,7 @@ public enum BusinessErrorCode implements ErrorCode {
     /*
      * 404 NOT_FOUND
      */
+    RESOURCE_NOT_FOUND(HttpStatus.NOT_FOUND, "C404", "요청한 리소스를 찾을 수 없습니다."),
     BOOTH_NOT_FOUND(HttpStatus.NOT_FOUND, "B001", "부스를 찾을 수 없습니다."),
     MENU_NOT_FOUND(HttpStatus.NOT_FOUND, "B002", "메뉴를 찾을 수 없습니다."),
     WAITING_NOT_FOUND(HttpStatus.NOT_FOUND, "W005", "대기 정보를 찾을 수 없습니다."),

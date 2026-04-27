@@ -5,6 +5,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.Index;
 import jakarta.persistence.Table;
 import kr.ac.knu.festival.global.base.BaseTimeEntity;
 import lombok.AccessLevel;
@@ -23,7 +24,9 @@ import java.time.LocalDateTime;
 @Builder
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
-@Table(name = "booth")
+@Table(name = "booth", indexes = {
+        @Index(name = "idx_booth_like_count", columnList = "like_count")
+})
 @SQLDelete(sql = "UPDATE booth SET deleted_at = CURRENT_TIMESTAMP WHERE booth_id = ?")
 @SQLRestriction("deleted_at IS NULL")
 public class Booth extends BaseTimeEntity {

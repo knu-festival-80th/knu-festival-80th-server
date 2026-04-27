@@ -50,7 +50,8 @@ public class BoothCommandService {
     }
 
     public void deleteBooth(Long boothId) {
-        Booth booth = boothRepository.findById(boothId)
+        // 부스 행을 잡고 active waiting 검사 → 같은 트랜잭션에서 삭제. 신규 등록과의 TOCTOU 차단.
+        Booth booth = boothRepository.findByIdForUpdate(boothId)
                 .orElseThrow(() -> new BusinessException(BusinessErrorCode.BOOTH_NOT_FOUND));
         long activeCount = waitingRepository.countByBoothIdAndStatusIn(boothId, ACTIVE_STATUSES);
         if (activeCount > 0) {
@@ -60,16 +61,19 @@ public class BoothCommandService {
     }
 
     public BoothResponse likeBooth(Long boothId) {
+        int updated = boothRepository.incrementLike(boothId);
+        if (updated == 0) {
+            throw new BusinessException(BusinessErrorCode.BOOTH_NOT_FOUND);
+        }
         Booth booth = boothRepository.findById(boothId)
                 .orElseThrow(() -> new BusinessException(BusinessErrorCode.BOOTH_NOT_FOUND));
-        booth.increaseLike();
         return BoothResponse.fromEntity(booth);
     }
 
     public BoothResponse unlikeBooth(Long boothId) {
+        boothRepository.decrementLike(boothId); // 0 미만으로 안 떨어지도록 쿼리 차원에서 가드
         Booth booth = boothRepository.findById(boothId)
                 .orElseThrow(() -> new BusinessException(BusinessErrorCode.BOOTH_NOT_FOUND));
-        booth.decreaseLike();
         return BoothResponse.fromEntity(booth);
     }
 }

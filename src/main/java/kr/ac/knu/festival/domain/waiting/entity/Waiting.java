@@ -12,6 +12,7 @@ import jakarta.persistence.Index;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import jakarta.persistence.Version;
 import kr.ac.knu.festival.domain.booth.entity.Booth;
 import kr.ac.knu.festival.global.base.BaseTimeEntity;
 import kr.ac.knu.festival.global.exception.BusinessErrorCode;
@@ -35,7 +36,9 @@ import java.time.LocalDateTime;
         name = "waiting",
         indexes = {
                 @Index(name = "idx_waiting_booth_status", columnList = "booth_id, status"),
-                @Index(name = "idx_waiting_booth_sort", columnList = "booth_id, sort_order")
+                @Index(name = "idx_waiting_booth_sort", columnList = "booth_id, sort_order"),
+                @Index(name = "idx_waiting_booth_lookup_status", columnList = "booth_id, phone_lookup_hash, status"),
+                @Index(name = "idx_waiting_status_called_at", columnList = "status, called_at")
         }
 )
 @SQLDelete(sql = "UPDATE waiting SET deleted_at = CURRENT_TIMESTAMP WHERE waiting_id = ?")
@@ -66,9 +69,16 @@ public class Waiting extends BaseTimeEntity {
     @Column(name = "phone_number", nullable = false, length = 100)
     private String phoneNumber;
 
+    @Column(name = "phone_lookup_hash", nullable = false, length = 64)
+    private String phoneLookupHash;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
     private WaitingStatus status;
+
+    @Version
+    @Column(name = "version", nullable = false)
+    private Long version;
 
     @Column(name = "sms_sent", nullable = false)
     private boolean smsSent;
@@ -88,7 +98,8 @@ public class Waiting extends BaseTimeEntity {
             int sortOrder,
             String name,
             int partySize,
-            String phoneNumber
+            String phoneNumber,
+            String phoneLookupHash
     ) {
         return Waiting.builder()
                 .booth(booth)
@@ -97,6 +108,7 @@ public class Waiting extends BaseTimeEntity {
                 .name(name)
                 .partySize(partySize)
                 .phoneNumber(phoneNumber)
+                .phoneLookupHash(phoneLookupHash)
                 .status(WaitingStatus.WAITING)
                 .smsSent(false)
                 .build();

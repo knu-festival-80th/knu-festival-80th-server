@@ -51,7 +51,8 @@ services:
       JWT_SECRET: ${JWT_SECRET:-change-me-please-at-least-32bytes-long}
       JWT_ACCESS_TOKEN_EXPIRATION: ${JWT_ACCESS_TOKEN_EXPIRATION:-3600000}
       JWT_REFRESH_TOKEN_EXPIRATION: ${JWT_REFRESH_TOKEN_EXPIRATION:-604800000}
-      PHONE_ENCRYPTION_KEY: ${PHONE_ENCRYPTION_KEY:-dev-only-fallback-key-please-change}
+      PHONE_ENCRYPTION_KEY: ${PHONE_ENCRYPTION_KEY:-dev-only-encryption-key-please-change-in-prod}
+      PHONE_LOOKUP_HASH_KEY: ${PHONE_LOOKUP_HASH_KEY:-dev-only-lookup-hash-key-please-change-in-prod}
       REDIS_HOST: redis
       REDIS_PORT: 6379
       CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-http://localhost:3000}

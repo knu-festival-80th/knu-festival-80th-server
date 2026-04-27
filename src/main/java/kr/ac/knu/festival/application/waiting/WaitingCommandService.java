@@ -7,25 +7,24 @@ import kr.ac.knu.festival.domain.waiting.entity.WaitingStatus;
 import kr.ac.knu.festival.domain.waiting.repository.WaitingRepository;
 import kr.ac.knu.festival.global.exception.BusinessErrorCode;
 import kr.ac.knu.festival.global.exception.BusinessException;
+import kr.ac.knu.festival.infra.security.PhoneLookupHasher;
 import kr.ac.knu.festival.infra.security.PhoneNumberEncryptor;
 import kr.ac.knu.festival.infra.sms.SmsSender;
 import kr.ac.knu.festival.presentation.waiting.dto.request.WaitingCreateRequest;
 import kr.ac.knu.festival.presentation.waiting.dto.request.WaitingInsertRequest;
 import kr.ac.knu.festival.presentation.waiting.dto.request.WaitingReorderRequest;
 import kr.ac.knu.festival.presentation.waiting.dto.response.WaitingRegisterResponse;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 @Slf4j
 @Service
-@RequiredArgsConstructor
 @Transactional
 public class WaitingCommandService {
 
@@ -35,21 +34,42 @@ public class WaitingCommandService {
     private final BoothRepository boothRepository;
     private final WaitingRepository waitingRepository;
     private final PhoneNumberEncryptor phoneNumberEncryptor;
+    private final PhoneLookupHasher phoneLookupHasher;
     private final SmsSender smsSender;
+    private final SmsStatusUpdater smsStatusUpdater;
+    private final ThreadPoolTaskExecutor smsExecutor;
 
-    private final ExecutorService smsExecutor = Executors.newFixedThreadPool(4);
+    public WaitingCommandService(
+            BoothRepository boothRepository,
+            WaitingRepository waitingRepository,
+            PhoneNumberEncryptor phoneNumberEncryptor,
+            PhoneLookupHasher phoneLookupHasher,
+            SmsSender smsSender,
+            SmsStatusUpdater smsStatusUpdater,
+            @Qualifier("smsExecutor") ThreadPoolTaskExecutor smsExecutor
+    ) {
+        this.boothRepository = boothRepository;
+        this.waitingRepository = waitingRepository;
+        this.phoneNumberEncryptor = phoneNumberEncryptor;
+        this.phoneLookupHasher = phoneLookupHasher;
+        this.smsSender = smsSender;
+        this.smsStatusUpdater = smsStatusUpdater;
+        this.smsExecutor = smsExecutor;
+    }
 
     public WaitingRegisterResponse registerWaiting(Long boothId, WaitingCreateRequest request) {
-        Booth booth = boothRepository.findById(boothId)
+        // 부스 행을 SELECT FOR UPDATE 로 잡아 같은 부스의 등록·중복검사·채번을 직렬화한다.
+        Booth booth = boothRepository.findByIdForUpdate(boothId)
                 .orElseThrow(() -> new BusinessException(BusinessErrorCode.BOOTH_NOT_FOUND));
         if (!booth.isWaitingOpen()) {
             throw new BusinessException(BusinessErrorCode.WAITING_REGISTRATION_CLOSED);
         }
 
         String normalizedPhone = normalizePhoneNumber(request.phoneNumber());
+        String lookupHash = phoneLookupHasher.hash(normalizedPhone);
         String encryptedPhone = phoneNumberEncryptor.encrypt(normalizedPhone);
 
-        waitingRepository.findFirstByBoothIdAndPhoneNumberAndStatusIn(boothId, encryptedPhone, ACTIVE_STATUSES)
+        waitingRepository.findFirstActiveByBoothAndPhoneLookupHash(boothId, lookupHash, ACTIVE_STATUSES)
                 .ifPresent(existing -> {
                     throw new BusinessException(BusinessErrorCode.DUPLICATE_WAITING);
                 });
@@ -57,15 +77,10 @@ public class WaitingCommandService {
         int nextNumber = waitingRepository.findMaxWaitingNumberByBoothId(boothId) + 1;
         int nextSortOrder = waitingRepository.findMaxSortOrderByBoothId(boothId) + 1;
 
-        Waiting waiting = Waiting.createWaiting(
-                booth,
-                nextNumber,
-                nextSortOrder,
-                request.name(),
-                request.partySize(),
-                encryptedPhone
-        );
-        Waiting saved = waitingRepository.save(waiting);
+        Waiting saved = waitingRepository.save(Waiting.createWaiting(
+                booth, nextNumber, nextSortOrder,
+                request.name(), request.partySize(), encryptedPhone, lookupHash
+        ));
 
         long currentWaitingTeams = waitingRepository.countByBoothIdAndStatusIn(boothId, ACTIVE_STATUSES);
         int estimatedWaitMinutes = Math.max(0, (int) (currentWaitingTeams - 1)) * MINUTES_PER_TEAM;
@@ -107,35 +122,26 @@ public class WaitingCommandService {
     }
 
     public WaitingRegisterResponse insertWaiting(Long boothId, WaitingInsertRequest request) {
-        Booth booth = boothRepository.findById(boothId)
+        Booth booth = boothRepository.findByIdForUpdate(boothId)
                 .orElseThrow(() -> new BusinessException(BusinessErrorCode.BOOTH_NOT_FOUND));
 
         String normalizedPhone = normalizePhoneNumber(request.phoneNumber());
+        String lookupHash = phoneLookupHasher.hash(normalizedPhone);
         String encryptedPhone = phoneNumberEncryptor.encrypt(normalizedPhone);
 
-        waitingRepository.findFirstByBoothIdAndPhoneNumberAndStatusIn(boothId, encryptedPhone, ACTIVE_STATUSES)
+        waitingRepository.findFirstActiveByBoothAndPhoneLookupHash(boothId, lookupHash, ACTIVE_STATUSES)
                 .ifPresent(existing -> {
                     throw new BusinessException(BusinessErrorCode.DUPLICATE_WAITING);
                 });
 
-        List<Waiting> all = waitingRepository.findAllByBoothIdOrderBySortOrderAsc(boothId);
         int insertAt = request.insertAfterSortOrder();
-        for (Waiting w : all) {
-            if (w.getSortOrder() > insertAt) {
-                w.updateSortOrder(w.getSortOrder() + 1);
-            }
-        }
+        waitingRepository.shiftSortOrdersUp(boothId, insertAt); // 단일 UPDATE 로 일괄 시프트
 
         int nextNumber = waitingRepository.findMaxWaitingNumberByBoothId(boothId) + 1;
-        Waiting waiting = Waiting.createWaiting(
-                booth,
-                nextNumber,
-                insertAt + 1,
-                request.name(),
-                request.partySize(),
-                encryptedPhone
-        );
-        Waiting saved = waitingRepository.save(waiting);
+        Waiting saved = waitingRepository.save(Waiting.createWaiting(
+                booth, nextNumber, insertAt + 1,
+                request.name(), request.partySize(), encryptedPhone, lookupHash
+        ));
 
         long currentWaitingTeams = waitingRepository.countByBoothIdAndStatusIn(boothId, ACTIVE_STATUSES);
         int estimatedWaitMinutes = Math.max(0, (int) (currentWaitingTeams - 1)) * MINUTES_PER_TEAM;
@@ -146,6 +152,10 @@ public class WaitingCommandService {
         Waiting target = waitingRepository.findById(waitingId)
                 .orElseThrow(() -> new BusinessException(BusinessErrorCode.WAITING_NOT_FOUND));
         Long boothId = target.getBooth().getId();
+        // 부스 락으로 같은 부스의 reorder/insert 직렬화
+        boothRepository.findByIdForUpdate(boothId)
+                .orElseThrow(() -> new BusinessException(BusinessErrorCode.BOOTH_NOT_FOUND));
+
         int oldOrder = target.getSortOrder();
         int newOrder = request.newSortOrder();
         if (oldOrder == newOrder) {
@@ -193,17 +203,13 @@ public class WaitingCommandService {
         CompletableFuture.runAsync(() -> {
             boolean success = smsSender.send(plainPhone, message);
             if (success) {
-                markSmsSent(waitingId);
+                // 별도 빈을 통해 호출 → Spring AOP 프록시로 진입해 @Transactional 적용
+                smsStatusUpdater.markSent(waitingId);
             }
         }, smsExecutor).exceptionally(ex -> {
             log.warn("SMS dispatch failed for waiting {}: {}", waitingId, ex.getMessage());
             return null;
         });
-    }
-
-    @Transactional
-    public void markSmsSent(Long waitingId) {
-        waitingRepository.findById(waitingId).ifPresent(Waiting::markSmsSent);
     }
 
     private String normalizePhoneNumber(String phoneNumber) {

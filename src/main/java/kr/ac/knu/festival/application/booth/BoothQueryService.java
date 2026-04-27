@@ -16,7 +16,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -24,7 +26,6 @@ import java.util.List;
 public class BoothQueryService {
 
     private static final List<WaitingStatus> ACTIVE_STATUSES = List.of(WaitingStatus.WAITING, WaitingStatus.CALLED);
-    private static final String SORT_LIKES = "likes";
     private static final String SORT_WAITING_ASC = "waiting-asc";
 
     private final BoothRepository boothRepository;
@@ -33,11 +34,12 @@ public class BoothQueryService {
 
     public List<BoothListResponse> getBooths(String sort) {
         List<Booth> booths = boothRepository.findAllByOrderByLikeCountDescIdAsc();
+        Map<Long, Long> activeCountByBoothId = loadActiveCountMap();
 
         List<BoothListResponse> responses = booths.stream()
                 .map(booth -> BoothListResponse.fromEntity(
                         booth,
-                        waitingRepository.countByBoothIdAndStatusIn(booth.getId(), ACTIVE_STATUSES)))
+                        activeCountByBoothId.getOrDefault(booth.getId(), 0L)))
                 .toList();
 
         if (SORT_WAITING_ASC.equalsIgnoreCase(sort)) {
@@ -46,7 +48,6 @@ public class BoothQueryService {
                             .thenComparing(Comparator.comparingInt(BoothListResponse::likeCount).reversed()))
                     .toList();
         }
-        // SORT_LIKES (기본)
         return responses;
     }
 
@@ -62,5 +63,13 @@ public class BoothQueryService {
         return boothRepository.findAll().stream()
                 .map(BoothMapResponse::fromEntity)
                 .toList();
+    }
+
+    private Map<Long, Long> loadActiveCountMap() {
+        Map<Long, Long> map = new HashMap<>();
+        for (Object[] row : waitingRepository.countActiveByBooth(ACTIVE_STATUSES)) {
+            map.put((Long) row[0], (Long) row[1]);
+        }
+        return map;
     }
 }

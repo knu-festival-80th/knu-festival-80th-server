@@ -27,12 +27,16 @@ public class AesPhoneNumberEncryptor implements PhoneNumberEncryptor {
     private final String secretKey;
     private SecretKeySpec keySpec;
 
-    public AesPhoneNumberEncryptor(@Value("${phone.encryption-key:${PHONE_ENCRYPTION_KEY:dev-only-fallback-key-32bytes!!}}") String secretKey) {
+    public AesPhoneNumberEncryptor(@Value("${phone.encryption-key:${PHONE_ENCRYPTION_KEY:}}") String secretKey) {
         this.secretKey = secretKey;
     }
 
     @PostConstruct
     void init() {
+        if (secretKey == null || secretKey.isBlank()) {
+            throw new IllegalStateException(
+                    "PHONE_ENCRYPTION_KEY 가 설정되지 않았습니다. 전화번호 암호화 키는 필수 환경변수입니다.");
+        }
         try {
             byte[] key = MessageDigest.getInstance("SHA-256").digest(secretKey.getBytes(StandardCharsets.UTF_8));
             this.keySpec = new SecretKeySpec(key, "AES");

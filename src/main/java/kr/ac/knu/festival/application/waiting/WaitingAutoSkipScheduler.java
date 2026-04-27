@@ -1,7 +1,5 @@
 package kr.ac.knu.festival.application.waiting;
 
-import kr.ac.knu.festival.domain.waiting.entity.Waiting;
-import kr.ac.knu.festival.domain.waiting.entity.WaitingStatus;
 import kr.ac.knu.festival.domain.waiting.repository.WaitingRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -10,7 +8,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
 @Slf4j
 @Component
@@ -25,17 +22,9 @@ public class WaitingAutoSkipScheduler {
     @Transactional
     public void autoSkipExpiredCalls() {
         LocalDateTime threshold = LocalDateTime.now().minusMinutes(SKIP_THRESHOLD_MINUTES);
-        List<Waiting> expired = waitingRepository.findAllByStatusAndCalledAtBefore(WaitingStatus.CALLED, threshold);
-        if (expired.isEmpty()) {
-            return;
-        }
-        log.info("Auto-skipping {} expired waitings", expired.size());
-        for (Waiting waiting : expired) {
-            try {
-                waiting.markSkipped();
-            } catch (Exception e) {
-                log.warn("Auto-skip failed for waiting {}: {}", waiting.getId(), e.getMessage());
-            }
+        int skipped = waitingRepository.skipExpiredCalls(threshold);
+        if (skipped > 0) {
+            log.info("Auto-skipped {} expired waitings (threshold={})", skipped, threshold);
         }
     }
 }

@@ -18,4 +18,5 @@ public record BoothMapResponse(
                 booth.getLocationLng()
         );
     }
+
 }
