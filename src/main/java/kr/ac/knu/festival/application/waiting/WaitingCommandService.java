@@ -91,6 +91,15 @@ public class WaitingCommandService {
         waiting.markCancelled();
     }
 
+    public void cancelWaitingByOwner(Long waitingId, String phoneLast4) {
+        Waiting waiting = waitingRepository.findById(waitingId)
+                .orElseThrow(() -> new BusinessException(BusinessErrorCode.WAITING_NOT_FOUND));
+        if (!phoneNumberEncryptor.matchesLast4(waiting.getPhoneNumber(), phoneLast4)) {
+            throw new BusinessException(BusinessErrorCode.PHONE_VERIFICATION_FAILED);
+        }
+        waiting.markCancelled();
+    }
+
     public void skipWaiting(Long waitingId) {
         Waiting waiting = waitingRepository.findById(waitingId)
                 .orElseThrow(() -> new BusinessException(BusinessErrorCode.WAITING_NOT_FOUND));
