@@ -1,9 +1,12 @@
-HELP.md
+### Gradle ###
 .gradle
 build/
 !gradle/wrapper/gradle-wrapper.jar
 !**/src/main/**/build/
 !**/src/test/**/build/
+
+### Spring Boot ###
+HELP.md
 
 ### STS ###
 .apt_generated
@@ -18,13 +21,17 @@ bin/
 !**/src/test/**/bin/
 
 ### IntelliJ IDEA ###
-.idea
+.idea/
 *.iws
 *.iml
 *.ipr
 out/
 !**/src/main/**/out/
 !**/src/test/**/out/
+
+### Eclipse ###
+.metadata
+.recommenders
 
 ### NetBeans ###
 /nbproject/private/
@@ -36,13 +43,37 @@ out/
 ### VS Code ###
 .vscode/
 
-### Env ###
-.env
-*.env.local
-
 ### macOS ###
 .DS_Store
+**/.DS_Store
+
+### Windows ###
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+### Linux ###
+*~
+
+### Env / Secrets ###
+.env
+.env.*
+!.env.example
 
 ### Logs ###
 *.log
 logs/
+
+### Docker ###
+docker-compose.override.yml
+
+### Package managers ###
+node_modules/
+
+### Temporary / OS ###
+*.swp
+*.swo
+*.tmp
+*.bak
+*.orig
+\#*\#
