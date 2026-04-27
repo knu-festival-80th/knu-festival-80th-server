@@ -45,3 +45,12 @@ global/                 → 공통 컴포넌트 (auth, base, config, exception)
 ## 네이밍
 - 클래스: PascalCase / 메서드·변수: camelCase / 상수: UPPER_SNAKE_CASE
 - DB 컬럼·테이블: snake_case / URL: kebab-case / 환경변수: UPPER_SNAKE_CASE
+
+## 문서 갱신 규칙
+- 사용자 요구·API·비즈니스 규칙·DB 스키마·비기능 요건이 바뀌면 `docs/` 의 관련 문서를 같은 PR에서 함께 갱신
+- 갱신 시 해당 문서 상단의 **변경 이력** 표에 새 행 추가
+  - 컬럼 고정: `버전 | 날짜 | 변경 내용 | 변경자`, 날짜는 `YYYY-MM-DD`
+  - 버전 증가 기준: 표현·오타·서식만 = patch (v1.2.1), API·규칙 추가/변경/삭제 = minor (v1.3), 문서 구조 개편 = major (v2.0)
+  - 변경자: GitHub 핸들 또는 이름, 미상이면 `-`
+- 단순 코드 리팩토링·내부 버그 수정처럼 외부 계약이 바뀌지 않으면 문서 갱신 불필요
+- 자세한 가이드는 `docs/README.md` 의 "문서 갱신 규칙" 섹션 참조
