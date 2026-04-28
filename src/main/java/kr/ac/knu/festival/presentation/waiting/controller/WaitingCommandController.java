@@ -1,8 +1,6 @@
 package kr.ac.knu.festival.presentation.waiting.controller;
 
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Pattern;
 import kr.ac.knu.festival.application.waiting.WaitingCommandService;
 import kr.ac.knu.festival.domain.waiting.entity.Waiting;
 import kr.ac.knu.festival.domain.waiting.repository.WaitingRepository;
@@ -20,7 +18,7 @@ import kr.ac.knu.festival.presentation.waiting.dto.response.WaitingRegisterRespo
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.validation.annotation.Validated;
+
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -32,7 +30,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequiredArgsConstructor
-@Validated
 @RequestMapping
 public class WaitingCommandController implements WaitingCommandControllerDocs {
 
@@ -53,9 +50,7 @@ public class WaitingCommandController implements WaitingCommandControllerDocs {
     @DeleteMapping("/api/v1/waitings/{waiting-id}")
     public ResponseEntity<ApiResponse<Void>> cancelWaitingByOwner(
             @PathVariable("waiting-id") Long waitingId,
-            @RequestParam("phoneLast4")
-            @NotBlank @Pattern(regexp = "^\\d{4}$", message = "전화번호 뒤 4자리를 입력해주세요.")
-            String phoneLast4
+            @RequestParam("phoneLast4") String phoneLast4
     ) {
         waitingCommandService.cancelWaitingByOwner(waitingId, phoneLast4);
         return ResponseEntity.ok(ApiResponse.success());
