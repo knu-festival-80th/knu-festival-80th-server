@@ -18,13 +18,22 @@ public record BoothListResponse(
         long currentWaitingTeams
 ) {
     public static BoothListResponse fromEntity(Booth booth, long currentWaitingTeams, ImageUrlResolver urls) {
+        return fromEntity(booth, currentWaitingTeams, booth.getLikeCount(), urls);
+    }
+
+    public static BoothListResponse fromEntity(
+            Booth booth,
+            long currentWaitingTeams,
+            int likeCount,
+            ImageUrlResolver urls
+    ) {
         return new BoothListResponse(
                 booth.getId(),
                 booth.getName(),
                 booth.getDescription(),
                 booth.getXRatio(),
                 booth.getYRatio(),
-                booth.getLikeCount(),
+                likeCount,
                 urls.toPublicUrl(booth.getImageUrl()),
                 urls.toPublicUrl(booth.getMenuBoardImageUrl()),
                 booth.isWaitingOpen(),

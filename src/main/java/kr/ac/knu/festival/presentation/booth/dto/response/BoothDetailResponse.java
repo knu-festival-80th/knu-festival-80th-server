@@ -26,13 +26,23 @@ public record BoothDetailResponse(
             long currentWaitingTeams,
             ImageUrlResolver urls
     ) {
+        return of(booth, menus, currentWaitingTeams, booth.getLikeCount(), urls);
+    }
+
+    public static BoothDetailResponse of(
+            Booth booth,
+            List<Menu> menus,
+            long currentWaitingTeams,
+            int likeCount,
+            ImageUrlResolver urls
+    ) {
         return new BoothDetailResponse(
                 booth.getId(),
                 booth.getName(),
                 booth.getDescription(),
                 booth.getXRatio(),
                 booth.getYRatio(),
-                booth.getLikeCount(),
+                likeCount,
                 urls.toPublicUrl(booth.getImageUrl()),
                 urls.toPublicUrl(booth.getMenuBoardImageUrl()),
                 booth.isWaitingOpen(),
