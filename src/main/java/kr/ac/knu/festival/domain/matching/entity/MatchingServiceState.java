@@ -21,6 +21,7 @@ import lombok.NoArgsConstructor;
 @Table(name = "matching_service_state")
 public class MatchingServiceState extends BaseTimeEntity {
 
+    // 서비스 전체의 OPEN/PAUSED 상태를 저장하는 단일 행 ID.
     public static final long SINGLETON_ID = 1L;
 
     @Id
