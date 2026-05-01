@@ -1,0 +1,54 @@
+package kr.ac.knu.festival.domain.matching.entity;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+import kr.ac.knu.festival.global.base.BaseTimeEntity;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+
+@Entity
+@Getter
+@Builder
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
+@Table(name = "matching_service_state")
+public class MatchingServiceState extends BaseTimeEntity {
+
+    public static final long SINGLETON_ID = 1L;
+
+    @Id
+    @Column(name = "state_id")
+    private Long id;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 20)
+    private MatchingOperationStatus status;
+
+    @Column(name = "message_ko", length = 255)
+    private String messageKo;
+
+    @Column(name = "message_en", length = 255)
+    private String messageEn;
+
+    public static MatchingServiceState defaultOpen() {
+        return MatchingServiceState.builder()
+                .id(SINGLETON_ID)
+                .status(MatchingOperationStatus.OPEN)
+                .messageKo("매칭 신청이 가능합니다.")
+                .messageEn("Matching is open.")
+                .build();
+    }
+
+    public void changeStatus(MatchingOperationStatus status, String messageKo, String messageEn) {
+        this.status = status;
+        this.messageKo = messageKo;
+        this.messageEn = messageEn;
+    }
+}
