@@ -63,11 +63,13 @@ public class MatchingCommandService {
     }
 
     public MatchingJobResponse runMatchingJob() {
+        // Time Drop 실행 중 같은 PENDING 참가자가 중복 매칭되지 않도록 성별별 행 락을 잡는다.
         List<MatchingParticipant> males = matchingParticipantRepository.findAllByStatusAndGenderForUpdate(
                 MatchingParticipantStatus.PENDING, MatchingGender.MALE);
         List<MatchingParticipant> females = matchingParticipantRepository.findAllByStatusAndGenderForUpdate(
                 MatchingParticipantStatus.PENDING, MatchingGender.FEMALE);
 
+        // 명세상 성별 한쪽이 70% 이상이면 매칭을 멈추고 상태 API로 안내 메시지를 노출한다.
         if (pauseWhenGenderImbalanced(males.size(), females.size())) {
             return new MatchingJobResponse(0, males.size() + females.size());
         }
@@ -83,6 +85,7 @@ public class MatchingCommandService {
             female.matchWith(male.getInstagramId());
         }
 
+        // 남녀 수가 맞지 않아 남은 참가자는 공개 목록 API에서 조회할 수 있도록 UNMATCHED로 전환한다.
         for (int i = pairCount; i < males.size(); i++) {
             males.get(i).markUnmatched();
         }
@@ -113,6 +116,7 @@ public class MatchingCommandService {
     }
 
     private MatchingServiceState getOrCreateState() {
+        // 운영 상태는 전역 값 하나만 필요하므로 state_id=1 단일 행으로 관리한다.
         return matchingServiceStateRepository.findById(MatchingServiceState.SINGLETON_ID)
                 .orElseGet(() -> matchingServiceStateRepository.save(MatchingServiceState.defaultOpen()));
     }
