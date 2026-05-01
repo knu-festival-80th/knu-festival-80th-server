@@ -13,6 +13,7 @@ import java.util.List;
 
 public interface MatchingParticipantRepository extends JpaRepository<MatchingParticipant, String> {
 
+    // 일괄 매칭은 PENDING 참가자를 상태 변경하므로 트랜잭션 안에서 SELECT FOR UPDATE로 직렬화한다.
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("""
             SELECT p FROM MatchingParticipant p
