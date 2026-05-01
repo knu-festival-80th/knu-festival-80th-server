@@ -17,13 +17,17 @@ public record BoothResponse(
         boolean waitingOpen
 ) {
     public static BoothResponse fromEntity(Booth booth, ImageUrlResolver urls) {
+        return fromEntity(booth, booth.getLikeCount(), urls);
+    }
+
+    public static BoothResponse fromEntity(Booth booth, int likeCount, ImageUrlResolver urls) {
         return new BoothResponse(
                 booth.getId(),
                 booth.getName(),
                 booth.getDescription(),
                 booth.getXRatio(),
                 booth.getYRatio(),
-                booth.getLikeCount(),
+                likeCount,
                 urls.toPublicUrl(booth.getImageUrl()),
                 urls.toPublicUrl(booth.getMenuBoardImageUrl()),
                 booth.isWaitingOpen()
