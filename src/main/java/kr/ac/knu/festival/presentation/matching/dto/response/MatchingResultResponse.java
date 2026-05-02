@@ -13,6 +13,7 @@ public record MatchingResultResponse(
         String messageEn
 ) {
     public static MatchingResultResponse hidden(MatchingParticipant participant) {
+        // 공개 전 응답도 동일한 DTO를 쓰면 프론트가 잠금/공개 화면을 같은 API로 처리할 수 있다.
         return new MatchingResultResponse(
                 participant.getInstagramId(),
                 participant.getStatus(),
@@ -26,6 +27,7 @@ public record MatchingResultResponse(
 
     public static MatchingResultResponse fromEntity(MatchingParticipant participant) {
         String matchedId = participant.getMatchedId();
+        // Instagram 딥링크는 프론트가 별도 규칙을 중복 구현하지 않도록 서버에서 함께 내려준다.
         return new MatchingResultResponse(
                 participant.getInstagramId(),
                 participant.getStatus(),

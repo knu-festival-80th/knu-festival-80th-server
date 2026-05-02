@@ -33,6 +33,7 @@ public class MatchingQueryService {
     private final MatchingRateLimiter matchingRateLimiter;
 
     public MatchingResultResponse getResult(MatchingAuthRequest request, String clientIp) {
+        // 결과 조회는 비밀번호 기반이라 brute force 대상이 되기 쉽다. 검증 전에 IP별 실패 횟수를 먼저 확인한다.
         matchingRateLimiter.validateAllowed(clientIp);
         MatchingParticipant participant = matchingParticipantRepository.findById(normalizeInstagramId(request.instagramId()))
                 .orElseThrow(() -> {
@@ -45,6 +46,7 @@ public class MatchingQueryService {
         }
         matchingRateLimiter.reset(clientIp);
         if (!matchingScheduleProperties.isResultOpen()) {
+            // 결과 공개 전에는 본인 인증이 성공해도 상대 ID를 절대 내려주지 않는다.
             return MatchingResultResponse.hidden(participant);
         }
         matchingRealtimeCache.cacheParticipantResult(participant);
@@ -54,6 +56,7 @@ public class MatchingQueryService {
     public MatchingStatusResponse getStatus() {
         Map<Object, Object> cachedStatus = matchingRealtimeCache.getStatus();
         if (!cachedStatus.isEmpty()) {
+            // 캐시는 카운트와 안내 문구만 재사용하고, 시간 기반 open 여부는 현재 시각으로 다시 계산한다.
             Map<Object, Object> cachedCounts = matchingRealtimeCache.getParticipantCounts();
             return MatchingStatusResponse.of(
                     matchingServiceStateRepository.findById(MatchingServiceState.SINGLETON_ID)
@@ -88,6 +91,7 @@ public class MatchingQueryService {
 
     public UnmatchedParticipantsResponse getUnmatchedParticipants() {
         if (!matchingScheduleProperties.isResultOpen()) {
+            // 미매칭 목록도 결과의 일부라 22시 전에는 빈 목록만 내려 프론트 노출 실수를 막는다.
             return UnmatchedParticipantsResponse.hidden(matchingScheduleProperties.resultOpenAt().toString());
         }
 

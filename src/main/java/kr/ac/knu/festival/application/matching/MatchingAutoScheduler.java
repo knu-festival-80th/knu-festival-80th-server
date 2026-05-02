@@ -21,6 +21,7 @@ public class MatchingAutoScheduler {
     public void runAfterRegistrationDeadline() {
         // 현재 기본 정책은 2026-05-21 21:00(KST) 신청 마감, 22:00(KST) 결과 공개다.
         // 시간은 추후 matching.registration-deadline / matching.result-open-at 환경값으로 바꾸면 된다.
+        // 21~22시 사이에 서버가 재시작될 수 있으므로, 한 번만 실행하지 않고 주기적으로 PENDING 여부를 확인한다.
         if (!matchingScheduleProperties.isRegistrationClosed()) {
             return;
         }
@@ -30,6 +31,7 @@ public class MatchingAutoScheduler {
             return;
         }
 
+        // runMatchingJob()은 PENDING만 대상으로 삼기 때문에 반복 호출되어도 이미 매칭된 참가자는 다시 섞이지 않는다.
         MatchingJobResponse result = matchingCommandService.runMatchingJob();
         log.info(
                 "Auto matching job finished: pendingBefore={}, matchedPairCount={}, unmatchedCount={}",

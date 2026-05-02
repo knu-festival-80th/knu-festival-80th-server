@@ -23,6 +23,7 @@ public class MatchingRateLimiter {
     private final Map<String, LocalAttempt> localAttempts = new ConcurrentHashMap<>();
 
     public void validateAllowed(String clientIp) {
+        // 허용 횟수를 넘은 IP는 DB 조회 전에 차단해 존재하는 Instagram ID를 추측하기 어렵게 한다.
         if (getFailureCount(clientIp) >= MAX_FAILURE_COUNT) {
             throw new MatchingRateLimitException();
         }
@@ -75,6 +76,7 @@ public class MatchingRateLimiter {
     }
 
     private void recordLocalFailure(String clientIp) {
+        // 테스트/로컬 실행처럼 Redis가 없는 환경에서도 같은 보안 정책을 유지하기 위한 fallback이다.
         localAttempts.compute(clientIp, (key, existing) -> {
             if (existing == null || existing.isExpired()) {
                 return new LocalAttempt(1, Instant.now().plus(WINDOW));

@@ -59,6 +59,7 @@ public class MatchingRealtimeCache {
             return;
         }
         try {
+            // 개별 결과도 캐시에 둬서 결과 공개 직후 프론트가 빠르게 최신 상태를 확인할 수 있게 한다.
             redisTemplate.opsForHash().putAll(RESULT_KEY_PREFIX + participant.getInstagramId(), Map.of(
                     "status", participant.getStatus().name(),
                     "matchedId", participant.getMatchedId() == null ? "" : participant.getMatchedId()
