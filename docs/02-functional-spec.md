@@ -304,7 +304,8 @@
 {
   "instagramId": "user_id",
   "gender": "MALE",
-  "password": "1234"
+  "password": "1234",
+  "nationality": "KR"
 }
 ```
 
