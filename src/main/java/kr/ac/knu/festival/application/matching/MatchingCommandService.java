@@ -77,6 +77,7 @@ public class MatchingCommandService {
 
     public MatchingJobResponse runMatchingJob() {
         // Time Drop 실행 중 같은 PENDING 참가자가 중복 매칭되지 않도록 성별별 행 락을 잡는다.
+        // 자동 스케줄러와 관리자 수동 실행이 겹쳐도 한 트랜잭션만 같은 참가자를 처리하게 하기 위한 선택이다.
         List<MatchingParticipant> males = matchingParticipantRepository.findAllByStatusAndGenderForUpdate(
                 MatchingParticipantStatus.PENDING, MatchingGender.MALE);
         List<MatchingParticipant> females = matchingParticipantRepository.findAllByStatusAndGenderForUpdate(
@@ -144,6 +145,7 @@ public class MatchingCommandService {
         if (total == 0) {
             return false;
         }
+        // 70% 이상 쏠린 상태에서 억지로 매칭하면 한쪽의 미매칭 경험이 커지므로 운영 상태를 PAUSED로 바꾼다.
         if ((double) Math.max(maleCount, femaleCount) / total >= 0.7) {
             MatchingServiceState state = getOrCreateState();
             state.changeStatus(
@@ -184,6 +186,7 @@ public class MatchingCommandService {
     }
 
     private MatchingStatusResponse refreshRealtimeStatus(MatchingServiceState state) {
+        // 상태 API는 프론트가 자주 폴링할 수 있으므로, DB 상태를 계산한 직후 Redis 캐시도 같이 갱신한다.
         long pendingCount = matchingParticipantRepository.countByStatus(MatchingParticipantStatus.PENDING);
         long matchedCount = matchingParticipantRepository.countByStatus(MatchingParticipantStatus.MATCHED);
         long unmatchedCount = matchingParticipantRepository.countByStatus(MatchingParticipantStatus.UNMATCHED);
