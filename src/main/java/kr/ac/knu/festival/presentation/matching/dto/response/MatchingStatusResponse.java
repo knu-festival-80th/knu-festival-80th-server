@@ -6,9 +6,36 @@ import kr.ac.knu.festival.domain.matching.entity.MatchingServiceState;
 public record MatchingStatusResponse(
         MatchingOperationStatus status,
         String messageKo,
-        String messageEn
+        String messageEn,
+        boolean registrationOpen,
+        boolean resultOpen,
+        String registrationDeadline,
+        String resultOpenAt,
+        long pendingCount,
+        long matchedCount,
+        long unmatchedCount
 ) {
-    public static MatchingStatusResponse fromEntity(MatchingServiceState state) {
-        return new MatchingStatusResponse(state.getStatus(), state.getMessageKo(), state.getMessageEn());
+    public static MatchingStatusResponse of(
+            MatchingServiceState state,
+            boolean registrationOpen,
+            boolean resultOpen,
+            String registrationDeadline,
+            String resultOpenAt,
+            long pendingCount,
+            long matchedCount,
+            long unmatchedCount
+    ) {
+        return new MatchingStatusResponse(
+                state.getStatus(),
+                state.getMessageKo(),
+                state.getMessageEn(),
+                registrationOpen,
+                resultOpen,
+                registrationDeadline,
+                resultOpenAt,
+                pendingCount,
+                matchedCount,
+                unmatchedCount
+        );
     }
 }

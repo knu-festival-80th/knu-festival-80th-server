@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -26,6 +27,8 @@ public class MatchingQueryService {
     private final MatchingParticipantRepository matchingParticipantRepository;
     private final MatchingServiceStateRepository matchingServiceStateRepository;
     private final PasswordEncoder passwordEncoder;
+    private final MatchingScheduleProperties matchingScheduleProperties;
+    private final MatchingRealtimeCache matchingRealtimeCache;
 
     public MatchingResultResponse getResult(MatchingAuthRequest request) {
         MatchingParticipant participant = matchingParticipantRepository.findById(normalizeInstagramId(request.instagramId()))
@@ -33,13 +36,46 @@ public class MatchingQueryService {
         if (!passwordEncoder.matches(request.password(), participant.getPassword())) {
             throw new BusinessException(BusinessErrorCode.UNAUTHORIZED_USER);
         }
+        if (!matchingScheduleProperties.isResultOpen()) {
+            return MatchingResultResponse.hidden(participant);
+        }
+        matchingRealtimeCache.cacheParticipantResult(participant);
         return MatchingResultResponse.fromEntity(participant);
     }
 
     public MatchingStatusResponse getStatus() {
+        Map<Object, Object> cachedStatus = matchingRealtimeCache.getStatus();
+        if (!cachedStatus.isEmpty()) {
+            Map<Object, Object> cachedCounts = matchingRealtimeCache.getParticipantCounts();
+            return MatchingStatusResponse.of(
+                    matchingServiceStateRepository.findById(MatchingServiceState.SINGLETON_ID)
+                            .orElse(MatchingServiceState.defaultOpen()),
+                    matchingScheduleProperties.isRegistrationOpen(),
+                    matchingScheduleProperties.isResultOpen(),
+                    valueOf(cachedStatus, "registrationDeadline"),
+                    valueOf(cachedStatus, "resultOpenAt"),
+                    longValueOf(cachedCounts, "pending"),
+                    longValueOf(cachedCounts, "matched"),
+                    longValueOf(cachedCounts, "unmatched")
+            );
+        }
+
         MatchingServiceState state = matchingServiceStateRepository.findById(MatchingServiceState.SINGLETON_ID)
                 .orElse(MatchingServiceState.defaultOpen());
-        return MatchingStatusResponse.fromEntity(state);
+        long pendingCount = matchingParticipantRepository.countByStatus(MatchingParticipantStatus.PENDING);
+        long matchedCount = matchingParticipantRepository.countByStatus(MatchingParticipantStatus.MATCHED);
+        long unmatchedCount = matchingParticipantRepository.countByStatus(MatchingParticipantStatus.UNMATCHED);
+        matchingRealtimeCache.cacheStatus(state, matchingScheduleProperties, pendingCount, matchedCount, unmatchedCount);
+        return MatchingStatusResponse.of(
+                state,
+                state.getStatus().name().equals("OPEN") && matchingScheduleProperties.isRegistrationOpen(),
+                matchingScheduleProperties.isResultOpen(),
+                matchingScheduleProperties.registrationDeadline().toString(),
+                matchingScheduleProperties.resultOpenAt().toString(),
+                pendingCount,
+                matchedCount,
+                unmatchedCount
+        );
     }
 
     public List<UnmatchedParticipantResponse> getUnmatchedParticipants() {
@@ -50,5 +86,18 @@ public class MatchingQueryService {
 
     private String normalizeInstagramId(String instagramId) {
         return instagramId.trim().replaceFirst("^@", "").toLowerCase();
+    }
+
+    private String valueOf(Map<Object, Object> values, String key) {
+        Object value = values.get(key);
+        return value == null ? "" : value.toString();
+    }
+
+    private long longValueOf(Map<Object, Object> values, String key) {
+        String value = valueOf(values, key);
+        if (value.isBlank()) {
+            return 0L;
+        }
+        return Long.parseLong(value);
     }
 }

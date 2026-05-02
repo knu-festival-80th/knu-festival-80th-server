@@ -33,10 +33,12 @@ public class MatchingCommandService {
     private final MatchingParticipantRepository matchingParticipantRepository;
     private final MatchingServiceStateRepository matchingServiceStateRepository;
     private final PasswordEncoder passwordEncoder;
+    private final MatchingScheduleProperties matchingScheduleProperties;
+    private final MatchingRealtimeCache matchingRealtimeCache;
 
     public MatchingRegisterResponse register(MatchingCreateRequest request) {
         MatchingServiceState state = getOrCreateState();
-        if (state.getStatus() != MatchingOperationStatus.OPEN) {
+        if (state.getStatus() != MatchingOperationStatus.OPEN || !matchingScheduleProperties.isRegistrationOpen()) {
             throw new BusinessException(BusinessErrorCode.INVALID_INPUT_VALUE);
         }
 
@@ -53,7 +55,14 @@ public class MatchingCommandService {
                 passwordEncoder.encode(request.password()),
                 normalizeNationality(request.nationality())
         );
-        return MatchingRegisterResponse.fromEntity(matchingParticipantRepository.save(participant));
+        MatchingParticipant saved = matchingParticipantRepository.save(participant);
+        matchingRealtimeCache.cacheParticipantResult(saved);
+        refreshRealtimeStatus(state);
+        return MatchingRegisterResponse.fromEntity(
+                saved,
+                matchingScheduleProperties.registrationDeadline().toString(),
+                matchingScheduleProperties.resultOpenAt().toString()
+        );
     }
 
     public void cancel(MatchingAuthRequest request) {
@@ -62,6 +71,8 @@ public class MatchingCommandService {
             throw new BusinessException(BusinessErrorCode.INVALID_INPUT_VALUE);
         }
         participant.cancel();
+        matchingRealtimeCache.cacheParticipantResult(participant);
+        refreshRealtimeStatus(getOrCreateState());
     }
 
     public MatchingJobResponse runMatchingJob() {
@@ -85,16 +96,21 @@ public class MatchingCommandService {
             MatchingParticipant female = females.get(i);
             male.matchWith(female.getInstagramId());
             female.matchWith(male.getInstagramId());
+            matchingRealtimeCache.cacheParticipantResult(male);
+            matchingRealtimeCache.cacheParticipantResult(female);
         }
 
         // 남녀 수가 맞지 않아 남은 참가자는 공개 목록 API에서 조회할 수 있도록 UNMATCHED로 전환한다.
         for (int i = pairCount; i < males.size(); i++) {
             males.get(i).markUnmatched();
+            matchingRealtimeCache.cacheParticipantResult(males.get(i));
         }
         for (int i = pairCount; i < females.size(); i++) {
             females.get(i).markUnmatched();
+            matchingRealtimeCache.cacheParticipantResult(females.get(i));
         }
 
+        refreshRealtimeStatus(getOrCreateState());
         return new MatchingJobResponse(pairCount, males.size() + females.size() - pairCount * 2);
     }
 
@@ -105,7 +121,7 @@ public class MatchingCommandService {
                 defaultMessageKo(request.status(), request.messageKo()),
                 defaultMessageEn(request.status(), request.messageEn())
         );
-        return MatchingStatusResponse.fromEntity(state);
+        return refreshRealtimeStatus(state);
     }
 
     private MatchingParticipant authenticate(MatchingAuthRequest request) {
@@ -135,6 +151,7 @@ public class MatchingCommandService {
                     "성별 비율 불균형으로 매칭이 일시중단되었습니다.",
                     "Matching is paused because the gender ratio is imbalanced."
             );
+            refreshRealtimeStatus(state);
             return true;
         }
         return false;
@@ -164,5 +181,23 @@ public class MatchingCommandService {
             return message;
         }
         return status == MatchingOperationStatus.OPEN ? "Matching is open." : "Matching is paused.";
+    }
+
+    private MatchingStatusResponse refreshRealtimeStatus(MatchingServiceState state) {
+        long pendingCount = matchingParticipantRepository.countByStatus(MatchingParticipantStatus.PENDING);
+        long matchedCount = matchingParticipantRepository.countByStatus(MatchingParticipantStatus.MATCHED);
+        long unmatchedCount = matchingParticipantRepository.countByStatus(MatchingParticipantStatus.UNMATCHED);
+        MatchingStatusResponse response = MatchingStatusResponse.of(
+                state,
+                state.getStatus() == MatchingOperationStatus.OPEN && matchingScheduleProperties.isRegistrationOpen(),
+                matchingScheduleProperties.isResultOpen(),
+                matchingScheduleProperties.registrationDeadline().toString(),
+                matchingScheduleProperties.resultOpenAt().toString(),
+                pendingCount,
+                matchedCount,
+                unmatchedCount
+        );
+        matchingRealtimeCache.cacheStatus(state, matchingScheduleProperties, pendingCount, matchedCount, unmatchedCount);
+        return response;
     }
 }

@@ -26,5 +26,7 @@ public interface MatchingParticipantRepository extends JpaRepository<MatchingPar
 
     List<MatchingParticipant> findAllByStatus(MatchingParticipantStatus status);
 
+    long countByStatus(MatchingParticipantStatus status);
+
     long countByStatusAndGender(MatchingParticipantStatus status, MatchingGender gender);
 }
