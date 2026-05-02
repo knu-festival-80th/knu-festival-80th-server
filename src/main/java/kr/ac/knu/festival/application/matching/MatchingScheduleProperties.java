@@ -21,8 +21,8 @@ public class MatchingScheduleProperties {
     @Autowired
     public MatchingScheduleProperties(
             // 21시 신청 마감, 22시 결과 공개는 운영 일정에 따라 바뀔 수 있으므로 설정값으로 분리한다.
-            @Value("${matching.registration-deadline:2026-05-21T21:00:00+09:00}") OffsetDateTime registrationDeadline,
-            @Value("${matching.result-open-at:2026-05-21T22:00:00+09:00}") OffsetDateTime resultOpenAt
+            @Value("${matching.registration-deadline:2026-05-20T21:00:00+09:00}") OffsetDateTime registrationDeadline,
+            @Value("${matching.result-open-at:2026-05-20T22:00:00+09:00}") OffsetDateTime resultOpenAt
     ) {
         this(registrationDeadline, resultOpenAt, Clock.system(KOREA_ZONE));
     }
