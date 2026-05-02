@@ -28,6 +28,7 @@ import lombok.NoArgsConstructor;
 public class MatchingParticipant extends BaseTimeEntity {
 
     @Id
+    // 축제 기간 중 1회 참여 제한을 DB 차원에서도 보장하기 위해 Instagram ID를 PK로 사용한다.
     @Column(name = "instagram_id", length = 100)
     private String instagramId;
 

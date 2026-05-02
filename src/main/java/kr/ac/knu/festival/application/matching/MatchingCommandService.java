@@ -40,6 +40,7 @@ public class MatchingCommandService {
             throw new BusinessException(BusinessErrorCode.INVALID_INPUT_VALUE);
         }
 
+        // Instagram ID는 @ 입력 여부와 대소문자 차이로 중복 신청이 뚫리지 않도록 저장 전에 정규화한다.
         String instagramId = normalizeInstagramId(request.instagramId());
         if (matchingParticipantRepository.existsById(instagramId)) {
             throw new BusinessException(BusinessErrorCode.INVALID_INPUT_VALUE);
@@ -48,6 +49,7 @@ public class MatchingCommandService {
         MatchingParticipant participant = MatchingParticipant.create(
                 instagramId,
                 request.gender(),
+                // 결과 조회/취소에 쓰는 비밀번호는 원문 저장 금지. BCrypt 해시만 DB에 남긴다.
                 passwordEncoder.encode(request.password()),
                 normalizeNationality(request.nationality())
         );
@@ -146,6 +148,7 @@ public class MatchingCommandService {
         if (nationality == null || nationality.isBlank()) {
             return DEFAULT_NATIONALITY;
         }
+        // 국적 코드는 화면 언어 분기 등에 재사용하기 쉽도록 대문자 코드로 맞춘다.
         return nationality.trim().toUpperCase();
     }
 
