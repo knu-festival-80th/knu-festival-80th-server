@@ -18,9 +18,6 @@ public record MatchingCreateRequest(
 
         @NotBlank
         @Size(min = 4, max = 100)
-        String password,
-
-        @Size(max = 10)
-        String nationality
+        String password
 ) {
 }
