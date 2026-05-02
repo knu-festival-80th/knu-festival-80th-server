@@ -1,6 +1,7 @@
 package kr.ac.knu.festival.presentation.matching.controller;
 
 import jakarta.validation.Valid;
+import jakarta.servlet.http.HttpServletRequest;
 import kr.ac.knu.festival.application.matching.MatchingQueryService;
 import kr.ac.knu.festival.global.response.ApiResponse;
 import kr.ac.knu.festival.presentation.matching.controller.docs.MatchingQueryControllerDocs;
@@ -28,9 +29,10 @@ public class MatchingQueryController implements MatchingQueryControllerDocs {
     @Override
     @PostMapping("/api/v1/matchings/result")
     public ResponseEntity<ApiResponse<MatchingResultResponse>> getResult(
-            @RequestBody @Valid MatchingAuthRequest request
+            @RequestBody @Valid MatchingAuthRequest request,
+            HttpServletRequest httpRequest
     ) {
-        return ResponseEntity.ok(ApiResponse.success(matchingQueryService.getResult(request)));
+        return ResponseEntity.ok(ApiResponse.success(matchingQueryService.getResult(request, clientIp(httpRequest))));
     }
 
     @Override
@@ -43,5 +45,13 @@ public class MatchingQueryController implements MatchingQueryControllerDocs {
     @GetMapping("/api/v1/matchings/unmatched")
     public ResponseEntity<ApiResponse<List<UnmatchedParticipantResponse>>> getUnmatchedParticipants() {
         return ResponseEntity.ok(ApiResponse.success(matchingQueryService.getUnmatchedParticipants()));
+    }
+
+    private String clientIp(HttpServletRequest request) {
+        String forwardedFor = request.getHeader("X-Forwarded-For");
+        if (forwardedFor != null && !forwardedFor.isBlank()) {
+            return forwardedFor.split(",")[0].trim();
+        }
+        return request.getRemoteAddr();
     }
 }
