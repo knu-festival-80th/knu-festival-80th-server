@@ -54,8 +54,7 @@ class MatchingRegistrationIntegrationTest {
         MatchingCreateRequest request = new MatchingCreateRequest(
                 "KNU.Student_01",
                 MatchingGender.MALE,
-                "1234",
-                null
+                "1234"
         );
 
         mockMvc.perform(post("/api/v1/matchings")
@@ -82,8 +81,7 @@ class MatchingRegistrationIntegrationTest {
         MatchingCreateRequest request = new MatchingCreateRequest(
                 "paused_user",
                 MatchingGender.FEMALE,
-                "1234",
-                "EN"
+                "1234"
         );
 
         mockMvc.perform(post("/api/v1/matchings")
