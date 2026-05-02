@@ -36,6 +36,10 @@ public class MatchingScheduleProperties {
         return now().isBefore(registrationDeadline);
     }
 
+    public boolean isRegistrationClosed() {
+        return !isRegistrationOpen();
+    }
+
     public boolean isResultOpen() {
         return !now().isBefore(resultOpenAt);
     }
