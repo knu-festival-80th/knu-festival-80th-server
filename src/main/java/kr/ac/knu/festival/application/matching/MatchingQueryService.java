@@ -29,13 +29,20 @@ public class MatchingQueryService {
     private final PasswordEncoder passwordEncoder;
     private final MatchingScheduleProperties matchingScheduleProperties;
     private final MatchingRealtimeCache matchingRealtimeCache;
+    private final MatchingRateLimiter matchingRateLimiter;
 
-    public MatchingResultResponse getResult(MatchingAuthRequest request) {
+    public MatchingResultResponse getResult(MatchingAuthRequest request, String clientIp) {
+        matchingRateLimiter.validateAllowed(clientIp);
         MatchingParticipant participant = matchingParticipantRepository.findById(normalizeInstagramId(request.instagramId()))
-                .orElseThrow(() -> new BusinessException(BusinessErrorCode.RESOURCE_NOT_FOUND));
+                .orElseThrow(() -> {
+                    matchingRateLimiter.recordFailure(clientIp);
+                    return new BusinessException(BusinessErrorCode.RESOURCE_NOT_FOUND);
+                });
         if (!passwordEncoder.matches(request.password(), participant.getPassword())) {
+            matchingRateLimiter.recordFailure(clientIp);
             throw new BusinessException(BusinessErrorCode.UNAUTHORIZED_USER);
         }
+        matchingRateLimiter.reset(clientIp);
         if (!matchingScheduleProperties.isResultOpen()) {
             return MatchingResultResponse.hidden(participant);
         }

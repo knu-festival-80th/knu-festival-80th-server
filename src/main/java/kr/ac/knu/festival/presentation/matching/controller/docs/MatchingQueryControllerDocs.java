@@ -1,6 +1,8 @@
 package kr.ac.knu.festival.presentation.matching.controller.docs;
 
+import jakarta.servlet.http.HttpServletRequest;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import kr.ac.knu.festival.global.response.ApiResponse;
 import kr.ac.knu.festival.presentation.matching.dto.request.MatchingAuthRequest;
@@ -15,7 +17,10 @@ import java.util.List;
 public interface MatchingQueryControllerDocs {
 
     @Operation(summary = "매칭 결과 조회")
-    ResponseEntity<ApiResponse<MatchingResultResponse>> getResult(MatchingAuthRequest request);
+    ResponseEntity<ApiResponse<MatchingResultResponse>> getResult(
+            MatchingAuthRequest request,
+            @Parameter(hidden = true) HttpServletRequest httpRequest
+    );
 
     @Operation(summary = "매칭 서비스 상태 조회")
     ResponseEntity<ApiResponse<MatchingStatusResponse>> getStatus();
