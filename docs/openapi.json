@@ -1538,11 +1538,6 @@
             "type": "string",
             "maxLength": 100,
             "minLength": 4
-          },
-          "nationality": {
-            "type": "string",
-            "maxLength": 10,
-            "minLength": 0
           }
         },
         "required": [
