@@ -19,7 +19,7 @@ public class MatchingAutoScheduler {
 
     @Scheduled(fixedDelayString = "${matching.auto-job-delay-ms:60000}")
     public void runAfterRegistrationDeadline() {
-        // 현재 기본 정책은 2026-05-21 21:00(KST) 신청 마감, 22:00(KST) 결과 공개다.
+        // 현재 기본 정책은 2026-05-20 21:00(KST) 신청 마감, 22:00(KST) 결과 공개다.
         // 시간은 추후 matching.registration-deadline / matching.result-open-at 환경값으로 바꾸면 된다.
         // 21~22시 사이에 서버가 재시작될 수 있으므로, 한 번만 실행하지 않고 주기적으로 PENDING 여부를 확인한다.
         if (!matchingScheduleProperties.isRegistrationClosed()) {
