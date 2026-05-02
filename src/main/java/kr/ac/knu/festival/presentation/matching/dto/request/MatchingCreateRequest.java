@@ -9,6 +9,7 @@ import kr.ac.knu.festival.domain.matching.entity.MatchingGender;
 public record MatchingCreateRequest(
         @NotBlank
         @Size(max = 100)
+        // 입력 단계에서는 URL/공백 없이 Instagram ID 본문만 받는다.
         @Pattern(regexp = "^[A-Za-z0-9._]{1,100}$", message = "Instagram ID 형식이 올바르지 않습니다.")
         String instagramId,
 
