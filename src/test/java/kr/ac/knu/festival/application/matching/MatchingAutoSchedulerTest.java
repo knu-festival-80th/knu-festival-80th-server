@@ -17,15 +17,15 @@ import static org.mockito.Mockito.when;
 
 class MatchingAutoSchedulerTest {
 
-    private static final OffsetDateTime DEADLINE = OffsetDateTime.parse("2026-05-21T21:00:00+09:00");
-    private static final OffsetDateTime RESULT_OPEN = OffsetDateTime.parse("2026-05-21T22:00:00+09:00");
+    private static final OffsetDateTime DEADLINE = OffsetDateTime.parse("2026-05-20T21:00:00+09:00");
+    private static final OffsetDateTime RESULT_OPEN = OffsetDateTime.parse("2026-05-20T22:00:00+09:00");
 
     private final MatchingParticipantRepository matchingParticipantRepository = mock(MatchingParticipantRepository.class);
     private final MatchingCommandService matchingCommandService = mock(MatchingCommandService.class);
 
     @Test
     void doNotRunBeforeRegistrationDeadline() {
-        MatchingAutoScheduler scheduler = schedulerAt("2026-05-21T20:59:00+09:00");
+        MatchingAutoScheduler scheduler = schedulerAt("2026-05-20T20:59:00+09:00");
 
         scheduler.runAfterRegistrationDeadline();
 
@@ -35,7 +35,7 @@ class MatchingAutoSchedulerTest {
 
     @Test
     void runWhenRegistrationClosedAndPendingParticipantsExist() {
-        MatchingAutoScheduler scheduler = schedulerAt("2026-05-21T21:00:00+09:00");
+        MatchingAutoScheduler scheduler = schedulerAt("2026-05-20T21:00:00+09:00");
         when(matchingParticipantRepository.countByStatus(MatchingParticipantStatus.PENDING)).thenReturn(2L);
         when(matchingCommandService.runMatchingJob()).thenReturn(new MatchingJobResponse(1, 0));
 
@@ -47,7 +47,7 @@ class MatchingAutoSchedulerTest {
 
     @Test
     void doNotRunWhenNoPendingParticipantsRemain() {
-        MatchingAutoScheduler scheduler = schedulerAt("2026-05-21T21:30:00+09:00");
+        MatchingAutoScheduler scheduler = schedulerAt("2026-05-20T21:30:00+09:00");
         when(matchingParticipantRepository.countByStatus(MatchingParticipantStatus.PENDING)).thenReturn(0L);
 
         scheduler.runAfterRegistrationDeadline();
