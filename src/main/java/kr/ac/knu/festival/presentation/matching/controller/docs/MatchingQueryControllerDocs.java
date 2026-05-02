@@ -8,10 +8,8 @@ import kr.ac.knu.festival.global.response.ApiResponse;
 import kr.ac.knu.festival.presentation.matching.dto.request.MatchingAuthRequest;
 import kr.ac.knu.festival.presentation.matching.dto.response.MatchingResultResponse;
 import kr.ac.knu.festival.presentation.matching.dto.response.MatchingStatusResponse;
-import kr.ac.knu.festival.presentation.matching.dto.response.UnmatchedParticipantResponse;
+import kr.ac.knu.festival.presentation.matching.dto.response.UnmatchedParticipantsResponse;
 import org.springframework.http.ResponseEntity;
-
-import java.util.List;
 
 @Tag(name = "매칭 Query", description = "두근두근 인스타팅 결과·상태 조회 API")
 public interface MatchingQueryControllerDocs {
@@ -26,5 +24,5 @@ public interface MatchingQueryControllerDocs {
     ResponseEntity<ApiResponse<MatchingStatusResponse>> getStatus();
 
     @Operation(summary = "미매칭 공개 목록 조회")
-    ResponseEntity<ApiResponse<List<UnmatchedParticipantResponse>>> getUnmatchedParticipants();
+    ResponseEntity<ApiResponse<UnmatchedParticipantsResponse>> getUnmatchedParticipants();
 }

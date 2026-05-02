@@ -8,7 +8,7 @@ import kr.ac.knu.festival.presentation.matching.controller.docs.MatchingQueryCon
 import kr.ac.knu.festival.presentation.matching.dto.request.MatchingAuthRequest;
 import kr.ac.knu.festival.presentation.matching.dto.response.MatchingResultResponse;
 import kr.ac.knu.festival.presentation.matching.dto.response.MatchingStatusResponse;
-import kr.ac.knu.festival.presentation.matching.dto.response.UnmatchedParticipantResponse;
+import kr.ac.knu.festival.presentation.matching.dto.response.UnmatchedParticipantsResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -16,8 +16,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
-import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -43,7 +41,7 @@ public class MatchingQueryController implements MatchingQueryControllerDocs {
 
     @Override
     @GetMapping("/api/v1/matchings/unmatched")
-    public ResponseEntity<ApiResponse<List<UnmatchedParticipantResponse>>> getUnmatchedParticipants() {
+    public ResponseEntity<ApiResponse<UnmatchedParticipantsResponse>> getUnmatchedParticipants() {
         return ResponseEntity.ok(ApiResponse.success(matchingQueryService.getUnmatchedParticipants()));
     }
 
