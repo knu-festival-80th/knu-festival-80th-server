@@ -53,7 +53,7 @@ public class MatchingCommandService {
                 request.gender(),
                 // 결과 조회/취소에 쓰는 비밀번호는 원문 저장 금지. BCrypt 해시만 DB에 남긴다.
                 passwordEncoder.encode(request.password()),
-                DEFAULT_NATIONALITY
+                normalizeNationality(request.nationality())
         );
         MatchingParticipant saved = matchingParticipantRepository.save(participant);
         matchingRealtimeCache.cacheParticipantResult(saved);

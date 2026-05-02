@@ -45,7 +45,8 @@ class MatchingRegistrationClosedIntegrationTest {
         MatchingCreateRequest request = new MatchingCreateRequest(
                 "late_user",
                 MatchingGender.MALE,
-                "1234"
+                "1234",
+                "KR"
         );
 
         mockMvc.perform(post("/api/v1/matchings")
