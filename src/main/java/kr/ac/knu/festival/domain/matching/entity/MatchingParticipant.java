@@ -65,6 +65,7 @@ public class MatchingParticipant extends BaseTimeEntity {
     }
 
     public void matchWith(String matchedId) {
+        // 양쪽 참가자 모두에 상대 ID를 저장해 결과 조회 시 별도 매칭 테이블 조인 없이 바로 응답한다.
         this.matchedId = matchedId;
         this.status = MatchingParticipantStatus.MATCHED;
     }
