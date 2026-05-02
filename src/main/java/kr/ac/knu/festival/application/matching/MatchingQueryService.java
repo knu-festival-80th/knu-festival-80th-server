@@ -11,6 +11,7 @@ import kr.ac.knu.festival.presentation.matching.dto.request.MatchingAuthRequest;
 import kr.ac.knu.festival.presentation.matching.dto.response.MatchingResultResponse;
 import kr.ac.knu.festival.presentation.matching.dto.response.MatchingStatusResponse;
 import kr.ac.knu.festival.presentation.matching.dto.response.UnmatchedParticipantResponse;
+import kr.ac.knu.festival.presentation.matching.dto.response.UnmatchedParticipantsResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -85,10 +86,15 @@ public class MatchingQueryService {
         );
     }
 
-    public List<UnmatchedParticipantResponse> getUnmatchedParticipants() {
-        return matchingParticipantRepository.findAllByStatus(MatchingParticipantStatus.UNMATCHED).stream()
+    public UnmatchedParticipantsResponse getUnmatchedParticipants() {
+        if (!matchingScheduleProperties.isResultOpen()) {
+            return UnmatchedParticipantsResponse.hidden(matchingScheduleProperties.resultOpenAt().toString());
+        }
+
+        List<UnmatchedParticipantResponse> participants = matchingParticipantRepository.findAllByStatus(MatchingParticipantStatus.UNMATCHED).stream()
                 .map(UnmatchedParticipantResponse::fromEntity)
                 .toList();
+        return UnmatchedParticipantsResponse.open(matchingScheduleProperties.resultOpenAt().toString(), participants);
     }
 
     private String normalizeInstagramId(String instagramId) {
