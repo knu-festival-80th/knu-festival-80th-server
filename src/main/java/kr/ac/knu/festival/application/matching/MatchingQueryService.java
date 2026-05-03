@@ -47,7 +47,7 @@ public class MatchingQueryService {
         matchingRateLimiter.reset(clientIp);
         if (!matchingScheduleProperties.isResultOpen()) {
             // 결과 공개 전에는 본인 인증이 성공해도 상대 ID를 절대 내려주지 않는다.
-            return MatchingResultResponse.hidden(participant);
+            return MatchingResultResponse.hidden(participant, matchingScheduleProperties.resultOpenAt().toString());
         }
         matchingRealtimeCache.cacheParticipantResult(participant);
         return MatchingResultResponse.fromEntity(participant);
