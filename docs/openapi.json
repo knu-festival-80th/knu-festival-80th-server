@@ -2,18 +2,13 @@
   "openapi": "3.1.0",
   "info": {
     "title": "KNU 80th Festival API",
-    "description": "2026 경북대학교 80주년 대동제 웹앱 백엔드 API",
+    "description": "2026 경북대학교 80주년 대동제 웹앱 백엔드 API — 세션 기반 인증 (JSESSIONID 쿠키)",
     "version": "v1"
   },
   "servers": [
     {
       "url": "http://localhost:8080",
       "description": "Generated server url"
-    }
-  ],
-  "security": [
-    {
-      "BearerAuth": []
     }
   ],
   "tags": [
@@ -43,7 +38,7 @@
     }
   ],
   "paths": {
-    "/admin/v1/booths/{booth-id}": {
+    "/admin/booths/{booth-id}": {
       "put": {
         "tags": [
           "부스 Command"
@@ -115,7 +110,7 @@
         }
       }
     },
-    "/admin/v1/booths/{booth-id}/menus/{menu-id}": {
+    "/admin/booths/{booth-id}/menus/{menu-id}": {
       "put": {
         "tags": [
           "메뉴 Command/Query"
@@ -205,7 +200,7 @@
         }
       }
     },
-    "/api/v1/booths/{booth-id}/waitings": {
+    "/booths/{booth-id}/waitings": {
       "post": {
         "tags": [
           "대기열 Command"
@@ -268,7 +263,7 @@
         }
       }
     },
-    "/api/v1/booths/{booth-id}/likes": {
+    "/booths/{booth-id}/likes": {
       "post": {
         "tags": [
           "부스 Command"
@@ -330,7 +325,81 @@
         }
       }
     },
-    "/admin/v1/waitings/{waiting-id}/resend-sms": {
+    "/auth/logout": {
+      "post": {
+        "tags": [
+          "인증"
+        ],
+        "summary": "관리자 로그아웃",
+        "description": "세션을 무효화합니다.",
+        "operationId": "logout",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseVoid"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/login": {
+      "post": {
+        "tags": [
+          "인증"
+        ],
+        "summary": "관리자 로그인",
+        "description": "boothId 가 null 이면 최고 관리자(SUPER_ADMIN), 있으면 해당 부스 관리자(BOOTH_ADMIN). 성공 시 세션 쿠키(JSESSIONID) 발급.",
+        "operationId": "login",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "로그인 성공",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseLoginResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "비밀번호 불일치",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseLoginResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "부스 없음",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseLoginResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/waitings/{waiting-id}/resend-sms": {
       "post": {
         "tags": [
           "대기열 Command"
@@ -362,7 +431,7 @@
         }
       }
     },
-    "/admin/v1/booths": {
+    "/admin/booths": {
       "get": {
         "tags": [
           "부스 Command"
@@ -433,7 +502,7 @@
         }
       }
     },
-    "/admin/v1/booths/{booth-id}/waitings/insert": {
+    "/admin/booths/{booth-id}/waitings/insert": {
       "post": {
         "tags": [
           "대기열 Command"
@@ -475,7 +544,7 @@
         }
       }
     },
-    "/admin/v1/booths/{booth-id}/menus": {
+    "/admin/booths/{booth-id}/menus": {
       "get": {
         "tags": [
           "메뉴 Command/Query"
@@ -547,81 +616,7 @@
         }
       }
     },
-    "/admin/v1/auth/logout": {
-      "post": {
-        "tags": [
-          "인증"
-        ],
-        "summary": "관리자 로그아웃",
-        "description": "세션을 무효화합니다.",
-        "operationId": "logout",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiResponseVoid"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/admin/v1/auth/login": {
-      "post": {
-        "tags": [
-          "인증"
-        ],
-        "summary": "관리자 로그인",
-        "description": "boothId 가 null 이면 최고 관리자(SUPER_ADMIN), 있으면 해당 부스 관리자(BOOTH_ADMIN). 성공 시 세션 쿠키(JSESSIONID) 발급.",
-        "operationId": "login",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/LoginRequest"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "description": "로그인 성공",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiResponseLoginResponse"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "비밀번호 불일치",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiResponseLoginResponse"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "부스 없음",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiResponseLoginResponse"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/admin/v1/waitings/{waiting-id}/skip": {
+    "/admin/waitings/{waiting-id}/skip": {
       "patch": {
         "tags": [
           "대기열 Command"
@@ -653,7 +648,7 @@
         }
       }
     },
-    "/admin/v1/waitings/{waiting-id}/reorder": {
+    "/admin/waitings/{waiting-id}/reorder": {
       "patch": {
         "tags": [
           "대기열 Command"
@@ -695,7 +690,7 @@
         }
       }
     },
-    "/admin/v1/waitings/{waiting-id}/enter": {
+    "/admin/waitings/{waiting-id}/enter": {
       "patch": {
         "tags": [
           "대기열 Command"
@@ -727,7 +722,7 @@
         }
       }
     },
-    "/admin/v1/waitings/{waiting-id}/cancel": {
+    "/admin/waitings/{waiting-id}/cancel": {
       "patch": {
         "tags": [
           "대기열 Command"
@@ -759,7 +754,7 @@
         }
       }
     },
-    "/admin/v1/waitings/{waiting-id}/call": {
+    "/admin/waitings/{waiting-id}/call": {
       "patch": {
         "tags": [
           "대기열 Command"
@@ -792,7 +787,7 @@
         }
       }
     },
-    "/admin/v1/booths/{booth-id}/waitings/toggle": {
+    "/admin/booths/{booth-id}/waitings/toggle": {
       "patch": {
         "tags": [
           "대기열 Command"
@@ -834,7 +829,7 @@
         }
       }
     },
-    "/admin/v1/booths/{booth-id}/password": {
+    "/admin/booths/{booth-id}/password": {
       "patch": {
         "tags": [
           "부스 Command"
@@ -876,7 +871,7 @@
         }
       }
     },
-    "/admin/v1/booths/{booth-id}/menus/{menu-id}/sold-out": {
+    "/admin/booths/{booth-id}/menus/{menu-id}/sold-out": {
       "patch": {
         "tags": [
           "메뉴 Command/Query"
@@ -917,7 +912,7 @@
         }
       }
     },
-    "/api/v1/waitings/{waiting-id}": {
+    "/waitings/{waiting-id}": {
       "get": {
         "tags": [
           "대기열 Query"
@@ -997,7 +992,7 @@
         }
       }
     },
-    "/api/v1/booths": {
+    "/booths": {
       "get": {
         "tags": [
           "부스 Query"
@@ -1031,7 +1026,7 @@
         }
       }
     },
-    "/api/v1/booths/{booth-id}": {
+    "/booths/{booth-id}": {
       "get": {
         "tags": [
           "부스 Query"
@@ -1074,7 +1069,7 @@
         }
       }
     },
-    "/api/v1/booths/{booth-id}/waitings/status": {
+    "/booths/{booth-id}/waitings/status": {
       "get": {
         "tags": [
           "대기열 Query"
@@ -1106,7 +1101,7 @@
         }
       }
     },
-    "/api/v1/booths/map": {
+    "/booths/map": {
       "get": {
         "tags": [
           "부스 Query"
@@ -1128,7 +1123,7 @@
         }
       }
     },
-    "/admin/v1/booths/{booth-id}/waitings": {
+    "/admin/booths/{booth-id}/waitings": {
       "get": {
         "tags": [
           "대기열 Query"
@@ -1395,6 +1390,45 @@
           }
         }
       },
+      "LoginRequest": {
+        "type": "object",
+        "properties": {
+          "boothId": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "password": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      },
+      "ApiResponseLoginResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "data": {
+            "$ref": "#/components/schemas/LoginResponse"
+          },
+          "error": {
+            "$ref": "#/components/schemas/ErrorResponse"
+          }
+        }
+      },
+      "LoginResponse": {
+        "type": "object",
+        "properties": {
+          "role": {
+            "type": "string"
+          },
+          "boothId": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      },
       "BoothCreateRequest": {
         "type": "object",
         "properties": {
@@ -1477,45 +1511,6 @@
         "required": [
           "price"
         ]
-      },
-      "LoginRequest": {
-        "type": "object",
-        "properties": {
-          "boothId": {
-            "type": "integer",
-            "format": "int64"
-          },
-          "password": {
-            "type": "string",
-            "minLength": 1
-          }
-        }
-      },
-      "ApiResponseLoginResponse": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean"
-          },
-          "data": {
-            "$ref": "#/components/schemas/LoginResponse"
-          },
-          "error": {
-            "$ref": "#/components/schemas/ErrorResponse"
-          }
-        }
-      },
-      "LoginResponse": {
-        "type": "object",
-        "properties": {
-          "role": {
-            "type": "string"
-          },
-          "boothId": {
-            "type": "integer",
-            "format": "int64"
-          }
-        }
       },
       "WaitingReorderRequest": {
         "type": "object",
@@ -1853,15 +1848,6 @@
             "$ref": "#/components/schemas/ErrorResponse"
           }
         }
-      }
-    },
-    "securitySchemes": {
-      "BearerAuth": {
-        "type": "http",
-        "name": "Authorization",
-        "in": "header",
-        "scheme": "bearer",
-        "bearerFormat": "JWT"
       }
     }
   }
