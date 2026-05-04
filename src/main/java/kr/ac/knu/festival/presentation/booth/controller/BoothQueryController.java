@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/v1/booths")
+@RequestMapping("/booths")
 @RequiredArgsConstructor
 public class BoothQueryController implements BoothQueryControllerDocs {
 

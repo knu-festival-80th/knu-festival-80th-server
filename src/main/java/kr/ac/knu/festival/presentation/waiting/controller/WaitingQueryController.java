@@ -28,7 +28,7 @@ public class WaitingQueryController implements WaitingQueryControllerDocs {
     private final WaitingQueryService waitingQueryService;
 
     @Override
-    @GetMapping("/api/v1/booths/{booth-id}/waitings/status")
+    @GetMapping("/booths/{booth-id}/waitings/status")
     public ResponseEntity<ApiResponse<WaitingStatusResponse>> getBoothStatus(
             @PathVariable("booth-id") Long boothId
     ) {
@@ -36,7 +36,7 @@ public class WaitingQueryController implements WaitingQueryControllerDocs {
     }
 
     @Override
-    @GetMapping("/api/v1/waitings/{waiting-id}")
+    @GetMapping("/waitings/{waiting-id}")
     public ResponseEntity<ApiResponse<MyWaitingResponse>> getMyWaiting(
             @PathVariable("waiting-id") Long waitingId,
             @RequestParam("phoneLast4") String phoneLast4
@@ -45,7 +45,7 @@ public class WaitingQueryController implements WaitingQueryControllerDocs {
     }
 
     @Override
-    @GetMapping("/admin/v1/booth/booths/{booth-id}/waitings")
+    @GetMapping("/admin/booths/{booth-id}/waitings")
     public ResponseEntity<ApiResponse<List<WaitingResponse>>> getWaitings(
             @CurrentAdmin AdminInfo admin,
             @PathVariable("booth-id") Long boothId,

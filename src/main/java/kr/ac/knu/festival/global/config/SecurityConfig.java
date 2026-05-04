@@ -40,17 +40,20 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers(
-                                "/api/**",
                                 "/swagger-ui/**",
                                 "/swagger-ui.html",
                                 "/v3/api-docs/**",
                                 "/actuator/health",
                                 "/error"
                         ).permitAll()
-                        .requestMatchers("/admin/v1/auth/login").permitAll()
-                        .requestMatchers("/admin/v1/super/**").hasRole("SUPER_ADMIN")
-                        .requestMatchers("/admin/v1/booth/**").hasAnyRole("SUPER_ADMIN", "BOOTH_ADMIN")
-                        .requestMatchers("/admin/**").authenticated()
+                        .requestMatchers("/auth/login").permitAll()
+                        // 슈퍼 전용 (HTTP 메서드 + path 조합)
+                        .requestMatchers(HttpMethod.POST, "/admin/booths").hasRole("SUPER_ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/admin/booths/*").hasRole("SUPER_ADMIN")
+                        .requestMatchers(HttpMethod.PATCH, "/admin/booths/*/password").hasRole("SUPER_ADMIN")
+                        // 슈퍼 + 부스 운영진 공통
+                        .requestMatchers("/admin/**").hasAnyRole("SUPER_ADMIN", "BOOTH_ADMIN")
+                        // 그 외 (booths, waitings 등 공개 API)는 모두 허용
                         .anyRequest().permitAll()
                 )
                 .addFilterBefore(sessionAuthFilter, UsernamePasswordAuthenticationFilter.class);
