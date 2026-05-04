@@ -1,8 +1,8 @@
 # 기능 명세서 (FS: Functional Specification)
 
 > **프로젝트**: 2026 경북대학교 80주년 대동제 웹앱 서비스 (백엔드)  
-> **버전**: v1.1  
-> **최종 수정일**: 2026-04-25  
+> **버전**: v1.4  
+> **최종 수정일**: 2026-05-03  
 > **목적**: 백엔드가 제공해야 할 API와 비즈니스 로직을 기능 단위로 정의한다.
 
 ---
@@ -15,6 +15,7 @@
 | v1.1 | 2026-04-25 | 대기열 현장 전용 재설계, API 보안/설계 이슈 반영, 누락 API 추가 | - |
 | v1.2 | 2026-04-27 | 대기열을 웹 온라인 등록 모델로 전환 (현장 태블릿 전제 폐기), 본인 취소 API 추가, 어뷰즈 방지 규칙 보강 | - |
 | v1.3 | 2026-04-27 | 관리자 인증을 부스별 비밀번호 + 세션 기반으로 단순화, member 도메인 제거, 부스 비밀번호 변경 API 추가, 모든 admin API에 소유권 검증 적용 | - |
+| v1.4 | 2026-05-03 | 관리자 API 경로를 권한 단위로 분리: 슈퍼 전용은 `/admin/v1/super/**`, 슈퍼+부스 공통은 `/admin/v1/booth/**`. 구현된 booth/menu/waiting 엔드포인트 경로 갱신, SecurityConfig path 매처 추가 | - |
 
 ---
 
@@ -75,10 +76,10 @@
 | GET | `/api/v1/booths/map` | 지도용 부스 목록 (좌표 + 이름만, 경량) | 불필요 |
 | POST | `/api/v1/booths/{booth-id}/likes` | 부스 좋아요 | 불필요 |
 | DELETE | `/api/v1/booths/{booth-id}/likes` | 부스 좋아요 취소 | 불필요 |
-| GET | `/admin/v1/booths` | 관리자용 부스 목록 조회 | 관리자 |
-| POST | `/admin/v1/booths` | 부스 등록 | 슈퍼 관리자 |
-| PUT | `/admin/v1/booths/{booth-id}` | 부스 정보 수정 | 관리자 |
-| DELETE | `/admin/v1/booths/{booth-id}` | 부스 삭제 | 슈퍼 관리자 |
+| GET | `/admin/v1/booth/booths` | 관리자용 부스 목록 조회 | 관리자 (booth+) |
+| POST | `/admin/v1/super/booths` | 부스 등록 | 슈퍼 관리자 |
+| PUT | `/admin/v1/booth/booths/{booth-id}` | 부스 정보 수정 | 관리자 (booth+) |
+| DELETE | `/admin/v1/super/booths/{booth-id}` | 부스 삭제 | 슈퍼 관리자 |
 
 **Query Parameters** (GET `/api/v1/booths`)
 - `sort`: `likes` (기본) / `waiting-asc` — 정렬 기준
@@ -100,11 +101,11 @@
 
 | Method | Endpoint | 설명 | 인증 |
 |--------|----------|------|------|
-| GET | `/admin/v1/booths/{booth-id}/menus` | 메뉴 목록 조회 | 관리자 |
-| POST | `/admin/v1/booths/{booth-id}/menus` | 메뉴 등록 | 관리자 |
-| PUT | `/admin/v1/booths/{booth-id}/menus/{menu-id}` | 메뉴 수정 | 관리자 |
-| PATCH | `/admin/v1/booths/{booth-id}/menus/{menu-id}/sold-out` | 품절 상태 토글 | 관리자 |
-| DELETE | `/admin/v1/booths/{booth-id}/menus/{menu-id}` | 메뉴 삭제 | 관리자 |
+| GET | `/admin/v1/booth/booths/{booth-id}/menus` | 메뉴 목록 조회 | 관리자 (booth+) |
+| POST | `/admin/v1/booth/booths/{booth-id}/menus` | 메뉴 등록 | 관리자 (booth+) |
+| PUT | `/admin/v1/booth/booths/{booth-id}/menus/{menu-id}` | 메뉴 수정 | 관리자 (booth+) |
+| PATCH | `/admin/v1/booth/booths/{booth-id}/menus/{menu-id}/sold-out` | 품절 상태 토글 | 관리자 (booth+) |
+| DELETE | `/admin/v1/booth/booths/{booth-id}/menus/{menu-id}` | 메뉴 삭제 | 관리자 (booth+) |
 
 **비즈니스 규칙**
 - BR-MENU-01: 메뉴 사진은 S3에 업로드, URL만 DB에 저장
@@ -203,15 +204,15 @@
 
 | Method | Endpoint | 설명 | 인증 |
 |--------|----------|------|------|
-| GET | `/admin/v1/booths/{booth-id}/waitings` | 대기팀 목록 조회 | 관리자 |
-| PATCH | `/admin/v1/waitings/{waiting-id}/call` | 대기팀 호출 (SMS 발송) | 관리자 |
-| PATCH | `/admin/v1/waitings/{waiting-id}/enter` | 입장 완료 처리 | 관리자 |
-| PATCH | `/admin/v1/waitings/{waiting-id}/cancel` | 관리자가 대기 취소 | 관리자 |
-| PATCH | `/admin/v1/waitings/{waiting-id}/skip` | 미방문 건너뛰기 | 관리자 |
-| POST | `/admin/v1/booths/{booth-id}/waitings/insert` | 대기열 중간 삽입 | 관리자 |
-| PATCH | `/admin/v1/waitings/{waiting-id}/reorder` | 대기 순서 변경 | 관리자 |
-| PATCH | `/admin/v1/booths/{booth-id}/waitings/toggle` | 대기 접수 ON/OFF | 관리자 |
-| POST | `/admin/v1/waitings/{waiting-id}/resend-sms` | SMS 재발송 | 관리자 |
+| GET | `/admin/v1/booth/booths/{booth-id}/waitings` | 대기팀 목록 조회 | 관리자 (booth+) |
+| PATCH | `/admin/v1/booth/waitings/{waiting-id}/call` | 대기팀 호출 (SMS 발송) | 관리자 (booth+) |
+| PATCH | `/admin/v1/booth/waitings/{waiting-id}/enter` | 입장 완료 처리 | 관리자 (booth+) |
+| PATCH | `/admin/v1/booth/waitings/{waiting-id}/cancel` | 관리자가 대기 취소 | 관리자 (booth+) |
+| PATCH | `/admin/v1/booth/waitings/{waiting-id}/skip` | 미방문 건너뛰기 | 관리자 (booth+) |
+| POST | `/admin/v1/booth/booths/{booth-id}/waitings/insert` | 대기열 중간 삽입 | 관리자 (booth+) |
+| PATCH | `/admin/v1/booth/waitings/{waiting-id}/reorder` | 대기 순서 변경 | 관리자 (booth+) |
+| PATCH | `/admin/v1/booth/booths/{booth-id}/waitings/toggle` | 대기 접수 ON/OFF | 관리자 (booth+) |
+| POST | `/admin/v1/booth/waitings/{waiting-id}/resend-sms` | SMS 재발송 | 관리자 (booth+) |
 
 **Query Parameters** (GET 대기팀 목록)
 - `status`: `WAITING` / `CALLED` / `ENTERED` / `SKIPPED` / `CANCELLED` — 상태 필터
@@ -386,7 +387,7 @@
 |--------|----------|------|------|
 | POST | `/admin/v1/auth/login` | 관리자 로그인 (boothId + password 또는 masterPassword) | 불필요 |
 | POST | `/admin/v1/auth/logout` | 로그아웃 (세션 무효화) | 관리자 |
-| PATCH | `/admin/v1/booths/{booth-id}/password` | 부스 비밀번호 변경 | 슈퍼 관리자 |
+| PATCH | `/admin/v1/super/booths/{booth-id}/password` | 부스 비밀번호 변경 | 슈퍼 관리자 |
 
 **비즈니스 규칙**
 - BR-AUTH-01: 세션 기반 인증 — 로그인 시 서버가 JSESSIONID 쿠키 발급, 프론트는 `credentials: 'include'` 만 세팅

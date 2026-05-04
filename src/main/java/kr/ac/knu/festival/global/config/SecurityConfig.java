@@ -48,6 +48,8 @@ public class SecurityConfig {
                                 "/error"
                         ).permitAll()
                         .requestMatchers("/admin/v1/auth/login").permitAll()
+                        .requestMatchers("/admin/v1/super/**").hasRole("SUPER_ADMIN")
+                        .requestMatchers("/admin/v1/booth/**").hasAnyRole("SUPER_ADMIN", "BOOTH_ADMIN")
                         .requestMatchers("/admin/**").authenticated()
                         .anyRequest().permitAll()
                 )

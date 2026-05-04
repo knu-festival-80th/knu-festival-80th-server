@@ -45,7 +45,7 @@ public class WaitingQueryController implements WaitingQueryControllerDocs {
     }
 
     @Override
-    @GetMapping("/admin/v1/booths/{booth-id}/waitings")
+    @GetMapping("/admin/v1/booth/booths/{booth-id}/waitings")
     public ResponseEntity<ApiResponse<List<WaitingResponse>>> getWaitings(
             @CurrentAdmin AdminInfo admin,
             @PathVariable("booth-id") Long boothId,

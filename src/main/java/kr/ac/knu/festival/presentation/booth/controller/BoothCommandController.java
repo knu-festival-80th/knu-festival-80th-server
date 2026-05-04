@@ -37,7 +37,7 @@ public class BoothCommandController implements BoothCommandControllerDocs {
     private final BoothQueryService boothQueryService;
 
     @Override
-    @PostMapping("/admin/v1/booths")
+    @PostMapping("/admin/v1/super/booths")
     public ResponseEntity<ApiResponse<BoothResponse>> createBooth(
             @CurrentAdmin AdminInfo admin,
             @RequestBody @Valid BoothCreateRequest request
@@ -48,7 +48,7 @@ public class BoothCommandController implements BoothCommandControllerDocs {
     }
 
     @Override
-    @PutMapping("/admin/v1/booths/{booth-id}")
+    @PutMapping("/admin/v1/booth/booths/{booth-id}")
     public ResponseEntity<ApiResponse<BoothResponse>> updateBooth(
             @CurrentAdmin AdminInfo admin,
             @PathVariable("booth-id") Long boothId,
@@ -59,7 +59,7 @@ public class BoothCommandController implements BoothCommandControllerDocs {
     }
 
     @Override
-    @DeleteMapping("/admin/v1/booths/{booth-id}")
+    @DeleteMapping("/admin/v1/super/booths/{booth-id}")
     public ResponseEntity<ApiResponse<Void>> deleteBooth(
             @CurrentAdmin AdminInfo admin,
             @PathVariable("booth-id") Long boothId
@@ -70,7 +70,7 @@ public class BoothCommandController implements BoothCommandControllerDocs {
     }
 
     @Override
-    @PatchMapping("/admin/v1/booths/{booth-id}/password")
+    @PatchMapping("/admin/v1/super/booths/{booth-id}/password")
     public ResponseEntity<ApiResponse<Void>> changeBoothPassword(
             @CurrentAdmin AdminInfo admin,
             @PathVariable("booth-id") Long boothId,
@@ -82,7 +82,7 @@ public class BoothCommandController implements BoothCommandControllerDocs {
     }
 
     @Override
-    @GetMapping("/admin/v1/booths")
+    @GetMapping("/admin/v1/booth/booths")
     public ResponseEntity<ApiResponse<List<BoothListResponse>>> getBoothsForAdmin(
             @CurrentAdmin AdminInfo admin,
             @RequestParam(value = "sort", required = false, defaultValue = "likes") String sort

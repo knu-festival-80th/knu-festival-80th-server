@@ -59,7 +59,7 @@ public class WaitingCommandController implements WaitingCommandControllerDocs {
     // ---- 관리자 API ----
 
     @Override
-    @PatchMapping("/admin/v1/waitings/{waiting-id}/call")
+    @PatchMapping("/admin/v1/booth/waitings/{waiting-id}/call")
     public ResponseEntity<ApiResponse<Void>> callWaiting(
             @CurrentAdmin AdminInfo admin,
             @PathVariable("waiting-id") Long waitingId
@@ -70,7 +70,7 @@ public class WaitingCommandController implements WaitingCommandControllerDocs {
     }
 
     @Override
-    @PatchMapping("/admin/v1/waitings/{waiting-id}/enter")
+    @PatchMapping("/admin/v1/booth/waitings/{waiting-id}/enter")
     public ResponseEntity<ApiResponse<Void>> enterWaiting(
             @CurrentAdmin AdminInfo admin,
             @PathVariable("waiting-id") Long waitingId
@@ -81,7 +81,7 @@ public class WaitingCommandController implements WaitingCommandControllerDocs {
     }
 
     @Override
-    @PatchMapping("/admin/v1/waitings/{waiting-id}/cancel")
+    @PatchMapping("/admin/v1/booth/waitings/{waiting-id}/cancel")
     public ResponseEntity<ApiResponse<Void>> cancelWaiting(
             @CurrentAdmin AdminInfo admin,
             @PathVariable("waiting-id") Long waitingId
@@ -92,7 +92,7 @@ public class WaitingCommandController implements WaitingCommandControllerDocs {
     }
 
     @Override
-    @PatchMapping("/admin/v1/waitings/{waiting-id}/skip")
+    @PatchMapping("/admin/v1/booth/waitings/{waiting-id}/skip")
     public ResponseEntity<ApiResponse<Void>> skipWaiting(
             @CurrentAdmin AdminInfo admin,
             @PathVariable("waiting-id") Long waitingId
@@ -103,7 +103,7 @@ public class WaitingCommandController implements WaitingCommandControllerDocs {
     }
 
     @Override
-    @PostMapping("/admin/v1/booths/{booth-id}/waitings/insert")
+    @PostMapping("/admin/v1/booth/booths/{booth-id}/waitings/insert")
     public ResponseEntity<ApiResponse<WaitingRegisterResponse>> insertWaiting(
             @CurrentAdmin AdminInfo admin,
             @PathVariable("booth-id") Long boothId,
@@ -115,7 +115,7 @@ public class WaitingCommandController implements WaitingCommandControllerDocs {
     }
 
     @Override
-    @PatchMapping("/admin/v1/waitings/{waiting-id}/reorder")
+    @PatchMapping("/admin/v1/booth/waitings/{waiting-id}/reorder")
     public ResponseEntity<ApiResponse<Void>> reorderWaiting(
             @CurrentAdmin AdminInfo admin,
             @PathVariable("waiting-id") Long waitingId,
@@ -127,7 +127,7 @@ public class WaitingCommandController implements WaitingCommandControllerDocs {
     }
 
     @Override
-    @PatchMapping("/admin/v1/booths/{booth-id}/waitings/toggle")
+    @PatchMapping("/admin/v1/booth/booths/{booth-id}/waitings/toggle")
     public ResponseEntity<ApiResponse<Void>> toggleBoothWaiting(
             @CurrentAdmin AdminInfo admin,
             @PathVariable("booth-id") Long boothId,
@@ -139,7 +139,7 @@ public class WaitingCommandController implements WaitingCommandControllerDocs {
     }
 
     @Override
-    @PostMapping("/admin/v1/waitings/{waiting-id}/resend-sms")
+    @PostMapping("/admin/v1/booth/waitings/{waiting-id}/resend-sms")
     public ResponseEntity<ApiResponse<Void>> resendSms(
             @CurrentAdmin AdminInfo admin,
             @PathVariable("waiting-id") Long waitingId
