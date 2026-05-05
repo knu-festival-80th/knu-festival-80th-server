@@ -2,6 +2,7 @@ package kr.ac.knu.festival.presentation.booth.dto.response;
 
 import kr.ac.knu.festival.domain.booth.entity.Booth;
 import kr.ac.knu.festival.domain.booth.entity.Menu;
+import kr.ac.knu.festival.infra.storage.ImageUrlResolver;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -19,7 +20,12 @@ public record BoothDetailResponse(
         long currentWaitingTeams,
         List<MenuResponse> menus
 ) {
-    public static BoothDetailResponse of(Booth booth, List<Menu> menus, long currentWaitingTeams) {
+    public static BoothDetailResponse of(
+            Booth booth,
+            List<Menu> menus,
+            long currentWaitingTeams,
+            ImageUrlResolver urls
+    ) {
         return new BoothDetailResponse(
                 booth.getId(),
                 booth.getName(),
@@ -27,11 +33,11 @@ public record BoothDetailResponse(
                 booth.getXRatio(),
                 booth.getYRatio(),
                 booth.getLikeCount(),
-                booth.getImageUrl(),
-                booth.getMenuBoardImageUrl(),
+                urls.toPublicUrl(booth.getImageUrl()),
+                urls.toPublicUrl(booth.getMenuBoardImageUrl()),
                 booth.isWaitingOpen(),
                 currentWaitingTeams,
-                menus.stream().map(MenuResponse::fromEntity).toList()
+                menus.stream().map(menu -> MenuResponse.fromEntity(menu, urls)).toList()
         );
     }
 }

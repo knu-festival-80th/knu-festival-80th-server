@@ -6,6 +6,7 @@ import kr.ac.knu.festival.domain.waiting.entity.WaitingStatus;
 import kr.ac.knu.festival.domain.waiting.repository.WaitingRepository;
 import kr.ac.knu.festival.global.exception.BusinessErrorCode;
 import kr.ac.knu.festival.global.exception.BusinessException;
+import kr.ac.knu.festival.infra.storage.ImageUrlResolver;
 import kr.ac.knu.festival.presentation.booth.dto.request.BoothCreateRequest;
 import kr.ac.knu.festival.presentation.booth.dto.request.BoothUpdateRequest;
 import kr.ac.knu.festival.presentation.booth.dto.response.BoothResponse;
@@ -26,6 +27,7 @@ public class BoothCommandService {
     private final BoothRepository boothRepository;
     private final WaitingRepository waitingRepository;
     private final PasswordEncoder passwordEncoder;
+    private final ImageUrlResolver imageUrlResolver;
 
     public BoothResponse createBooth(BoothCreateRequest request) {
         Booth booth = Booth.createBooth(
@@ -37,7 +39,7 @@ public class BoothCommandService {
                 request.menuBoardImageUrl(),
                 passwordEncoder.encode(request.adminPassword())
         );
-        return BoothResponse.fromEntity(boothRepository.save(booth));
+        return BoothResponse.fromEntity(boothRepository.save(booth), imageUrlResolver);
     }
 
     public BoothResponse updateBooth(Long boothId, BoothUpdateRequest request) {
@@ -51,7 +53,7 @@ public class BoothCommandService {
                 request.imageUrl(),
                 request.menuBoardImageUrl()
         );
-        return BoothResponse.fromEntity(booth);
+        return BoothResponse.fromEntity(booth, imageUrlResolver);
     }
 
     public void deleteBooth(Long boothId) {
@@ -77,13 +79,13 @@ public class BoothCommandService {
         }
         Booth booth = boothRepository.findById(boothId)
                 .orElseThrow(() -> new BusinessException(BusinessErrorCode.BOOTH_NOT_FOUND));
-        return BoothResponse.fromEntity(booth);
+        return BoothResponse.fromEntity(booth, imageUrlResolver);
     }
 
     public BoothResponse unlikeBooth(Long boothId) {
         boothRepository.decrementLike(boothId);
         Booth booth = boothRepository.findById(boothId)
                 .orElseThrow(() -> new BusinessException(BusinessErrorCode.BOOTH_NOT_FOUND));
-        return BoothResponse.fromEntity(booth);
+        return BoothResponse.fromEntity(booth, imageUrlResolver);
     }
 }

@@ -1,6 +1,7 @@
 package kr.ac.knu.festival.presentation.booth.dto.response;
 
 import kr.ac.knu.festival.domain.booth.entity.Booth;
+import kr.ac.knu.festival.infra.storage.ImageUrlResolver;
 
 import java.math.BigDecimal;
 
@@ -15,7 +16,7 @@ public record BoothResponse(
         String menuBoardImageUrl,
         boolean waitingOpen
 ) {
-    public static BoothResponse fromEntity(Booth booth) {
+    public static BoothResponse fromEntity(Booth booth, ImageUrlResolver urls) {
         return new BoothResponse(
                 booth.getId(),
                 booth.getName(),
@@ -23,8 +24,8 @@ public record BoothResponse(
                 booth.getXRatio(),
                 booth.getYRatio(),
                 booth.getLikeCount(),
-                booth.getImageUrl(),
-                booth.getMenuBoardImageUrl(),
+                urls.toPublicUrl(booth.getImageUrl()),
+                urls.toPublicUrl(booth.getMenuBoardImageUrl()),
                 booth.isWaitingOpen()
         );
     }

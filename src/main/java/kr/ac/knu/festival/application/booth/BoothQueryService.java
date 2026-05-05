@@ -8,6 +8,7 @@ import kr.ac.knu.festival.domain.waiting.entity.WaitingStatus;
 import kr.ac.knu.festival.domain.waiting.repository.WaitingRepository;
 import kr.ac.knu.festival.global.exception.BusinessErrorCode;
 import kr.ac.knu.festival.global.exception.BusinessException;
+import kr.ac.knu.festival.infra.storage.ImageUrlResolver;
 import kr.ac.knu.festival.presentation.booth.dto.response.BoothDetailResponse;
 import kr.ac.knu.festival.presentation.booth.dto.response.BoothListResponse;
 import kr.ac.knu.festival.presentation.booth.dto.response.BoothMapResponse;
@@ -31,6 +32,7 @@ public class BoothQueryService {
     private final BoothRepository boothRepository;
     private final MenuRepository menuRepository;
     private final WaitingRepository waitingRepository;
+    private final ImageUrlResolver imageUrlResolver;
 
     public List<BoothListResponse> getBooths(String sort) {
         List<Booth> booths = boothRepository.findAllByOrderByLikeCountDescIdAsc();
@@ -39,7 +41,8 @@ public class BoothQueryService {
         List<BoothListResponse> responses = booths.stream()
                 .map(booth -> BoothListResponse.fromEntity(
                         booth,
-                        activeCountByBoothId.getOrDefault(booth.getId(), 0L)))
+                        activeCountByBoothId.getOrDefault(booth.getId(), 0L),
+                        imageUrlResolver))
                 .toList();
 
         if (SORT_WAITING_ASC.equalsIgnoreCase(sort)) {
@@ -56,7 +59,7 @@ public class BoothQueryService {
                 .orElseThrow(() -> new BusinessException(BusinessErrorCode.BOOTH_NOT_FOUND));
         List<Menu> menus = menuRepository.findAllByBoothIdOrderByIdAsc(boothId);
         long activeWaiting = waitingRepository.countByBoothIdAndStatusIn(boothId, ACTIVE_STATUSES);
-        return BoothDetailResponse.of(booth, menus, activeWaiting);
+        return BoothDetailResponse.of(booth, menus, activeWaiting, imageUrlResolver);
     }
 
     public List<BoothMapResponse> getBoothsForMap() {

@@ -56,9 +56,13 @@ services:
       CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-http://localhost:3000}
       SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-local}
       SERVER_PORT: 8080
+      PUBLIC_BASE_URL: ${PUBLIC_BASE_URL:-http://localhost:8080}
+      UPLOAD_BASE_DIR: /app/uploads
       TZ: Asia/Seoul
     ports:
       - "8080:8080"
+    volumes:
+      - upload-data:/app/uploads
     depends_on:
       mysql:
         condition: service_healthy
@@ -68,3 +72,4 @@ services:
 
 volumes:
   mysql-data:
+  upload-data:
