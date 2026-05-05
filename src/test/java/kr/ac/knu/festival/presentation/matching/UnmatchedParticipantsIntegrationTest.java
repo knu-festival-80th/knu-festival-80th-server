@@ -49,7 +49,7 @@ class UnmatchedParticipantsIntegrationTest {
         participant.markUnmatched();
         matchingParticipantRepository.save(participant);
 
-        mockMvc.perform(get("/api/v1/matchings/unmatched"))
+        mockMvc.perform(get("/v1/matchings/unmatched"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.resultOpen").value(false))
                 .andExpect(jsonPath("$.data.participants").isEmpty());

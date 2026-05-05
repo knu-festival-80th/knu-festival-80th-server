@@ -30,7 +30,7 @@ public class MatchingCommandController implements MatchingCommandControllerDocs 
     private final MatchingCommandService matchingCommandService;
 
     @Override
-    @PostMapping("/api/v1/matchings")
+    @PostMapping("/v1/matchings")
     public ResponseEntity<ApiResponse<MatchingRegisterResponse>> register(
             @RequestBody @Valid MatchingCreateRequest request
     ) {
@@ -39,7 +39,7 @@ public class MatchingCommandController implements MatchingCommandControllerDocs 
     }
 
     @Override
-    @DeleteMapping("/api/v1/matchings")
+    @DeleteMapping("/v1/matchings")
     public ResponseEntity<ApiResponse<Void>> cancel(
             @RequestBody @Valid MatchingAuthRequest request
     ) {

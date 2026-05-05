@@ -25,7 +25,7 @@ public class MatchingQueryController implements MatchingQueryControllerDocs {
     private final MatchingQueryService matchingQueryService;
 
     @Override
-    @PostMapping("/api/v1/matchings/result")
+    @PostMapping("/v1/matchings/result")
     public ResponseEntity<ApiResponse<MatchingResultResponse>> getResult(
             @RequestBody @Valid MatchingAuthRequest request,
             HttpServletRequest httpRequest
@@ -34,13 +34,13 @@ public class MatchingQueryController implements MatchingQueryControllerDocs {
     }
 
     @Override
-    @GetMapping("/api/v1/matchings/status")
+    @GetMapping("/v1/matchings/status")
     public ResponseEntity<ApiResponse<MatchingStatusResponse>> getStatus() {
         return ResponseEntity.ok(ApiResponse.success(matchingQueryService.getStatus()));
     }
 
     @Override
-    @GetMapping("/api/v1/matchings/unmatched")
+    @GetMapping("/v1/matchings/unmatched")
     public ResponseEntity<ApiResponse<UnmatchedParticipantsResponse>> getUnmatchedParticipants() {
         return ResponseEntity.ok(ApiResponse.success(matchingQueryService.getUnmatchedParticipants()));
     }

@@ -57,7 +57,7 @@ class MatchingResultRateLimitIntegrationTest {
         MatchingAuthRequest wrongPassword = new MatchingAuthRequest("rate_limit_user", "wrong");
 
         for (int i = 0; i < 5; i++) {
-            mockMvc.perform(post("/api/v1/matchings/result")
+            mockMvc.perform(post("/v1/matchings/result")
                             .with(request -> {
                                 request.setRemoteAddr(CLIENT_IP);
                                 return request;
@@ -67,7 +67,7 @@ class MatchingResultRateLimitIntegrationTest {
                     .andExpect(status().isUnauthorized());
         }
 
-        mockMvc.perform(post("/api/v1/matchings/result")
+        mockMvc.perform(post("/v1/matchings/result")
                         .with(request -> {
                             request.setRemoteAddr(CLIENT_IP);
                             return request;

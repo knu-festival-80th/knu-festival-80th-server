@@ -49,7 +49,7 @@ class MatchingRegistrationClosedIntegrationTest {
                 "KR"
         );
 
-        mockMvc.perform(post("/api/v1/matchings")
+        mockMvc.perform(post("/v1/matchings")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest())
