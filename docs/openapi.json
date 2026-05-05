@@ -208,7 +208,7 @@
         }
       }
     },
-    "/api/v1/matchings": {
+    "/v1/matchings": {
       "post": {
         "tags": [
           "매칭 Command"
@@ -278,7 +278,7 @@
         }
       }
     },
-    "/api/v1/matchings/result": {
+    "/v1/matchings/result": {
       "post": {
         "tags": [
           "매칭 Query"
@@ -1153,7 +1153,7 @@
         }
       }
     },
-    "/api/v1/matchings/unmatched": {
+    "/v1/matchings/unmatched": {
       "get": {
         "tags": [
           "매칭 Query"
@@ -1174,7 +1174,7 @@
         }
       }
     },
-    "/api/v1/matchings/status": {
+    "/v1/matchings/status": {
       "get": {
         "tags": [
           "매칭 Query"
