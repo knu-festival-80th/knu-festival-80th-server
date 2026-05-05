@@ -291,13 +291,13 @@
 
 | Method | Endpoint | 설명 | 인증 |
 |--------|----------|------|------|
-| POST | `/matchings` | 매칭 신청 | 불필요 |
-| POST | `/matchings/result` | 매칭 결과 조회 (body로 ID+비밀번호) | 불필요 |
-| DELETE | `/matchings` | 매칭 신청 취소 (body로 ID+비밀번호) | 불필요 |
-| GET | `/matchings/status` | 매칭 서비스 상태 조회 | 불필요 |
-| GET | `/matchings/unmatched` | 미매칭 공개 목록 조회 | 불필요 |
-| POST | `/admin/matching-jobs` | 일괄 매칭 실행 (Time Drop) | 슈퍼 관리자 |
-| PATCH | `/admin/matchings/status` | 매칭 상태 변경 (일시중단/재개) | 슈퍼 관리자 |
+| POST | `/api/v1/matchings` | 매칭 신청 | 불필요 |
+| POST | `/api/v1/matchings/result` | 매칭 결과 조회 (body로 ID+비밀번호) | 불필요 |
+| DELETE | `/api/v1/matchings` | 매칭 신청 취소 (body로 ID+비밀번호) | 불필요 |
+| GET | `/api/v1/matchings/status` | 매칭 서비스 상태 조회 | 불필요 |
+| GET | `/api/v1/matchings/unmatched` | 미매칭 공개 목록 조회 | 불필요 |
+| POST | `/admin/v1/matching-jobs` | 일괄 매칭 실행 (Time Drop) | 슈퍼 관리자 |
+| PATCH | `/admin/v1/matchings/status` | 매칭 상태 변경 (일시중단/재개) | 슈퍼 관리자 |
 
 **매칭 신청 요청**
 ```
