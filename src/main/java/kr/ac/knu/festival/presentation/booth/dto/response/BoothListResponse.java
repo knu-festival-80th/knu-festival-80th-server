@@ -8,10 +8,11 @@ public record BoothListResponse(
         Long boothId,
         String name,
         String description,
-        BigDecimal locationLat,
-        BigDecimal locationLng,
+        BigDecimal xRatio,
+        BigDecimal yRatio,
         int likeCount,
         String imageUrl,
+        String menuBoardImageUrl,
         boolean waitingOpen,
         long currentWaitingTeams
 ) {
@@ -20,10 +21,11 @@ public record BoothListResponse(
                 booth.getId(),
                 booth.getName(),
                 booth.getDescription(),
-                booth.getLocationLat(),
-                booth.getLocationLng(),
+                booth.getXRatio(),
+                booth.getYRatio(),
                 booth.getLikeCount(),
                 booth.getImageUrl(),
+                booth.getMenuBoardImageUrl(),
                 booth.isWaitingOpen(),
                 currentWaitingTeams
         );

@@ -31,9 +31,10 @@ public class BoothCommandService {
         Booth booth = Booth.createBooth(
                 request.name(),
                 request.description(),
-                request.locationLat(),
-                request.locationLng(),
+                request.xRatio(),
+                request.yRatio(),
                 request.imageUrl(),
+                request.menuBoardImageUrl(),
                 passwordEncoder.encode(request.adminPassword())
         );
         return BoothResponse.fromEntity(boothRepository.save(booth));
@@ -45,9 +46,10 @@ public class BoothCommandService {
         booth.updateBooth(
                 request.name(),
                 request.description(),
-                request.locationLat(),
-                request.locationLng(),
-                request.imageUrl()
+                request.xRatio(),
+                request.yRatio(),
+                request.imageUrl(),
+                request.menuBoardImageUrl()
         );
         return BoothResponse.fromEntity(booth);
     }
