@@ -30,7 +30,7 @@ public class MatchingCommandController implements MatchingCommandControllerDocs 
     private final MatchingCommandService matchingCommandService;
 
     @Override
-    @PostMapping("/v1/matchings")
+    @PostMapping("/matchings")
     public ResponseEntity<ApiResponse<MatchingRegisterResponse>> register(
             @RequestBody @Valid MatchingCreateRequest request
     ) {
@@ -39,7 +39,7 @@ public class MatchingCommandController implements MatchingCommandControllerDocs 
     }
 
     @Override
-    @DeleteMapping("/v1/matchings")
+    @DeleteMapping("/matchings")
     public ResponseEntity<ApiResponse<Void>> cancel(
             @RequestBody @Valid MatchingAuthRequest request
     ) {
@@ -48,7 +48,7 @@ public class MatchingCommandController implements MatchingCommandControllerDocs 
     }
 
     @Override
-    @PostMapping("/admin/v1/matching-jobs")
+    @PostMapping("/admin/matching-jobs")
     public ResponseEntity<ApiResponse<MatchingJobResponse>> runMatchingJob(
             @CurrentAdmin AdminInfo admin
     ) {
@@ -57,7 +57,7 @@ public class MatchingCommandController implements MatchingCommandControllerDocs 
     }
 
     @Override
-    @PatchMapping("/admin/v1/matchings/status")
+    @PatchMapping("/admin/matchings/status")
     public ResponseEntity<ApiResponse<MatchingStatusResponse>> updateStatus(
             @CurrentAdmin AdminInfo admin,
             @RequestBody @Valid MatchingStatusUpdateRequest request

@@ -49,7 +49,7 @@ class UnmatchedParticipantsOpenIntegrationTest {
         participant.markUnmatched();
         matchingParticipantRepository.save(participant);
 
-        mockMvc.perform(get("/v1/matchings/unmatched"))
+        mockMvc.perform(get("/matchings/unmatched"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.resultOpen").value(true))
                 .andExpect(jsonPath("$.data.participants[0].instagramId").value("open_unmatched"))

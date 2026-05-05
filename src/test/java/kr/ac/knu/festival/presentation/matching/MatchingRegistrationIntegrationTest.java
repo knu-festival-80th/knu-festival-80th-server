@@ -58,7 +58,7 @@ class MatchingRegistrationIntegrationTest {
                 null
         );
 
-        mockMvc.perform(post("/v1/matchings")
+        mockMvc.perform(post("/matchings")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
@@ -86,7 +86,7 @@ class MatchingRegistrationIntegrationTest {
                 "EN"
         );
 
-        mockMvc.perform(post("/v1/matchings")
+        mockMvc.perform(post("/matchings")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest())
@@ -116,7 +116,7 @@ class MatchingRegistrationIntegrationTest {
 
         MatchingAuthRequest request = new MatchingAuthRequest("male_user", "1234");
 
-        mockMvc.perform(post("/v1/matchings/result")
+        mockMvc.perform(post("/matchings/result")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
