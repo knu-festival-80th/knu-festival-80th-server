@@ -27,7 +27,7 @@ import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/admin/v1/booths/{booth-id}/menus")
+@RequestMapping("/admin/booths/{booth-id}/menus")
 public class MenuCommandController implements MenuCommandControllerDocs {
 
     private final MenuCommandService menuCommandService;
