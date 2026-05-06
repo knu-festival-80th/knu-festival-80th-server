@@ -16,6 +16,7 @@ public enum BusinessErrorCode implements ErrorCode {
     BOOTH_HAS_ACTIVE_WAITINGS(HttpStatus.BAD_REQUEST, "B003", "대기 중인 팀이 있어 부스를 삭제할 수 없습니다."),
     INVALID_WAITING_STATUS_TRANSITION(HttpStatus.BAD_REQUEST, "W001", "허용되지 않는 대기 상태 전환입니다."),
     INVALID_PHONE_NUMBER(HttpStatus.BAD_REQUEST, "W002", "전화번호 형식이 올바르지 않습니다."),
+    INVALID_POSTIT_SIZE(HttpStatus.BAD_REQUEST, "CP001", "포스트잇 크기는 104, 120, 136px 중 하나이어야 합니다."),
 
     /*
      * 401 UNAUTHORIZED
@@ -36,6 +37,7 @@ public enum BusinessErrorCode implements ErrorCode {
     BOOTH_NOT_FOUND(HttpStatus.NOT_FOUND, "B001", "부스를 찾을 수 없습니다."),
     MENU_NOT_FOUND(HttpStatus.NOT_FOUND, "B002", "메뉴를 찾을 수 없습니다."),
     WAITING_NOT_FOUND(HttpStatus.NOT_FOUND, "W005", "대기 정보를 찾을 수 없습니다."),
+    CANVAS_POSTIT_NOT_FOUND(HttpStatus.NOT_FOUND, "CP002", "포스트잇을 찾을 수 없습니다."),
 
     /*
      * 409 CONFLICT
