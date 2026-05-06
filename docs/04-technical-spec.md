@@ -15,6 +15,7 @@
 | v1.1 | 2026-04-25 | 대기열 스키마 재설계, 인덱스 추가, 캐싱/WebSocket 설계 보완, 일정 제거 | - |
 | v1.2 | 2026-04-27 | 동시성 감사 반영 — waiting 에 phone_lookup_hash·version 컬럼 추가, 부스 락 기반 채번/순서 변경, booth like atomic UPDATE, like_count 인덱스, status+called_at 인덱스 | - |
 | v1.3 | 2026-04-27 | 인증을 부스별 비밀번호 + 세션 기반으로 단순화 — member 테이블 제거, booth 에 admin_password 컬럼 추가, 인증 아키텍처 재정의 | - |
+| v1.4 | 2026-05-05 | canvas(롤링페이퍼) DB 스키마 추가 — canvas_postit 테이블로 교체 (섹션 3.8) | milk-stone |
 
 ---
 
@@ -245,22 +246,29 @@ CREATE TABLE review (
 -- password: 해시 저장 (본인 삭제용)
 ```
 
-### 3.8 canvas_element (캔버스 요소)
+### 3.8 canvas_postit (롤링페이퍼 포스트잇)
 
 ```sql
-CREATE TABLE canvas_element (
-    element_id   BIGINT AUTO_INCREMENT PRIMARY KEY,
-    element_type VARCHAR(20) NOT NULL,
-    data         JSON NOT NULL,
-    position_x   DOUBLE NOT NULL,
-    position_y   DOUBLE NOT NULL,
-    session_id   VARCHAR(100) NOT NULL,
-    created_at   DATETIME NOT NULL,
-    updated_at   DATETIME NOT NULL,
-    INDEX idx_canvas_position (position_x, position_y)
+CREATE TABLE canvas_postit (
+    canvas_postit_id  BIGINT AUTO_INCREMENT PRIMARY KEY,
+    nickname          VARCHAR(8)  NOT NULL,
+    message           VARCHAR(60) NOT NULL,
+    color             VARCHAR(10) NOT NULL,
+    position_x        INT         NOT NULL,
+    position_y        INT         NOT NULL,
+    width             INT         NOT NULL,
+    height            INT         NOT NULL,
+    zone_number       INT         NOT NULL,
+    created_at        DATETIME    NOT NULL,
+    updated_at        DATETIME    NOT NULL,
+    deleted_at        DATETIME,
+    INDEX idx_canvas_postit_zone_id (zone_number, canvas_postit_id)
 );
--- element_type: DRAW, TEXT, STICKER
--- session_id: 사용자 식별용 임시 토큰 (스티커 개수 제한 등에 사용)
+-- color: YELLOW, PINK, BLUE, GREEN, PURPLE, ORANGE
+-- position_x, position_y: px 절댓값 (보드 크기 2000×2000px)
+-- width, height: 104 / 120 / 136 중 하나
+-- zone_number: (canvas_postit_id - 1) / 50 + 1 으로 자동 산출 (1~50번째 = 1존, ...)
+-- deleted_at: 소프트 딜리트 (관리자 삭제 시 사용)
 ```
 
 ### 3.9 matching_participant (매칭)

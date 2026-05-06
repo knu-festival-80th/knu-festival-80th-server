@@ -15,6 +15,7 @@
 | v1.1 | 2026-04-25 | 대기열 현장 전용 재설계, API 보안/설계 이슈 반영, 누락 API 추가 | - |
 | v1.2 | 2026-04-27 | 대기열을 웹 온라인 등록 모델로 전환 (현장 태블릿 전제 폐기), 본인 취소 API 추가, 어뷰즈 방지 규칙 보강 | - |
 | v1.3 | 2026-04-27 | 관리자 인증을 부스별 비밀번호 + 세션 기반으로 단순화, member 도메인 제거, 부스 비밀번호 변경 API 추가, 모든 admin API에 소유권 검증 적용 | - |
+| v1.4 | 2026-05-05 | canvas(롤링페이퍼) 도메인 기능 명세 추가 — REST API 기반 포스트잇 보드로 재설계 (WebSocket 제거) | milk-stone |
 
 ---
 
@@ -255,29 +256,58 @@
 
 ### 3.8 롤링페이퍼 캔버스 (canvas)
 
-#### FS-USR-03: 실시간 캔버스
+#### FS-USR-03: 포스트잇 보드
+
+> 방문자가 닉네임·메시지·색상·좌표를 입력해 가상 보드에 포스트잇을 붙이는 참여형 방명록 기능이다.  
+> 인증 불필요. 보드는 50개 단위로 존(구역)이 자동 분할된다.
 
 **API 목록**
 
 | Method | Endpoint | 설명 | 인증 |
 |--------|----------|------|------|
-| GET | `/api/v1/canvas/elements` | 캔버스 요소 조회 (Viewport 기반) | 불필요 |
-| POST | `/api/v1/canvas/elements` | 캔버스 요소 저장 (WebSocket 불가 시 fallback) | 불필요 |
-| WS | `/ws/canvas` | 실시간 드로잉 데이터 송수신 | 불필요 |
+| GET | `/api/v1/canvas/postits?zone={n}` | 존별 포스트잇 목록 조회 (미입력 시 현재 활성 존) | 불필요 |
+| GET | `/api/v1/canvas/zones` | 존 요약 목록 조회 (존 번호 + 포스트잇 수) | 불필요 |
+| POST | `/api/v1/canvas/postits` | 포스트잇 생성 | 불필요 |
+| DELETE | `/admin/v1/canvas/postits/{postit-id}` | 포스트잇 삭제 | 슈퍼 관리자 |
 
-**Query Parameters** (GET 캔버스 요소)
-- `x`, `y`, `width`, `height` — Viewport 좌표 범위
+**포스트잇 생성 요청**
+```json
+{
+  "nickname": "홍길동",
+  "message": "축제 너무 좋아요!",
+  "color": "YELLOW",
+  "positionX": 320,
+  "positionY": 480,
+  "width": 120,
+  "height": 120
+}
+```
 
-**WebSocket 메시지 타입**
-- `DRAW`: 드로잉 좌표 데이터 전송
-- `TEXT`: 텍스트 메시지 작성
-- `STICKER`: 스티커 배치
+**포스트잇 생성 응답**
+```json
+{
+  "canvasPostitId": 51,
+  "zoneNumber": 2,
+  "nickname": "홍길동",
+  "message": "축제 너무 좋아요!",
+  "color": "YELLOW",
+  "positionX": 320,
+  "positionY": 480,
+  "width": 120,
+  "height": 120,
+  "createdAt": "2026-05-05T15:30:00"
+}
+```
 
 **비즈니스 규칙**
-- BR-CANVAS-01: 스티커 개수는 세션당 제한 (구체적 수치 TBD, 세션 토큰으로 식별)
-- BR-CANVAS-02: Viewport 기반으로 필요한 영역의 데이터만 전송
-- BR-CANVAS-03: 드로잉 데이터는 인메모리 버퍼 후 주기적 DB 저장 (쓰기 폭풍 방지)
-- BR-CANVAS-04: WebSocket 재연결 시 현재 Viewport의 최신 상태를 REST API로 복구
+- BR-RP-01: 포스트잇 생성 시 인증 불필요 (공개 API)
+- BR-RP-02: 닉네임 최대 8자, 메시지 최대 60자, 초과 시 400 반환
+- BR-RP-03: 존 번호는 서버가 자동 부여 — PK 기준 50개 단위 분할 (1~50번째 = 1존, 51~100번째 = 2존, ...)
+- BR-RP-04: 색상(`color`)은 `YELLOW`, `PINK`, `BLUE`, `GREEN`, `PURPLE`, `ORANGE` 중 하나
+- BR-RP-05: 좌표(positionX, positionY)는 px 절댓값 (보드 크기: 2000×2000px), 크기(width, height)는 104/120/136 중 하나
+- BR-RP-06: 생성 시 기존 포스트잇을 완전히 덮는 위치이면 서버가 인근으로 보정 후 저장; 응답의 positionX/Y가 실제 저장된 좌표
+- BR-RP-07: 생성 응답에 `canvasPostitId`와 `zoneNumber` 포함 → 프론트엔드가 해당 존으로 이동 후 하이라이트
+- BR-RP-08: 부적절한 포스트잇 삭제는 SUPER_ADMIN만 가능 (소프트 딜리트)
 
 ---
 
