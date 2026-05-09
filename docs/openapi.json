@@ -1,2353 +1,2467 @@
 {
-  "openapi": "3.1.0",
-  "info": {
-    "title": "KNU 80th Festival API",
-    "description": "2026 경북대학교 80주년 대동제 웹앱 백엔드 API — 세션 기반 인증 (JSESSIONID 쿠키)",
-    "version": "v1"
-  },
-  "servers": [
-    {
-      "url": "http://localhost:8080",
-      "description": "Generated server url"
+    "openapi": "3.1.0",
+    "info": {
+        "title": "KNU 80th Festival API",
+        "description": "2026 \uacbd\ubd81\ub300\ud559\uad50 80\uc8fc\ub144 \ub300\ub3d9\uc81c \uc6f9\uc571 \ubc31\uc5d4\ub4dc API \u2014 \uc138\uc158 \uae30\ubc18 \uc778\uc99d (JSESSIONID \ucfe0\ud0a4)",
+        "version": "v1"
+    },
+    "servers": [
+        {
+            "url": "http://localhost:8080",
+            "description": "Generated server url"
+        }
+    ],
+    "tags": [
+        {
+            "name": "\ub9e4\uce6d Command",
+            "description": "\ub450\uadfc\ub450\uadfc \uc778\uc2a4\ud0c0\ud305 \uc2e0\uccad\u00b7\ucde8\uc18c + \uad00\ub9ac\uc790 \ub9e4\uce6d \uc2e4\ud589 API"
+        },
+        {
+            "name": "\ub9e4\uce6d Query",
+            "description": "\ub450\uadfc\ub450\uadfc \uc778\uc2a4\ud0c0\ud305 \uacb0\uacfc\u00b7\uc0c1\ud0dc \uc870\ud68c API"
+        },
+        {
+            "name": "\uc778\uc99d",
+            "description": "\uad00\ub9ac\uc790 \ub85c\uadf8\uc778/\ub85c\uadf8\uc544\uc6c3 (\uc138\uc158 \uae30\ubc18)"
+        },
+        {
+            "name": "\ubd80\uc2a4 Query",
+            "description": "\ubd80\uc2a4 \uc870\ud68c API (\uc0ac\uc6a9\uc790)"
+        },
+        {
+            "name": "\ub300\uae30\uc5f4 Command",
+            "description": "\uc6f9 \ub300\uae30 \ub4f1\ub85d\u00b7\ubcf8\uc778 \ucde8\uc18c + \uad00\ub9ac\uc790 \ub300\uae30\uc5f4 \uc6b4\uc601 API"
+        },
+        {
+            "name": "\ubd80\uc2a4 Command",
+            "description": "\ubd80\uc2a4 \ub4f1\ub85d/\uc218\uc815/\uc0ad\uc81c API (\uad00\ub9ac\uc790) + \uc88b\uc544\uc694 (\uc0ac\uc6a9\uc790)"
+        },
+        {
+            "name": "\ub300\uae30\uc5f4 Query",
+            "description": "\ub300\uae30\uc5f4 \uc870\ud68c API"
+        },
+        {
+            "name": "Image Upload",
+            "description": "\uc774\ubbf8\uc9c0 \uc5c5\ub85c\ub4dc (\uad00\ub9ac\uc790 \uc804\uc6a9 \ubc94\uc6a9 \uc5d4\ub4dc\ud3ec\uc778\ud2b8)"
+        },
+        {
+            "name": "\uba54\ub274 Command/Query",
+            "description": "\ubd80\uc2a4 \uba54\ub274 \uad00\ub9ac API (\uad00\ub9ac\uc790)"
+        }
+    ],
+    "paths": {
+        "/admin/booths/{booth-id}": {
+            "put": {
+                "tags": [
+                    "\ubd80\uc2a4 Command"
+                ],
+                "summary": "\ubd80\uc2a4 \uc218\uc815",
+                "operationId": "updateBooth",
+                "parameters": [
+                    {
+                        "name": "booth-id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/BoothUpdateRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiResponseBoothResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "\ubd80\uc2a4 Command"
+                ],
+                "summary": "\ubd80\uc2a4 \uc0ad\uc81c (\uc288\ud37c \uad00\ub9ac\uc790)",
+                "operationId": "deleteBooth",
+                "parameters": [
+                    {
+                        "name": "booth-id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiResponseVoid"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/booths/{booth-id}/menus/{menu-id}": {
+            "put": {
+                "tags": [
+                    "\uba54\ub274 Command/Query"
+                ],
+                "summary": "\uba54\ub274 \uc218\uc815",
+                "operationId": "updateMenu",
+                "parameters": [
+                    {
+                        "name": "booth-id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    },
+                    {
+                        "name": "menu-id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/MenuUpdateRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiResponseMenuResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "\uba54\ub274 Command/Query"
+                ],
+                "summary": "\uba54\ub274 \uc0ad\uc81c",
+                "operationId": "deleteMenu",
+                "parameters": [
+                    {
+                        "name": "booth-id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    },
+                    {
+                        "name": "menu-id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiResponseVoid"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/matchings": {
+            "post": {
+                "tags": [
+                    "\ub9e4\uce6d Command"
+                ],
+                "summary": "\ub9e4\uce6d \uc2e0\uccad",
+                "operationId": "register",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/MatchingCreateRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "201": {
+                        "description": "\uc2e0\uccad \uc131\uacf5",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiResponseMatchingRegisterResponse"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "\uc911\ubcf5 \uc2e0\uccad \ub610\ub294 \ub9e4\uce6d \uc77c\uc2dc\uc911\ub2e8",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiResponseMatchingRegisterResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "\ub9e4\uce6d Command"
+                ],
+                "summary": "\ub9e4\uce6d \uc2e0\uccad \ucde8\uc18c",
+                "operationId": "cancel",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/MatchingAuthRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiResponseVoid"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/matchings/result": {
+            "post": {
+                "tags": [
+                    "\ub9e4\uce6d Query"
+                ],
+                "summary": "\ub9e4\uce6d \uacb0\uacfc \uc870\ud68c",
+                "operationId": "getResult",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/MatchingAuthRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiResponseMatchingResultResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/booths/{booth-id}/waitings": {
+            "post": {
+                "tags": [
+                    "\ub300\uae30\uc5f4 Command"
+                ],
+                "summary": "\ub300\uae30 \ub4f1\ub85d (\uc6f9)",
+                "description": "\uc190\ub2d8\uc774 \ucd95\uc81c \uc6f9\uc571\uc5d0\uc11c \uc9c1\uc811 \ub300\uae30 \ub4f1\ub85d\ud569\ub2c8\ub2e4.",
+                "operationId": "registerWaiting",
+                "parameters": [
+                    {
+                        "name": "booth-id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/WaitingCreateRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "201": {
+                        "description": "\ub4f1\ub85d \uc131\uacf5",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiResponseWaitingRegisterResponse"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "\ub300\uae30 \uc811\uc218 \uc911\ub2e8",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiResponseWaitingRegisterResponse"
+                                }
+                            }
+                        }
+                    },
+                    "409": {
+                        "description": "\ub3d9\uc77c \ubd80\uc2a4 \ub3d9\uc77c \uc804\ud654\ubc88\ud638 \uc911\ubcf5",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiResponseWaitingRegisterResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/booths/{booth-id}/likes": {
+            "post": {
+                "tags": [
+                    "\ubd80\uc2a4 Command"
+                ],
+                "summary": "\ubd80\uc2a4 \uc88b\uc544\uc694",
+                "operationId": "likeBooth",
+                "parameters": [
+                    {
+                        "name": "booth-id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiResponseBoothResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "\ubd80\uc2a4 Command"
+                ],
+                "summary": "\ubd80\uc2a4 \uc88b\uc544\uc694 \ucde8\uc18c",
+                "operationId": "unlikeBooth",
+                "parameters": [
+                    {
+                        "name": "booth-id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiResponseBoothResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/auth/logout": {
+            "post": {
+                "tags": [
+                    "\uc778\uc99d"
+                ],
+                "summary": "\uad00\ub9ac\uc790 \ub85c\uadf8\uc544\uc6c3",
+                "description": "\uc138\uc158\uc744 \ubb34\ud6a8\ud654\ud569\ub2c8\ub2e4.",
+                "operationId": "logout",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiResponseVoid"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/auth/login": {
+            "post": {
+                "tags": [
+                    "\uc778\uc99d"
+                ],
+                "summary": "\uad00\ub9ac\uc790 \ub85c\uadf8\uc778",
+                "description": "boothId \uac00 null \uc774\uba74 \ucd5c\uace0 \uad00\ub9ac\uc790(SUPER_ADMIN), \uc788\uc73c\uba74 \ud574\ub2f9 \ubd80\uc2a4 \uad00\ub9ac\uc790(BOOTH_ADMIN). \uc131\uacf5 \uc2dc \uc138\uc158 \ucfe0\ud0a4(JSESSIONID) \ubc1c\uae09.",
+                "operationId": "login",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/LoginRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "\ub85c\uadf8\uc778 \uc131\uacf5",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiResponseLoginResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "\ube44\ubc00\ubc88\ud638 \ubd88\uc77c\uce58",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiResponseLoginResponse"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "\ubd80\uc2a4 \uc5c6\uc74c",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiResponseLoginResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/waitings/{waiting-id}/resend-sms": {
+            "post": {
+                "tags": [
+                    "\ub300\uae30\uc5f4 Command"
+                ],
+                "summary": "SMS \uc7ac\ubc1c\uc1a1",
+                "operationId": "resendSms",
+                "parameters": [
+                    {
+                        "name": "waiting-id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiResponseVoid"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/v1/matching-jobs": {
+            "post": {
+                "tags": [
+                    "\ub9e4\uce6d Command"
+                ],
+                "summary": "\uc77c\uad04 \ub9e4\uce6d \uc2e4\ud589",
+                "operationId": "runMatchingJob",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiResponseMatchingJobResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/uploads/images": {
+            "post": {
+                "tags": [
+                    "Image Upload"
+                ],
+                "summary": "\uc774\ubbf8\uc9c0 \uc5c5\ub85c\ub4dc",
+                "description": "\ubd80\uc2a4/\uba54\ub274/\uba54\ub274\ud310 \ub4f1 \ubaa8\ub4e0 \uc774\ubbf8\uc9c0\uc5d0 \uacf5\uc6a9\uc73c\ub85c \uc0ac\uc6a9\ud558\ub294 \ubc94\uc6a9 \uc5d4\ub4dc\ud3ec\uc778\ud2b8.\nmultipart/form-data \uc758 file \ud544\ub4dc\ub85c \ud30c\uc77c\uc744 \uc5c5\ub85c\ub4dc\ud55c\ub2e4.\n\uc751\ub2f5\uc73c\ub85c \ubc1b\uc740 path \ub97c booth.imageUrl, booth.menuBoardImageUrl,\nmenu.imageUrl \ub4f1\uc5d0 \ub2e4\uc2dc PUT/POST \ud574\uc11c \uc5f0\uacb0\ud55c\ub2e4.\n",
+                "operationId": "uploadImage",
+                "requestBody": {
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "admin": {
+                                        "$ref": "#/components/schemas/AdminInfo"
+                                    },
+                                    "file": {
+                                        "type": "string",
+                                        "format": "binary"
+                                    }
+                                },
+                                "required": [
+                                    "file"
+                                ]
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiResponseImageUploadResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/booths": {
+            "get": {
+                "tags": [
+                    "\ubd80\uc2a4 Command"
+                ],
+                "summary": "\uad00\ub9ac\uc790\uc6a9 \ubd80\uc2a4 \ubaa9\ub85d \uc870\ud68c",
+                "operationId": "getBoothsForAdmin",
+                "parameters": [
+                    {
+                        "name": "sort",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "default": "likes"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiResponseListBoothListResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "\ubd80\uc2a4 Command"
+                ],
+                "summary": "\ubd80\uc2a4 \ub4f1\ub85d (\uc288\ud37c \uad00\ub9ac\uc790)",
+                "operationId": "createBooth",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/BoothCreateRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "201": {
+                        "description": "\ub4f1\ub85d \uc131\uacf5",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiResponseBoothResponse"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "\uad8c\ud55c \ubd80\uc871",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiResponseBoothResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/booths/{booth-id}/waitings/insert": {
+            "post": {
+                "tags": [
+                    "\ub300\uae30\uc5f4 Command"
+                ],
+                "summary": "\ub300\uae30\uc5f4 \uc911\uac04 \uc0bd\uc785",
+                "operationId": "insertWaiting",
+                "parameters": [
+                    {
+                        "name": "booth-id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/WaitingInsertRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiResponseWaitingRegisterResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/booths/{booth-id}/menus": {
+            "get": {
+                "tags": [
+                    "\uba54\ub274 Command/Query"
+                ],
+                "summary": "\uba54\ub274 \ubaa9\ub85d \uc870\ud68c",
+                "operationId": "getMenus",
+                "parameters": [
+                    {
+                        "name": "booth-id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiResponseListMenuResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "\uba54\ub274 Command/Query"
+                ],
+                "summary": "\uba54\ub274 \ub4f1\ub85d",
+                "operationId": "createMenu",
+                "parameters": [
+                    {
+                        "name": "booth-id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/MenuCreateRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiResponseMenuResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/waitings/{waiting-id}/skip": {
+            "patch": {
+                "tags": [
+                    "\ub300\uae30\uc5f4 Command"
+                ],
+                "summary": "\ubbf8\ubc29\ubb38 \uac74\ub108\ub6f0\uae30",
+                "operationId": "skipWaiting",
+                "parameters": [
+                    {
+                        "name": "waiting-id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiResponseVoid"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/waitings/{waiting-id}/reorder": {
+            "patch": {
+                "tags": [
+                    "\ub300\uae30\uc5f4 Command"
+                ],
+                "summary": "\ub300\uae30 \uc21c\uc11c \ubcc0\uacbd",
+                "operationId": "reorderWaiting",
+                "parameters": [
+                    {
+                        "name": "waiting-id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/WaitingReorderRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiResponseVoid"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/waitings/{waiting-id}/enter": {
+            "patch": {
+                "tags": [
+                    "\ub300\uae30\uc5f4 Command"
+                ],
+                "summary": "\uc785\uc7a5 \uc644\ub8cc \ucc98\ub9ac",
+                "operationId": "enterWaiting",
+                "parameters": [
+                    {
+                        "name": "waiting-id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiResponseVoid"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/waitings/{waiting-id}/cancel": {
+            "patch": {
+                "tags": [
+                    "\ub300\uae30\uc5f4 Command"
+                ],
+                "summary": "\ub300\uae30 \ucde8\uc18c (\uad00\ub9ac\uc790)",
+                "operationId": "cancelWaiting",
+                "parameters": [
+                    {
+                        "name": "waiting-id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiResponseVoid"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/waitings/{waiting-id}/call": {
+            "patch": {
+                "tags": [
+                    "\ub300\uae30\uc5f4 Command"
+                ],
+                "summary": "\ub300\uae30\ud300 \ud638\ucd9c",
+                "description": "\uad00\ub9ac\uc790\uac00 \ub300\uae30\ud300\uc744 \ud638\ucd9c\ud569\ub2c8\ub2e4. SMS \ubc1c\uc1a1 \ube44\ub3d9\uae30.",
+                "operationId": "callWaiting",
+                "parameters": [
+                    {
+                        "name": "waiting-id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiResponseVoid"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/v1/matchings/status": {
+            "patch": {
+                "tags": [
+                    "\ub9e4\uce6d Command"
+                ],
+                "summary": "\ub9e4\uce6d \uc11c\ube44\uc2a4 \uc0c1\ud0dc \ubcc0\uacbd",
+                "operationId": "updateStatus",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/MatchingStatusUpdateRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiResponseMatchingStatusResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/booths/{booth-id}/waitings/toggle": {
+            "patch": {
+                "tags": [
+                    "\ub300\uae30\uc5f4 Command"
+                ],
+                "summary": "\ubd80\uc2a4 \ub300\uae30 \uc811\uc218 ON/OFF",
+                "operationId": "toggleBoothWaiting",
+                "parameters": [
+                    {
+                        "name": "booth-id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/WaitingToggleRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiResponseVoid"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/booths/{booth-id}/password": {
+            "patch": {
+                "tags": [
+                    "\ubd80\uc2a4 Command"
+                ],
+                "summary": "\ubd80\uc2a4 \ube44\ubc00\ubc88\ud638 \ubcc0\uacbd (\uc288\ud37c \uad00\ub9ac\uc790)",
+                "operationId": "changeBoothPassword",
+                "parameters": [
+                    {
+                        "name": "booth-id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/BoothPasswordChangeRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiResponseVoid"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/booths/{booth-id}/menus/{menu-id}/sold-out": {
+            "patch": {
+                "tags": [
+                    "\uba54\ub274 Command/Query"
+                ],
+                "summary": "\uba54\ub274 \ud488\uc808 \ud1a0\uae00",
+                "operationId": "toggleSoldOut",
+                "parameters": [
+                    {
+                        "name": "booth-id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    },
+                    {
+                        "name": "menu-id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiResponseMenuResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/waitings/{waiting-id}": {
+            "get": {
+                "tags": [
+                    "\ub300\uae30\uc5f4 Query"
+                ],
+                "summary": "\ub0b4 \ub300\uae30 \uc0c1\ud0dc \uc870\ud68c",
+                "description": "\uc804\ud654\ubc88\ud638 \ub4a4 4\uc790\ub9ac\ub85c \ubcf8\uc778 \ud655\uc778",
+                "operationId": "getMyWaiting",
+                "parameters": [
+                    {
+                        "name": "waiting-id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    },
+                    {
+                        "name": "phoneLast4",
+                        "in": "query",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiResponseMyWaitingResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "\ub300\uae30\uc5f4 Command"
+                ],
+                "summary": "\ubcf8\uc778 \ub300\uae30 \ucde8\uc18c",
+                "description": "\uc804\ud654\ubc88\ud638 \ub4a4 4\uc790\ub9ac\ub85c \ubcf8\uc778 \ud655\uc778 \ud6c4 \ucde8\uc18c",
+                "operationId": "cancelWaitingByOwner",
+                "parameters": [
+                    {
+                        "name": "waiting-id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    },
+                    {
+                        "name": "phoneLast4",
+                        "in": "query",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiResponseVoid"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/matchings/unmatched": {
+            "get": {
+                "tags": [
+                    "\ub9e4\uce6d Query"
+                ],
+                "summary": "\ubbf8\ub9e4\uce6d \uacf5\uac1c \ubaa9\ub85d \uc870\ud68c",
+                "operationId": "getUnmatchedParticipants",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiResponseUnmatchedParticipantsResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/matchings/status": {
+            "get": {
+                "tags": [
+                    "\ub9e4\uce6d Query"
+                ],
+                "summary": "\ub9e4\uce6d \uc11c\ube44\uc2a4 \uc0c1\ud0dc \uc870\ud68c",
+                "operationId": "getStatus",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiResponseMatchingStatusResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/booths": {
+            "get": {
+                "tags": [
+                    "\ubd80\uc2a4 Query"
+                ],
+                "summary": "\ubd80\uc2a4 \ubaa9\ub85d \uc870\ud68c",
+                "description": "\uc88b\uc544\uc694/\ub300\uae30 \uc801\uc740 \uc21c\uc73c\ub85c \uc815\ub82c\ub41c \ubd80\uc2a4 \ubaa9\ub85d\uc744 \uc870\ud68c\ud569\ub2c8\ub2e4.",
+                "operationId": "getBooths",
+                "parameters": [
+                    {
+                        "name": "sort",
+                        "in": "query",
+                        "description": "\uc815\ub82c \uae30\uc900: likes(\uae30\ubcf8) / waiting-asc",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "default": "likes"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "\uc870\ud68c \uc131\uacf5",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiResponseListBoothListResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/booths/{booth-id}": {
+            "get": {
+                "tags": [
+                    "\ubd80\uc2a4 Query"
+                ],
+                "summary": "\ubd80\uc2a4 \uc0c1\uc138 \uc870\ud68c",
+                "description": "\uba54\ub274 \ubaa9\ub85d\uacfc \ud604\uc7ac \ub300\uae30\ud300 \uc218\ub97c \ud3ec\ud568\ud55c \ubd80\uc2a4 \uc0c1\uc138 \uc815\ubcf4\ub97c \uc870\ud68c\ud569\ub2c8\ub2e4.",
+                "operationId": "getBooth",
+                "parameters": [
+                    {
+                        "name": "booth-id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "\uc870\ud68c \uc131\uacf5",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiResponseBoothDetailResponse"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "\ubd80\uc2a4 \uc5c6\uc74c",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiResponseBoothDetailResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/booths/{booth-id}/waitings/status": {
+            "get": {
+                "tags": [
+                    "\ub300\uae30\uc5f4 Query"
+                ],
+                "summary": "\ud604\uc7ac \ub300\uae30 \ud604\ud669 \uc870\ud68c",
+                "operationId": "getBoothStatus",
+                "parameters": [
+                    {
+                        "name": "booth-id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiResponseWaitingStatusResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/booths/map": {
+            "get": {
+                "tags": [
+                    "\ubd80\uc2a4 Query"
+                ],
+                "summary": "\uc9c0\ub3c4\uc6a9 \ubd80\uc2a4 \ubaa9\ub85d \uc870\ud68c",
+                "description": "\uc88c\ud45c\uc640 \uc774\ub984\ub9cc \ud3ec\ud568\ub41c \uacbd\ub7c9 \uc751\ub2f5\uc744 \ubc18\ud658\ud569\ub2c8\ub2e4.",
+                "operationId": "getBoothsForMap",
+                "responses": {
+                    "200": {
+                        "description": "\uc870\ud68c \uc131\uacf5",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiResponseListBoothMapResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/booths/{booth-id}/waitings": {
+            "get": {
+                "tags": [
+                    "\ub300\uae30\uc5f4 Query"
+                ],
+                "summary": "\ub300\uae30\ud300 \ubaa9\ub85d \uc870\ud68c (\uad00\ub9ac\uc790)",
+                "operationId": "getWaitings",
+                "parameters": [
+                    {
+                        "name": "booth-id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    },
+                    {
+                        "name": "status",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "WAITING",
+                                "CALLED",
+                                "ENTERED",
+                                "SKIPPED",
+                                "CANCELLED"
+                            ]
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiResponseListWaitingResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "components": {
+        "schemas": {
+            "BoothUpdateRequest": {
+                "type": "object",
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "maxLength": 100,
+                        "minLength": 0
+                    },
+                    "description": {
+                        "type": "string"
+                    },
+                    "xRatio": {
+                        "type": "number",
+                        "maximum": 1.0,
+                        "minimum": 0.0
+                    },
+                    "yRatio": {
+                        "type": "number",
+                        "maximum": 1.0,
+                        "minimum": 0.0
+                    },
+                    "imageUrl": {
+                        "type": "string",
+                        "maxLength": 500,
+                        "minLength": 0
+                    },
+                    "menuBoardImageUrl": {
+                        "type": "string",
+                        "maxLength": 500,
+                        "minLength": 0
+                    }
+                }
+            },
+            "ApiResponseBoothResponse": {
+                "type": "object",
+                "properties": {
+                    "success": {
+                        "type": "boolean"
+                    },
+                    "data": {
+                        "$ref": "#/components/schemas/BoothResponse"
+                    },
+                    "error": {
+                        "$ref": "#/components/schemas/ErrorResponse"
+                    }
+                }
+            },
+            "BoothResponse": {
+                "type": "object",
+                "properties": {
+                    "boothId": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "description": {
+                        "type": "string"
+                    },
+                    "xRatio": {
+                        "type": "number"
+                    },
+                    "yRatio": {
+                        "type": "number"
+                    },
+                    "likeCount": {
+                        "type": "integer",
+                        "format": "int32"
+                    },
+                    "imageUrl": {
+                        "type": "string"
+                    },
+                    "menuBoardImageUrl": {
+                        "type": "string"
+                    },
+                    "waitingOpen": {
+                        "type": "boolean"
+                    }
+                }
+            },
+            "ErrorResponse": {
+                "type": "object",
+                "properties": {
+                    "code": {
+                        "type": "string"
+                    },
+                    "message": {
+                        "type": "string"
+                    }
+                }
+            },
+            "MenuUpdateRequest": {
+                "type": "object",
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "maxLength": 100,
+                        "minLength": 0
+                    },
+                    "price": {
+                        "type": "integer",
+                        "format": "int32",
+                        "minimum": 0
+                    },
+                    "imageUrl": {
+                        "type": "string",
+                        "maxLength": 500,
+                        "minLength": 0
+                    },
+                    "description": {
+                        "type": "string"
+                    }
+                }
+            },
+            "ApiResponseMenuResponse": {
+                "type": "object",
+                "properties": {
+                    "success": {
+                        "type": "boolean"
+                    },
+                    "data": {
+                        "$ref": "#/components/schemas/MenuResponse"
+                    },
+                    "error": {
+                        "$ref": "#/components/schemas/ErrorResponse"
+                    }
+                }
+            },
+            "MenuResponse": {
+                "type": "object",
+                "properties": {
+                    "menuId": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "price": {
+                        "type": "integer",
+                        "format": "int32"
+                    },
+                    "imageUrl": {
+                        "type": "string"
+                    },
+                    "description": {
+                        "type": "string"
+                    },
+                    "soldOut": {
+                        "type": "boolean"
+                    }
+                }
+            },
+            "MatchingCreateRequest": {
+                "type": "object",
+                "properties": {
+                    "instagramId": {
+                        "type": "string",
+                        "maxLength": 100,
+                        "minLength": 0,
+                        "pattern": "^[A-Za-z0-9._]{1,100}$"
+                    },
+                    "gender": {
+                        "type": "string",
+                        "enum": [
+                            "MALE",
+                            "FEMALE"
+                        ]
+                    },
+                    "password": {
+                        "type": "string",
+                        "maxLength": 100,
+                        "minLength": 4
+                    },
+                    "nationality": {
+                        "type": "string",
+                        "maxLength": 10,
+                        "minLength": 0
+                    }
+                },
+                "required": [
+                    "gender"
+                ]
+            },
+            "ApiResponseMatchingRegisterResponse": {
+                "type": "object",
+                "properties": {
+                    "success": {
+                        "type": "boolean"
+                    },
+                    "data": {
+                        "$ref": "#/components/schemas/MatchingRegisterResponse"
+                    },
+                    "error": {
+                        "$ref": "#/components/schemas/ErrorResponse"
+                    }
+                }
+            },
+            "MatchingRegisterResponse": {
+                "type": "object",
+                "properties": {
+                    "instagramId": {
+                        "type": "string"
+                    },
+                    "status": {
+                        "type": "string",
+                        "enum": [
+                            "PENDING",
+                            "MATCHED",
+                            "UNMATCHED",
+                            "CANCELLED"
+                        ]
+                    },
+                    "registrationDeadline": {
+                        "type": "string"
+                    },
+                    "resultOpenAt": {
+                        "type": "string"
+                    }
+                }
+            },
+            "MatchingAuthRequest": {
+                "type": "object",
+                "properties": {
+                    "instagramId": {
+                        "type": "string",
+                        "maxLength": 100,
+                        "minLength": 0,
+                        "pattern": "^[A-Za-z0-9._]{1,100}$"
+                    },
+                    "password": {
+                        "type": "string",
+                        "maxLength": 100,
+                        "minLength": 4
+                    }
+                }
+            },
+            "ApiResponseMatchingResultResponse": {
+                "type": "object",
+                "properties": {
+                    "success": {
+                        "type": "boolean"
+                    },
+                    "data": {
+                        "$ref": "#/components/schemas/MatchingResultResponse"
+                    },
+                    "error": {
+                        "$ref": "#/components/schemas/ErrorResponse"
+                    }
+                }
+            },
+            "MatchingResultResponse": {
+                "type": "object",
+                "properties": {
+                    "instagramId": {
+                        "type": "string"
+                    },
+                    "status": {
+                        "type": "string",
+                        "enum": [
+                            "PENDING",
+                            "MATCHED",
+                            "UNMATCHED",
+                            "CANCELLED"
+                        ]
+                    },
+                    "resultOpen": {
+                        "type": "boolean"
+                    },
+                    "matchedInstagramId": {
+                        "type": "string"
+                    },
+                    "instagramProfileUrl": {
+                        "type": "string"
+                    },
+                    "messageKo": {
+                        "type": "string"
+                    },
+                    "messageEn": {
+                        "type": "string"
+                    }
+                }
+            },
+            "WaitingCreateRequest": {
+                "type": "object",
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "maxLength": 50,
+                        "minLength": 0
+                    },
+                    "partySize": {
+                        "type": "integer",
+                        "format": "int32",
+                        "minimum": 1
+                    },
+                    "phoneNumber": {
+                        "type": "string",
+                        "minLength": 1,
+                        "pattern": "^01[016789]-?\\d{3,4}-?\\d{4}$"
+                    }
+                },
+                "required": [
+                    "partySize"
+                ]
+            },
+            "ApiResponseWaitingRegisterResponse": {
+                "type": "object",
+                "properties": {
+                    "success": {
+                        "type": "boolean"
+                    },
+                    "data": {
+                        "$ref": "#/components/schemas/WaitingRegisterResponse"
+                    },
+                    "error": {
+                        "$ref": "#/components/schemas/ErrorResponse"
+                    }
+                }
+            },
+            "WaitingRegisterResponse": {
+                "type": "object",
+                "properties": {
+                    "waitingId": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "waitingNumber": {
+                        "type": "integer",
+                        "format": "int32"
+                    },
+                    "boothName": {
+                        "type": "string"
+                    },
+                    "currentWaitingTeams": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "estimatedWaitMinutes": {
+                        "type": "integer",
+                        "format": "int32"
+                    }
+                }
+            },
+            "ApiResponseVoid": {
+                "type": "object",
+                "properties": {
+                    "success": {
+                        "type": "boolean"
+                    },
+                    "data": {
+                        "type": "object"
+                    },
+                    "error": {
+                        "$ref": "#/components/schemas/ErrorResponse"
+                    }
+                }
+            },
+            "LoginRequest": {
+                "type": "object",
+                "properties": {
+                    "boothId": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "password": {
+                        "type": "string",
+                        "minLength": 1
+                    }
+                }
+            },
+            "ApiResponseLoginResponse": {
+                "type": "object",
+                "properties": {
+                    "success": {
+                        "type": "boolean"
+                    },
+                    "data": {
+                        "$ref": "#/components/schemas/LoginResponse"
+                    },
+                    "error": {
+                        "$ref": "#/components/schemas/ErrorResponse"
+                    }
+                }
+            },
+            "LoginResponse": {
+                "type": "object",
+                "properties": {
+                    "role": {
+                        "type": "string"
+                    },
+                    "boothId": {
+                        "type": "integer",
+                        "format": "int64"
+                    }
+                }
+            },
+            "ApiResponseMatchingJobResponse": {
+                "type": "object",
+                "properties": {
+                    "success": {
+                        "type": "boolean"
+                    },
+                    "data": {
+                        "$ref": "#/components/schemas/MatchingJobResponse"
+                    },
+                    "error": {
+                        "$ref": "#/components/schemas/ErrorResponse"
+                    }
+                }
+            },
+            "MatchingJobResponse": {
+                "type": "object",
+                "properties": {
+                    "matchedPairCount": {
+                        "type": "integer",
+                        "format": "int32"
+                    },
+                    "unmatchedCount": {
+                        "type": "integer",
+                        "format": "int32"
+                    }
+                }
+            },
+            "AdminInfo": {
+                "type": "object",
+                "properties": {
+                    "role": {
+                        "type": "string"
+                    },
+                    "boothId": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "superAdmin": {
+                        "type": "boolean"
+                    }
+                }
+            },
+            "ApiResponseImageUploadResponse": {
+                "type": "object",
+                "properties": {
+                    "success": {
+                        "type": "boolean"
+                    },
+                    "data": {
+                        "$ref": "#/components/schemas/ImageUploadResponse"
+                    },
+                    "error": {
+                        "$ref": "#/components/schemas/ErrorResponse"
+                    }
+                }
+            },
+            "ImageUploadResponse": {
+                "type": "object",
+                "properties": {
+                    "url": {
+                        "type": "string"
+                    },
+                    "path": {
+                        "type": "string"
+                    }
+                }
+            },
+            "BoothCreateRequest": {
+                "type": "object",
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "maxLength": 100,
+                        "minLength": 0
+                    },
+                    "description": {
+                        "type": "string"
+                    },
+                    "xRatio": {
+                        "type": "number",
+                        "maximum": 1.0,
+                        "minimum": 0.0
+                    },
+                    "yRatio": {
+                        "type": "number",
+                        "maximum": 1.0,
+                        "minimum": 0.0
+                    },
+                    "imageUrl": {
+                        "type": "string",
+                        "maxLength": 500,
+                        "minLength": 0
+                    },
+                    "menuBoardImageUrl": {
+                        "type": "string",
+                        "maxLength": 500,
+                        "minLength": 0
+                    },
+                    "adminPassword": {
+                        "type": "string",
+                        "minLength": 1
+                    }
+                }
+            },
+            "WaitingInsertRequest": {
+                "type": "object",
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "maxLength": 50,
+                        "minLength": 0
+                    },
+                    "partySize": {
+                        "type": "integer",
+                        "format": "int32",
+                        "minimum": 1
+                    },
+                    "phoneNumber": {
+                        "type": "string",
+                        "minLength": 1,
+                        "pattern": "^01[016789]-?\\d{3,4}-?\\d{4}$"
+                    },
+                    "insertAfterSortOrder": {
+                        "type": "integer",
+                        "format": "int32",
+                        "minimum": 1
+                    }
+                },
+                "required": [
+                    "insertAfterSortOrder",
+                    "partySize"
+                ]
+            },
+            "MenuCreateRequest": {
+                "type": "object",
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "maxLength": 100,
+                        "minLength": 0
+                    },
+                    "price": {
+                        "type": "integer",
+                        "format": "int32",
+                        "minimum": 0
+                    },
+                    "imageUrl": {
+                        "type": "string",
+                        "maxLength": 500,
+                        "minLength": 0
+                    },
+                    "description": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "price"
+                ]
+            },
+            "WaitingReorderRequest": {
+                "type": "object",
+                "properties": {
+                    "newSortOrder": {
+                        "type": "integer",
+                        "format": "int32",
+                        "minimum": 1
+                    }
+                },
+                "required": [
+                    "newSortOrder"
+                ]
+            },
+            "MatchingStatusUpdateRequest": {
+                "type": "object",
+                "properties": {
+                    "status": {
+                        "type": "string",
+                        "enum": [
+                            "OPEN",
+                            "PAUSED"
+                        ]
+                    },
+                    "messageKo": {
+                        "type": "string",
+                        "maxLength": 255,
+                        "minLength": 0
+                    },
+                    "messageEn": {
+                        "type": "string",
+                        "maxLength": 255,
+                        "minLength": 0
+                    }
+                },
+                "required": [
+                    "status"
+                ]
+            },
+            "ApiResponseMatchingStatusResponse": {
+                "type": "object",
+                "properties": {
+                    "success": {
+                        "type": "boolean"
+                    },
+                    "data": {
+                        "$ref": "#/components/schemas/MatchingStatusResponse"
+                    },
+                    "error": {
+                        "$ref": "#/components/schemas/ErrorResponse"
+                    }
+                }
+            },
+            "MatchingStatusResponse": {
+                "type": "object",
+                "properties": {
+                    "status": {
+                        "type": "string",
+                        "enum": [
+                            "OPEN",
+                            "PAUSED"
+                        ]
+                    },
+                    "messageKo": {
+                        "type": "string"
+                    },
+                    "messageEn": {
+                        "type": "string"
+                    },
+                    "registrationOpen": {
+                        "type": "boolean"
+                    },
+                    "resultOpen": {
+                        "type": "boolean"
+                    },
+                    "registrationDeadline": {
+                        "type": "string"
+                    },
+                    "resultOpenAt": {
+                        "type": "string"
+                    },
+                    "pendingCount": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "matchedCount": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "unmatchedCount": {
+                        "type": "integer",
+                        "format": "int64"
+                    }
+                }
+            },
+            "WaitingToggleRequest": {
+                "type": "object",
+                "properties": {
+                    "open": {
+                        "type": "boolean"
+                    }
+                },
+                "required": [
+                    "open"
+                ]
+            },
+            "BoothPasswordChangeRequest": {
+                "type": "object",
+                "properties": {
+                    "newPassword": {
+                        "type": "string",
+                        "minLength": 1
+                    }
+                }
+            },
+            "ApiResponseMyWaitingResponse": {
+                "type": "object",
+                "properties": {
+                    "success": {
+                        "type": "boolean"
+                    },
+                    "data": {
+                        "$ref": "#/components/schemas/MyWaitingResponse"
+                    },
+                    "error": {
+                        "$ref": "#/components/schemas/ErrorResponse"
+                    }
+                }
+            },
+            "MyWaitingResponse": {
+                "type": "object",
+                "properties": {
+                    "waitingId": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "boothId": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "boothName": {
+                        "type": "string"
+                    },
+                    "waitingNumber": {
+                        "type": "integer",
+                        "format": "int32"
+                    },
+                    "status": {
+                        "type": "string"
+                    },
+                    "aheadCount": {
+                        "type": "integer",
+                        "format": "int32"
+                    },
+                    "estimatedWaitMinutes": {
+                        "type": "integer",
+                        "format": "int32"
+                    }
+                }
+            },
+            "ApiResponseUnmatchedParticipantsResponse": {
+                "type": "object",
+                "properties": {
+                    "success": {
+                        "type": "boolean"
+                    },
+                    "data": {
+                        "$ref": "#/components/schemas/UnmatchedParticipantsResponse"
+                    },
+                    "error": {
+                        "$ref": "#/components/schemas/ErrorResponse"
+                    }
+                }
+            },
+            "UnmatchedParticipantResponse": {
+                "type": "object",
+                "properties": {
+                    "instagramId": {
+                        "type": "string"
+                    },
+                    "gender": {
+                        "type": "string",
+                        "enum": [
+                            "MALE",
+                            "FEMALE"
+                        ]
+                    },
+                    "nationality": {
+                        "type": "string"
+                    },
+                    "instagramProfileUrl": {
+                        "type": "string"
+                    }
+                }
+            },
+            "UnmatchedParticipantsResponse": {
+                "type": "object",
+                "properties": {
+                    "resultOpen": {
+                        "type": "boolean"
+                    },
+                    "resultOpenAt": {
+                        "type": "string"
+                    },
+                    "messageKo": {
+                        "type": "string"
+                    },
+                    "messageEn": {
+                        "type": "string"
+                    },
+                    "participants": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/UnmatchedParticipantResponse"
+                        }
+                    }
+                }
+            },
+            "ApiResponseListBoothListResponse": {
+                "type": "object",
+                "properties": {
+                    "success": {
+                        "type": "boolean"
+                    },
+                    "data": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/BoothListResponse"
+                        }
+                    },
+                    "error": {
+                        "$ref": "#/components/schemas/ErrorResponse"
+                    }
+                }
+            },
+            "BoothListResponse": {
+                "type": "object",
+                "properties": {
+                    "boothId": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "description": {
+                        "type": "string"
+                    },
+                    "xRatio": {
+                        "type": "number"
+                    },
+                    "yRatio": {
+                        "type": "number"
+                    },
+                    "likeCount": {
+                        "type": "integer",
+                        "format": "int32"
+                    },
+                    "imageUrl": {
+                        "type": "string"
+                    },
+                    "menuBoardImageUrl": {
+                        "type": "string"
+                    },
+                    "waitingOpen": {
+                        "type": "boolean"
+                    },
+                    "currentWaitingTeams": {
+                        "type": "integer",
+                        "format": "int64"
+                    }
+                }
+            },
+            "ApiResponseBoothDetailResponse": {
+                "type": "object",
+                "properties": {
+                    "success": {
+                        "type": "boolean"
+                    },
+                    "data": {
+                        "$ref": "#/components/schemas/BoothDetailResponse"
+                    },
+                    "error": {
+                        "$ref": "#/components/schemas/ErrorResponse"
+                    }
+                }
+            },
+            "BoothDetailResponse": {
+                "type": "object",
+                "properties": {
+                    "boothId": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "description": {
+                        "type": "string"
+                    },
+                    "xRatio": {
+                        "type": "number"
+                    },
+                    "yRatio": {
+                        "type": "number"
+                    },
+                    "likeCount": {
+                        "type": "integer",
+                        "format": "int32"
+                    },
+                    "imageUrl": {
+                        "type": "string"
+                    },
+                    "menuBoardImageUrl": {
+                        "type": "string"
+                    },
+                    "waitingOpen": {
+                        "type": "boolean"
+                    },
+                    "currentWaitingTeams": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "menus": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/MenuResponse"
+                        }
+                    }
+                }
+            },
+            "ApiResponseWaitingStatusResponse": {
+                "type": "object",
+                "properties": {
+                    "success": {
+                        "type": "boolean"
+                    },
+                    "data": {
+                        "$ref": "#/components/schemas/WaitingStatusResponse"
+                    },
+                    "error": {
+                        "$ref": "#/components/schemas/ErrorResponse"
+                    }
+                }
+            },
+            "WaitingStatusResponse": {
+                "type": "object",
+                "properties": {
+                    "boothId": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "waitingOpen": {
+                        "type": "boolean"
+                    },
+                    "currentWaitingTeams": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "estimatedWaitMinutes": {
+                        "type": "integer",
+                        "format": "int32"
+                    }
+                }
+            },
+            "ApiResponseListBoothMapResponse": {
+                "type": "object",
+                "properties": {
+                    "success": {
+                        "type": "boolean"
+                    },
+                    "data": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/BoothMapResponse"
+                        }
+                    },
+                    "error": {
+                        "$ref": "#/components/schemas/ErrorResponse"
+                    }
+                }
+            },
+            "BoothMapResponse": {
+                "type": "object",
+                "properties": {
+                    "boothId": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "xRatio": {
+                        "type": "number"
+                    },
+                    "yRatio": {
+                        "type": "number"
+                    }
+                }
+            },
+            "ApiResponseListWaitingResponse": {
+                "type": "object",
+                "properties": {
+                    "success": {
+                        "type": "boolean"
+                    },
+                    "data": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/WaitingResponse"
+                        }
+                    },
+                    "error": {
+                        "$ref": "#/components/schemas/ErrorResponse"
+                    }
+                }
+            },
+            "WaitingResponse": {
+                "type": "object",
+                "properties": {
+                    "waitingId": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "boothId": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "waitingNumber": {
+                        "type": "integer",
+                        "format": "int32"
+                    },
+                    "sortOrder": {
+                        "type": "integer",
+                        "format": "int32"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "partySize": {
+                        "type": "integer",
+                        "format": "int32"
+                    },
+                    "maskedPhoneNumber": {
+                        "type": "string"
+                    },
+                    "status": {
+                        "type": "string"
+                    },
+                    "smsSent": {
+                        "type": "boolean"
+                    },
+                    "calledAt": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "enteredAt": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "createdAt": {
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                }
+            },
+            "ApiResponseListMenuResponse": {
+                "type": "object",
+                "properties": {
+                    "success": {
+                        "type": "boolean"
+                    },
+                    "data": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/MenuResponse"
+                        }
+                    },
+                    "error": {
+                        "$ref": "#/components/schemas/ErrorResponse"
+                    }
+                }
+            }
+        }
     }
-  ],
-  "tags": [
-    {
-      "name": "매칭 Command",
-      "description": "두근두근 인스타팅 신청·취소 + 관리자 매칭 실행 API"
-    },
-    {
-      "name": "매칭 Query",
-      "description": "두근두근 인스타팅 결과·상태 조회 API"
-    },
-    {
-      "name": "인증",
-      "description": "관리자 로그인/로그아웃 (세션 기반)"
-    },
-    {
-      "name": "부스 Query",
-      "description": "부스 조회 API (사용자)"
-    },
-    {
-      "name": "대기열 Command",
-      "description": "웹 대기 등록·본인 취소 + 관리자 대기열 운영 API"
-    },
-    {
-      "name": "부스 Command",
-      "description": "부스 등록/수정/삭제 API (관리자) + 좋아요 (사용자)"
-    },
-    {
-      "name": "대기열 Query",
-      "description": "대기열 조회 API"
-    },
-    {
-      "name": "메뉴 Command/Query",
-      "description": "부스 메뉴 관리 API (관리자)"
-    }
-  ],
-  "paths": {
-    "/admin/v1/booths/{booth-id}": {
-      "put": {
-        "tags": [
-          "부스 Command"
-        ],
-        "summary": "부스 수정",
-        "operationId": "updateBooth",
-        "parameters": [
-          {
-            "name": "booth-id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "format": "int64"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/BoothUpdateRequest"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiResponseBoothResponse"
-                }
-              }
-            }
-          }
-        }
-      },
-      "delete": {
-        "tags": [
-          "부스 Command"
-        ],
-        "summary": "부스 삭제 (슈퍼 관리자)",
-        "operationId": "deleteBooth",
-        "parameters": [
-          {
-            "name": "booth-id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "format": "int64"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiResponseVoid"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/admin/v1/booths/{booth-id}/menus/{menu-id}": {
-      "put": {
-        "tags": [
-          "메뉴 Command/Query"
-        ],
-        "summary": "메뉴 수정",
-        "operationId": "updateMenu",
-        "parameters": [
-          {
-            "name": "booth-id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "format": "int64"
-            }
-          },
-          {
-            "name": "menu-id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "format": "int64"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/MenuUpdateRequest"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiResponseMenuResponse"
-                }
-              }
-            }
-          }
-        }
-      },
-      "delete": {
-        "tags": [
-          "메뉴 Command/Query"
-        ],
-        "summary": "메뉴 삭제",
-        "operationId": "deleteMenu",
-        "parameters": [
-          {
-            "name": "booth-id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "format": "int64"
-            }
-          },
-          {
-            "name": "menu-id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "format": "int64"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiResponseVoid"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/v1/matchings": {
-      "post": {
-        "tags": [
-          "매칭 Command"
-        ],
-        "summary": "매칭 신청",
-        "operationId": "register",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/MatchingCreateRequest"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "201": {
-            "description": "신청 성공",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiResponseMatchingRegisterResponse"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "중복 신청 또는 매칭 일시중단",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiResponseMatchingRegisterResponse"
-                }
-              }
-            }
-          }
-        }
-      },
-      "delete": {
-        "tags": [
-          "매칭 Command"
-        ],
-        "summary": "매칭 신청 취소",
-        "operationId": "cancel",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/MatchingAuthRequest"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiResponseVoid"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/v1/matchings/result": {
-      "post": {
-        "tags": [
-          "매칭 Query"
-        ],
-        "summary": "매칭 결과 조회",
-        "operationId": "getResult",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/MatchingAuthRequest"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiResponseMatchingResultResponse"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/booths/{booth-id}/waitings": {
-      "post": {
-        "tags": [
-          "대기열 Command"
-        ],
-        "summary": "대기 등록 (웹)",
-        "description": "손님이 축제 웹앱에서 직접 대기 등록합니다.",
-        "operationId": "registerWaiting",
-        "parameters": [
-          {
-            "name": "booth-id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "format": "int64"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/WaitingCreateRequest"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "201": {
-            "description": "등록 성공",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiResponseWaitingRegisterResponse"
-                }
-              }
-            }
-          },
-          "403": {
-            "description": "대기 접수 중단",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiResponseWaitingRegisterResponse"
-                }
-              }
-            }
-          },
-          "409": {
-            "description": "동일 부스 동일 전화번호 중복",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiResponseWaitingRegisterResponse"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/booths/{booth-id}/likes": {
-      "post": {
-        "tags": [
-          "부스 Command"
-        ],
-        "summary": "부스 좋아요",
-        "operationId": "likeBooth",
-        "parameters": [
-          {
-            "name": "booth-id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "format": "int64"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiResponseBoothResponse"
-                }
-              }
-            }
-          }
-        }
-      },
-      "delete": {
-        "tags": [
-          "부스 Command"
-        ],
-        "summary": "부스 좋아요 취소",
-        "operationId": "unlikeBooth",
-        "parameters": [
-          {
-            "name": "booth-id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "format": "int64"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiResponseBoothResponse"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/admin/v1/waitings/{waiting-id}/resend-sms": {
-      "post": {
-        "tags": [
-          "대기열 Command"
-        ],
-        "summary": "SMS 재발송",
-        "operationId": "resendSms",
-        "parameters": [
-          {
-            "name": "waiting-id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "format": "int64"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiResponseVoid"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/admin/v1/matching-jobs": {
-      "post": {
-        "tags": [
-          "매칭 Command"
-        ],
-        "summary": "일괄 매칭 실행",
-        "operationId": "runMatchingJob",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiResponseMatchingJobResponse"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/admin/v1/booths": {
-      "get": {
-        "tags": [
-          "부스 Command"
-        ],
-        "summary": "관리자용 부스 목록 조회",
-        "operationId": "getBoothsForAdmin",
-        "parameters": [
-          {
-            "name": "sort",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "string",
-              "default": "likes"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiResponseListBoothListResponse"
-                }
-              }
-            }
-          }
-        }
-      },
-      "post": {
-        "tags": [
-          "부스 Command"
-        ],
-        "summary": "부스 등록 (슈퍼 관리자)",
-        "operationId": "createBooth",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/BoothCreateRequest"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "201": {
-            "description": "등록 성공",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiResponseBoothResponse"
-                }
-              }
-            }
-          },
-          "403": {
-            "description": "권한 부족",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiResponseBoothResponse"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/admin/v1/booths/{booth-id}/waitings/insert": {
-      "post": {
-        "tags": [
-          "대기열 Command"
-        ],
-        "summary": "대기열 중간 삽입",
-        "operationId": "insertWaiting",
-        "parameters": [
-          {
-            "name": "booth-id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "format": "int64"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/WaitingInsertRequest"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiResponseWaitingRegisterResponse"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/admin/v1/booths/{booth-id}/menus": {
-      "get": {
-        "tags": [
-          "메뉴 Command/Query"
-        ],
-        "summary": "메뉴 목록 조회",
-        "operationId": "getMenus",
-        "parameters": [
-          {
-            "name": "booth-id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "format": "int64"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiResponseListMenuResponse"
-                }
-              }
-            }
-          }
-        }
-      },
-      "post": {
-        "tags": [
-          "메뉴 Command/Query"
-        ],
-        "summary": "메뉴 등록",
-        "operationId": "createMenu",
-        "parameters": [
-          {
-            "name": "booth-id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "format": "int64"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/MenuCreateRequest"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiResponseMenuResponse"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/admin/v1/auth/logout": {
-      "post": {
-        "tags": [
-          "인증"
-        ],
-        "summary": "관리자 로그아웃",
-        "description": "세션을 무효화합니다.",
-        "operationId": "logout",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiResponseVoid"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/admin/v1/auth/login": {
-      "post": {
-        "tags": [
-          "인증"
-        ],
-        "summary": "관리자 로그인",
-        "description": "boothId 가 null 이면 최고 관리자(SUPER_ADMIN), 있으면 해당 부스 관리자(BOOTH_ADMIN). 성공 시 세션 쿠키(JSESSIONID) 발급.",
-        "operationId": "login",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/LoginRequest"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "description": "로그인 성공",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiResponseLoginResponse"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "비밀번호 불일치",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiResponseLoginResponse"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "부스 없음",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiResponseLoginResponse"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/admin/v1/waitings/{waiting-id}/skip": {
-      "patch": {
-        "tags": [
-          "대기열 Command"
-        ],
-        "summary": "미방문 건너뛰기",
-        "operationId": "skipWaiting",
-        "parameters": [
-          {
-            "name": "waiting-id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "format": "int64"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiResponseVoid"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/admin/v1/waitings/{waiting-id}/reorder": {
-      "patch": {
-        "tags": [
-          "대기열 Command"
-        ],
-        "summary": "대기 순서 변경",
-        "operationId": "reorderWaiting",
-        "parameters": [
-          {
-            "name": "waiting-id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "format": "int64"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/WaitingReorderRequest"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiResponseVoid"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/admin/v1/waitings/{waiting-id}/enter": {
-      "patch": {
-        "tags": [
-          "대기열 Command"
-        ],
-        "summary": "입장 완료 처리",
-        "operationId": "enterWaiting",
-        "parameters": [
-          {
-            "name": "waiting-id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "format": "int64"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiResponseVoid"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/admin/v1/waitings/{waiting-id}/cancel": {
-      "patch": {
-        "tags": [
-          "대기열 Command"
-        ],
-        "summary": "대기 취소 (관리자)",
-        "operationId": "cancelWaiting",
-        "parameters": [
-          {
-            "name": "waiting-id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "format": "int64"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiResponseVoid"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/admin/v1/waitings/{waiting-id}/call": {
-      "patch": {
-        "tags": [
-          "대기열 Command"
-        ],
-        "summary": "대기팀 호출",
-        "description": "관리자가 대기팀을 호출합니다. SMS 발송 비동기.",
-        "operationId": "callWaiting",
-        "parameters": [
-          {
-            "name": "waiting-id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "format": "int64"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiResponseVoid"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/admin/v1/matchings/status": {
-      "patch": {
-        "tags": [
-          "매칭 Command"
-        ],
-        "summary": "매칭 서비스 상태 변경",
-        "operationId": "updateStatus",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/MatchingStatusUpdateRequest"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiResponseMatchingStatusResponse"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/admin/v1/booths/{booth-id}/waitings/toggle": {
-      "patch": {
-        "tags": [
-          "대기열 Command"
-        ],
-        "summary": "부스 대기 접수 ON/OFF",
-        "operationId": "toggleBoothWaiting",
-        "parameters": [
-          {
-            "name": "booth-id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "format": "int64"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/WaitingToggleRequest"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiResponseVoid"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/admin/v1/booths/{booth-id}/password": {
-      "patch": {
-        "tags": [
-          "부스 Command"
-        ],
-        "summary": "부스 비밀번호 변경 (슈퍼 관리자)",
-        "operationId": "changeBoothPassword",
-        "parameters": [
-          {
-            "name": "booth-id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "format": "int64"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/BoothPasswordChangeRequest"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiResponseVoid"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/admin/v1/booths/{booth-id}/menus/{menu-id}/sold-out": {
-      "patch": {
-        "tags": [
-          "메뉴 Command/Query"
-        ],
-        "summary": "메뉴 품절 토글",
-        "operationId": "toggleSoldOut",
-        "parameters": [
-          {
-            "name": "booth-id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "format": "int64"
-            }
-          },
-          {
-            "name": "menu-id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "format": "int64"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiResponseMenuResponse"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/waitings/{waiting-id}": {
-      "get": {
-        "tags": [
-          "대기열 Query"
-        ],
-        "summary": "내 대기 상태 조회",
-        "description": "전화번호 뒤 4자리로 본인 확인",
-        "operationId": "getMyWaiting",
-        "parameters": [
-          {
-            "name": "waiting-id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "format": "int64"
-            }
-          },
-          {
-            "name": "phoneLast4",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiResponseMyWaitingResponse"
-                }
-              }
-            }
-          }
-        }
-      },
-      "delete": {
-        "tags": [
-          "대기열 Command"
-        ],
-        "summary": "본인 대기 취소",
-        "description": "전화번호 뒤 4자리로 본인 확인 후 취소",
-        "operationId": "cancelWaitingByOwner",
-        "parameters": [
-          {
-            "name": "waiting-id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "format": "int64"
-            }
-          },
-          {
-            "name": "phoneLast4",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiResponseVoid"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/v1/matchings/unmatched": {
-      "get": {
-        "tags": [
-          "매칭 Query"
-        ],
-        "summary": "미매칭 공개 목록 조회",
-        "operationId": "getUnmatchedParticipants",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiResponseUnmatchedParticipantsResponse"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/v1/matchings/status": {
-      "get": {
-        "tags": [
-          "매칭 Query"
-        ],
-        "summary": "매칭 서비스 상태 조회",
-        "operationId": "getStatus",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiResponseMatchingStatusResponse"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/booths": {
-      "get": {
-        "tags": [
-          "부스 Query"
-        ],
-        "summary": "부스 목록 조회",
-        "description": "좋아요/대기 적은 순으로 정렬된 부스 목록을 조회합니다.",
-        "operationId": "getBooths",
-        "parameters": [
-          {
-            "name": "sort",
-            "in": "query",
-            "description": "정렬 기준: likes(기본) / waiting-asc",
-            "required": false,
-            "schema": {
-              "type": "string",
-              "default": "likes"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "조회 성공",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiResponseListBoothListResponse"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/booths/{booth-id}": {
-      "get": {
-        "tags": [
-          "부스 Query"
-        ],
-        "summary": "부스 상세 조회",
-        "description": "메뉴 목록과 현재 대기팀 수를 포함한 부스 상세 정보를 조회합니다.",
-        "operationId": "getBooth",
-        "parameters": [
-          {
-            "name": "booth-id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "format": "int64"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "조회 성공",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiResponseBoothDetailResponse"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "부스 없음",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiResponseBoothDetailResponse"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/booths/{booth-id}/waitings/status": {
-      "get": {
-        "tags": [
-          "대기열 Query"
-        ],
-        "summary": "현재 대기 현황 조회",
-        "operationId": "getBoothStatus",
-        "parameters": [
-          {
-            "name": "booth-id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "format": "int64"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiResponseWaitingStatusResponse"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/booths/map": {
-      "get": {
-        "tags": [
-          "부스 Query"
-        ],
-        "summary": "지도용 부스 목록 조회",
-        "description": "좌표와 이름만 포함된 경량 응답을 반환합니다.",
-        "operationId": "getBoothsForMap",
-        "responses": {
-          "200": {
-            "description": "조회 성공",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiResponseListBoothMapResponse"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/admin/v1/booths/{booth-id}/waitings": {
-      "get": {
-        "tags": [
-          "대기열 Query"
-        ],
-        "summary": "대기팀 목록 조회 (관리자)",
-        "operationId": "getWaitings",
-        "parameters": [
-          {
-            "name": "booth-id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "format": "int64"
-            }
-          },
-          {
-            "name": "status",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "string",
-              "enum": [
-                "WAITING",
-                "CALLED",
-                "ENTERED",
-                "SKIPPED",
-                "CANCELLED"
-              ]
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiResponseListWaitingResponse"
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-  },
-  "components": {
-    "schemas": {
-      "BoothUpdateRequest": {
-        "type": "object",
-        "properties": {
-          "name": {
-            "type": "string",
-            "maxLength": 100,
-            "minLength": 0
-          },
-          "description": {
-            "type": "string"
-          },
-          "locationLat": {
-            "type": "number"
-          },
-          "locationLng": {
-            "type": "number"
-          },
-          "imageUrl": {
-            "type": "string",
-            "maxLength": 500,
-            "minLength": 0
-          }
-        }
-      },
-      "ApiResponseBoothResponse": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean"
-          },
-          "data": {
-            "$ref": "#/components/schemas/BoothResponse"
-          },
-          "error": {
-            "$ref": "#/components/schemas/ErrorResponse"
-          }
-        }
-      },
-      "BoothResponse": {
-        "type": "object",
-        "properties": {
-          "boothId": {
-            "type": "integer",
-            "format": "int64"
-          },
-          "name": {
-            "type": "string"
-          },
-          "description": {
-            "type": "string"
-          },
-          "locationLat": {
-            "type": "number"
-          },
-          "locationLng": {
-            "type": "number"
-          },
-          "likeCount": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "imageUrl": {
-            "type": "string"
-          },
-          "waitingOpen": {
-            "type": "boolean"
-          }
-        }
-      },
-      "ErrorResponse": {
-        "type": "object",
-        "properties": {
-          "code": {
-            "type": "string"
-          },
-          "message": {
-            "type": "string"
-          }
-        }
-      },
-      "MenuUpdateRequest": {
-        "type": "object",
-        "properties": {
-          "name": {
-            "type": "string",
-            "maxLength": 100,
-            "minLength": 0
-          },
-          "price": {
-            "type": "integer",
-            "format": "int32",
-            "minimum": 0
-          },
-          "imageUrl": {
-            "type": "string",
-            "maxLength": 500,
-            "minLength": 0
-          },
-          "description": {
-            "type": "string"
-          }
-        }
-      },
-      "ApiResponseMenuResponse": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean"
-          },
-          "data": {
-            "$ref": "#/components/schemas/MenuResponse"
-          },
-          "error": {
-            "$ref": "#/components/schemas/ErrorResponse"
-          }
-        }
-      },
-      "MenuResponse": {
-        "type": "object",
-        "properties": {
-          "menuId": {
-            "type": "integer",
-            "format": "int64"
-          },
-          "name": {
-            "type": "string"
-          },
-          "price": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "imageUrl": {
-            "type": "string"
-          },
-          "description": {
-            "type": "string"
-          },
-          "soldOut": {
-            "type": "boolean"
-          }
-        }
-      },
-      "MatchingCreateRequest": {
-        "type": "object",
-        "properties": {
-          "instagramId": {
-            "type": "string",
-            "maxLength": 100,
-            "minLength": 0,
-            "pattern": "^[A-Za-z0-9._]{1,100}$"
-          },
-          "gender": {
-            "type": "string",
-            "enum": [
-              "MALE",
-              "FEMALE"
-            ]
-          },
-          "password": {
-            "type": "string",
-            "maxLength": 100,
-            "minLength": 4
-          },
-          "nationality": {
-            "type": "string",
-            "maxLength": 10,
-            "minLength": 0
-          }
-        },
-        "required": [
-          "gender"
-        ]
-      },
-      "ApiResponseMatchingRegisterResponse": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean"
-          },
-          "data": {
-            "$ref": "#/components/schemas/MatchingRegisterResponse"
-          },
-          "error": {
-            "$ref": "#/components/schemas/ErrorResponse"
-          }
-        }
-      },
-      "MatchingRegisterResponse": {
-        "type": "object",
-        "properties": {
-          "instagramId": {
-            "type": "string"
-          },
-          "status": {
-            "type": "string",
-            "enum": [
-              "PENDING",
-              "MATCHED",
-              "UNMATCHED",
-              "CANCELLED"
-            ]
-          },
-          "registrationDeadline": {
-            "type": "string"
-          },
-          "resultOpenAt": {
-            "type": "string"
-          }
-        }
-      },
-      "MatchingAuthRequest": {
-        "type": "object",
-        "properties": {
-          "instagramId": {
-            "type": "string",
-            "maxLength": 100,
-            "minLength": 0,
-            "pattern": "^[A-Za-z0-9._]{1,100}$"
-          },
-          "password": {
-            "type": "string",
-            "maxLength": 100,
-            "minLength": 4
-          }
-        }
-      },
-      "ApiResponseMatchingResultResponse": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean"
-          },
-          "data": {
-            "$ref": "#/components/schemas/MatchingResultResponse"
-          },
-          "error": {
-            "$ref": "#/components/schemas/ErrorResponse"
-          }
-        }
-      },
-      "MatchingResultResponse": {
-        "type": "object",
-        "properties": {
-          "instagramId": {
-            "type": "string"
-          },
-          "status": {
-            "type": "string",
-            "enum": [
-              "PENDING",
-              "MATCHED",
-              "UNMATCHED",
-              "CANCELLED"
-            ]
-          },
-          "resultOpen": {
-            "type": "boolean"
-          },
-          "matchedInstagramId": {
-            "type": "string"
-          },
-          "instagramProfileUrl": {
-            "type": "string"
-          },
-          "messageKo": {
-            "type": "string"
-          },
-          "messageEn": {
-            "type": "string"
-          }
-        }
-      },
-      "WaitingCreateRequest": {
-        "type": "object",
-        "properties": {
-          "name": {
-            "type": "string",
-            "maxLength": 50,
-            "minLength": 0
-          },
-          "partySize": {
-            "type": "integer",
-            "format": "int32",
-            "minimum": 1
-          },
-          "phoneNumber": {
-            "type": "string",
-            "minLength": 1,
-            "pattern": "^01[016789]-?\\d{3,4}-?\\d{4}$"
-          }
-        },
-        "required": [
-          "partySize"
-        ]
-      },
-      "ApiResponseWaitingRegisterResponse": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean"
-          },
-          "data": {
-            "$ref": "#/components/schemas/WaitingRegisterResponse"
-          },
-          "error": {
-            "$ref": "#/components/schemas/ErrorResponse"
-          }
-        }
-      },
-      "WaitingRegisterResponse": {
-        "type": "object",
-        "properties": {
-          "waitingId": {
-            "type": "integer",
-            "format": "int64"
-          },
-          "waitingNumber": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "boothName": {
-            "type": "string"
-          },
-          "currentWaitingTeams": {
-            "type": "integer",
-            "format": "int64"
-          },
-          "estimatedWaitMinutes": {
-            "type": "integer",
-            "format": "int32"
-          }
-        }
-      },
-      "ApiResponseVoid": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean"
-          },
-          "data": {
-            "type": "object"
-          },
-          "error": {
-            "$ref": "#/components/schemas/ErrorResponse"
-          }
-        }
-      },
-      "ApiResponseMatchingJobResponse": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean"
-          },
-          "data": {
-            "$ref": "#/components/schemas/MatchingJobResponse"
-          },
-          "error": {
-            "$ref": "#/components/schemas/ErrorResponse"
-          }
-        }
-      },
-      "MatchingJobResponse": {
-        "type": "object",
-        "properties": {
-          "matchedPairCount": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "unmatchedCount": {
-            "type": "integer",
-            "format": "int32"
-          }
-        }
-      },
-      "BoothCreateRequest": {
-        "type": "object",
-        "properties": {
-          "name": {
-            "type": "string",
-            "maxLength": 100,
-            "minLength": 0
-          },
-          "description": {
-            "type": "string"
-          },
-          "locationLat": {
-            "type": "number"
-          },
-          "locationLng": {
-            "type": "number"
-          },
-          "imageUrl": {
-            "type": "string",
-            "maxLength": 500,
-            "minLength": 0
-          },
-          "adminPassword": {
-            "type": "string",
-            "minLength": 1
-          }
-        }
-      },
-      "WaitingInsertRequest": {
-        "type": "object",
-        "properties": {
-          "name": {
-            "type": "string",
-            "maxLength": 50,
-            "minLength": 0
-          },
-          "partySize": {
-            "type": "integer",
-            "format": "int32",
-            "minimum": 1
-          },
-          "phoneNumber": {
-            "type": "string",
-            "minLength": 1,
-            "pattern": "^01[016789]-?\\d{3,4}-?\\d{4}$"
-          },
-          "insertAfterSortOrder": {
-            "type": "integer",
-            "format": "int32",
-            "minimum": 1
-          }
-        },
-        "required": [
-          "insertAfterSortOrder",
-          "partySize"
-        ]
-      },
-      "MenuCreateRequest": {
-        "type": "object",
-        "properties": {
-          "name": {
-            "type": "string",
-            "maxLength": 100,
-            "minLength": 0
-          },
-          "price": {
-            "type": "integer",
-            "format": "int32",
-            "minimum": 0
-          },
-          "imageUrl": {
-            "type": "string",
-            "maxLength": 500,
-            "minLength": 0
-          },
-          "description": {
-            "type": "string"
-          }
-        },
-        "required": [
-          "price"
-        ]
-      },
-      "LoginRequest": {
-        "type": "object",
-        "properties": {
-          "boothId": {
-            "type": "integer",
-            "format": "int64"
-          },
-          "password": {
-            "type": "string",
-            "minLength": 1
-          }
-        }
-      },
-      "ApiResponseLoginResponse": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean"
-          },
-          "data": {
-            "$ref": "#/components/schemas/LoginResponse"
-          },
-          "error": {
-            "$ref": "#/components/schemas/ErrorResponse"
-          }
-        }
-      },
-      "LoginResponse": {
-        "type": "object",
-        "properties": {
-          "role": {
-            "type": "string"
-          },
-          "boothId": {
-            "type": "integer",
-            "format": "int64"
-          }
-        }
-      },
-      "WaitingReorderRequest": {
-        "type": "object",
-        "properties": {
-          "newSortOrder": {
-            "type": "integer",
-            "format": "int32",
-            "minimum": 1
-          }
-        },
-        "required": [
-          "newSortOrder"
-        ]
-      },
-      "MatchingStatusUpdateRequest": {
-        "type": "object",
-        "properties": {
-          "status": {
-            "type": "string",
-            "enum": [
-              "OPEN",
-              "PAUSED"
-            ]
-          },
-          "messageKo": {
-            "type": "string",
-            "maxLength": 255,
-            "minLength": 0
-          },
-          "messageEn": {
-            "type": "string",
-            "maxLength": 255,
-            "minLength": 0
-          }
-        },
-        "required": [
-          "status"
-        ]
-      },
-      "ApiResponseMatchingStatusResponse": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean"
-          },
-          "data": {
-            "$ref": "#/components/schemas/MatchingStatusResponse"
-          },
-          "error": {
-            "$ref": "#/components/schemas/ErrorResponse"
-          }
-        }
-      },
-      "MatchingStatusResponse": {
-        "type": "object",
-        "properties": {
-          "status": {
-            "type": "string",
-            "enum": [
-              "OPEN",
-              "PAUSED"
-            ]
-          },
-          "messageKo": {
-            "type": "string"
-          },
-          "messageEn": {
-            "type": "string"
-          },
-          "registrationOpen": {
-            "type": "boolean"
-          },
-          "resultOpen": {
-            "type": "boolean"
-          },
-          "registrationDeadline": {
-            "type": "string"
-          },
-          "resultOpenAt": {
-            "type": "string"
-          },
-          "pendingCount": {
-            "type": "integer",
-            "format": "int64"
-          },
-          "matchedCount": {
-            "type": "integer",
-            "format": "int64"
-          },
-          "unmatchedCount": {
-            "type": "integer",
-            "format": "int64"
-          }
-        }
-      },
-      "WaitingToggleRequest": {
-        "type": "object",
-        "properties": {
-          "open": {
-            "type": "boolean"
-          }
-        },
-        "required": [
-          "open"
-        ]
-      },
-      "BoothPasswordChangeRequest": {
-        "type": "object",
-        "properties": {
-          "newPassword": {
-            "type": "string",
-            "minLength": 1
-          }
-        }
-      },
-      "ApiResponseMyWaitingResponse": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean"
-          },
-          "data": {
-            "$ref": "#/components/schemas/MyWaitingResponse"
-          },
-          "error": {
-            "$ref": "#/components/schemas/ErrorResponse"
-          }
-        }
-      },
-      "MyWaitingResponse": {
-        "type": "object",
-        "properties": {
-          "waitingId": {
-            "type": "integer",
-            "format": "int64"
-          },
-          "boothId": {
-            "type": "integer",
-            "format": "int64"
-          },
-          "boothName": {
-            "type": "string"
-          },
-          "waitingNumber": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "status": {
-            "type": "string"
-          },
-          "aheadCount": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "estimatedWaitMinutes": {
-            "type": "integer",
-            "format": "int32"
-          }
-        }
-      },
-      "ApiResponseUnmatchedParticipantsResponse": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean"
-          },
-          "data": {
-            "$ref": "#/components/schemas/UnmatchedParticipantsResponse"
-          },
-          "error": {
-            "$ref": "#/components/schemas/ErrorResponse"
-          }
-        }
-      },
-      "UnmatchedParticipantResponse": {
-        "type": "object",
-        "properties": {
-          "instagramId": {
-            "type": "string"
-          },
-          "gender": {
-            "type": "string",
-            "enum": [
-              "MALE",
-              "FEMALE"
-            ]
-          },
-          "nationality": {
-            "type": "string"
-          },
-          "instagramProfileUrl": {
-            "type": "string"
-          }
-        }
-      },
-      "UnmatchedParticipantsResponse": {
-        "type": "object",
-        "properties": {
-          "resultOpen": {
-            "type": "boolean"
-          },
-          "resultOpenAt": {
-            "type": "string"
-          },
-          "messageKo": {
-            "type": "string"
-          },
-          "messageEn": {
-            "type": "string"
-          },
-          "participants": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/UnmatchedParticipantResponse"
-            }
-          }
-        }
-      },
-      "ApiResponseListBoothListResponse": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean"
-          },
-          "data": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/BoothListResponse"
-            }
-          },
-          "error": {
-            "$ref": "#/components/schemas/ErrorResponse"
-          }
-        }
-      },
-      "BoothListResponse": {
-        "type": "object",
-        "properties": {
-          "boothId": {
-            "type": "integer",
-            "format": "int64"
-          },
-          "name": {
-            "type": "string"
-          },
-          "description": {
-            "type": "string"
-          },
-          "locationLat": {
-            "type": "number"
-          },
-          "locationLng": {
-            "type": "number"
-          },
-          "likeCount": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "imageUrl": {
-            "type": "string"
-          },
-          "waitingOpen": {
-            "type": "boolean"
-          },
-          "currentWaitingTeams": {
-            "type": "integer",
-            "format": "int64"
-          }
-        }
-      },
-      "ApiResponseBoothDetailResponse": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean"
-          },
-          "data": {
-            "$ref": "#/components/schemas/BoothDetailResponse"
-          },
-          "error": {
-            "$ref": "#/components/schemas/ErrorResponse"
-          }
-        }
-      },
-      "BoothDetailResponse": {
-        "type": "object",
-        "properties": {
-          "boothId": {
-            "type": "integer",
-            "format": "int64"
-          },
-          "name": {
-            "type": "string"
-          },
-          "description": {
-            "type": "string"
-          },
-          "locationLat": {
-            "type": "number"
-          },
-          "locationLng": {
-            "type": "number"
-          },
-          "likeCount": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "imageUrl": {
-            "type": "string"
-          },
-          "waitingOpen": {
-            "type": "boolean"
-          },
-          "currentWaitingTeams": {
-            "type": "integer",
-            "format": "int64"
-          },
-          "menus": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/MenuResponse"
-            }
-          }
-        }
-      },
-      "ApiResponseWaitingStatusResponse": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean"
-          },
-          "data": {
-            "$ref": "#/components/schemas/WaitingStatusResponse"
-          },
-          "error": {
-            "$ref": "#/components/schemas/ErrorResponse"
-          }
-        }
-      },
-      "WaitingStatusResponse": {
-        "type": "object",
-        "properties": {
-          "boothId": {
-            "type": "integer",
-            "format": "int64"
-          },
-          "waitingOpen": {
-            "type": "boolean"
-          },
-          "currentWaitingTeams": {
-            "type": "integer",
-            "format": "int64"
-          },
-          "estimatedWaitMinutes": {
-            "type": "integer",
-            "format": "int32"
-          }
-        }
-      },
-      "ApiResponseListBoothMapResponse": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean"
-          },
-          "data": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/BoothMapResponse"
-            }
-          },
-          "error": {
-            "$ref": "#/components/schemas/ErrorResponse"
-          }
-        }
-      },
-      "BoothMapResponse": {
-        "type": "object",
-        "properties": {
-          "boothId": {
-            "type": "integer",
-            "format": "int64"
-          },
-          "name": {
-            "type": "string"
-          },
-          "locationLat": {
-            "type": "number"
-          },
-          "locationLng": {
-            "type": "number"
-          }
-        }
-      },
-      "ApiResponseListWaitingResponse": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean"
-          },
-          "data": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/WaitingResponse"
-            }
-          },
-          "error": {
-            "$ref": "#/components/schemas/ErrorResponse"
-          }
-        }
-      },
-      "WaitingResponse": {
-        "type": "object",
-        "properties": {
-          "waitingId": {
-            "type": "integer",
-            "format": "int64"
-          },
-          "boothId": {
-            "type": "integer",
-            "format": "int64"
-          },
-          "waitingNumber": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "sortOrder": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "name": {
-            "type": "string"
-          },
-          "partySize": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "maskedPhoneNumber": {
-            "type": "string"
-          },
-          "status": {
-            "type": "string"
-          },
-          "smsSent": {
-            "type": "boolean"
-          },
-          "calledAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "enteredAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "createdAt": {
-            "type": "string",
-            "format": "date-time"
-          }
-        }
-      },
-      "ApiResponseListMenuResponse": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean"
-          },
-          "data": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/MenuResponse"
-            }
-          },
-          "error": {
-            "$ref": "#/components/schemas/ErrorResponse"
-          }
-        }
-      }
-    }
-  }
 }
