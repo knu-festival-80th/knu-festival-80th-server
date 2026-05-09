@@ -13,12 +13,14 @@ import kr.ac.knu.festival.presentation.booth.dto.request.BoothCreateRequest;
 import kr.ac.knu.festival.presentation.booth.dto.request.BoothUpdateRequest;
 import kr.ac.knu.festival.presentation.booth.dto.response.BoothResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional
@@ -81,6 +83,7 @@ public class BoothCommandService {
                 .orElseThrow(() -> new BusinessException(BusinessErrorCode.BOOTH_NOT_FOUND));
         RedisChangeResult result = boothRankingRedisRepository.addLike(boothId, anonymousIdHash);
         if (!result.available()) {
+            log.warn("Redis unavailable for likeBooth. boothId={} — fallback에서는 중복 좋아요 방지 불가", boothId);
             boothRepository.incrementLike(boothId);
             boothRankingStreamService.markDirty();
             Booth updatedBooth = boothRepository.findById(boothId)
@@ -105,7 +108,12 @@ public class BoothCommandService {
         }
         RedisChangeResult result = boothRankingRedisRepository.removeLike(boothId, anonymousIdHash);
         if (!result.available()) {
-            return BoothResponse.fromEntity(booth, imageUrlResolver);
+            log.warn("Redis unavailable for unlikeBooth. boothId={} — fallback으로 DB 직접 감소", boothId);
+            boothRepository.decrementLike(boothId);
+            boothRankingStreamService.markDirty();
+            Booth updatedBooth = boothRepository.findById(boothId)
+                    .orElseThrow(() -> new BusinessException(BusinessErrorCode.BOOTH_NOT_FOUND));
+            return BoothResponse.fromEntity(updatedBooth, imageUrlResolver);
         }
         if (result.changed()) {
             boothRankingStreamService.markDirty();
