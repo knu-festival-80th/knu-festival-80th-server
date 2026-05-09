@@ -7,6 +7,8 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
 import org.springframework.stereotype.Component;
 
+import org.springframework.beans.factory.annotation.Value;
+
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.time.Duration;
@@ -19,13 +21,16 @@ public class AnonymousIdCookieManager {
     private static final String COOKIE_NAME = "ANON_ID";
     private static final Duration COOKIE_MAX_AGE = Duration.ofDays(14);
 
+    @Value("${cookie.secure:true}")
+    private boolean cookieSecure;
+
     public String getOrCreateHashedAnonymousId(HttpServletRequest request, HttpServletResponse response) {
         String anonymousId = findCookieValue(request);
         if (anonymousId == null || anonymousId.isBlank()) {
             anonymousId = UUID.randomUUID().toString();
             ResponseCookie cookie = ResponseCookie.from(COOKIE_NAME, anonymousId)
                     .httpOnly(true)
-                    .secure(false)
+                    .secure(cookieSecure)
                     .sameSite("Lax")
                     .path("/")
                     .maxAge(COOKIE_MAX_AGE)

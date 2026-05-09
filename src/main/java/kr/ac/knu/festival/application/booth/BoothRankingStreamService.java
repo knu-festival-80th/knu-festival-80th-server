@@ -44,8 +44,9 @@ public class BoothRankingStreamService {
         if (!rankingDirty.getAndSet(false)) {
             return;
         }
-        broadcast(BoothRankingSort.LIKES);
-        broadcast(BoothRankingSort.WAITING_ASC);
+        for (BoothRankingSort sort : BoothRankingSort.values()) {
+            broadcast(sort);
+        }
     }
 
     @Scheduled(fixedDelay = 30_000L)
