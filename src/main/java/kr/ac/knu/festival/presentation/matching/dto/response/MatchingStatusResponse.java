@@ -38,4 +38,30 @@ public record MatchingStatusResponse(
                 unmatchedCount
         );
     }
+
+    public static MatchingStatusResponse ofCached(
+            MatchingOperationStatus status,
+            String messageKo,
+            String messageEn,
+            boolean registrationOpen,
+            boolean resultOpen,
+            String registrationDeadline,
+            String resultOpenAt,
+            long pendingCount,
+            long matchedCount,
+            long unmatchedCount
+    ) {
+        return new MatchingStatusResponse(
+                status,
+                messageKo,
+                messageEn,
+                registrationOpen,
+                resultOpen,
+                registrationDeadline,
+                resultOpenAt,
+                pendingCount,
+                matchedCount,
+                unmatchedCount
+        );
+    }
 }

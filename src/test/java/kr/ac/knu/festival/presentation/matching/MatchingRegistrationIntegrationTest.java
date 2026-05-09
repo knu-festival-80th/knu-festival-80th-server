@@ -89,7 +89,7 @@ class MatchingRegistrationIntegrationTest {
         mockMvc.perform(post("/v1/matchings")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isBadRequest())
+                .andExpect(status().isForbidden())
                 .andExpect(jsonPath("$.success").value(false));
 
         assertThat(matchingParticipantRepository.existsById("paused_user")).isFalse();

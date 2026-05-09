@@ -49,6 +49,10 @@ public class MatchingParticipant extends BaseTimeEntity {
     @Column(nullable = false, length = 20)
     private MatchingParticipantStatus status;
 
+    public static String normalizeInstagramId(String instagramId) {
+        return instagramId.trim().replaceFirst("^@", "").toLowerCase();
+    }
+
     public static MatchingParticipant create(
             String instagramId,
             MatchingGender gender,
