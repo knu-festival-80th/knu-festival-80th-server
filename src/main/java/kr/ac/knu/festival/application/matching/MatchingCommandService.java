@@ -39,13 +39,12 @@ public class MatchingCommandService {
     public MatchingRegisterResponse register(MatchingCreateRequest request) {
         MatchingServiceState state = getOrCreateState();
         if (state.getStatus() != MatchingOperationStatus.OPEN || !matchingScheduleProperties.isRegistrationOpen()) {
-            throw new BusinessException(BusinessErrorCode.INVALID_INPUT_VALUE);
+            throw new BusinessException(BusinessErrorCode.MATCHING_REGISTRATION_CLOSED);
         }
 
-        // Instagram ID는 @ 입력 여부와 대소문자 차이로 중복 신청이 뚫리지 않도록 저장 전에 정규화한다.
-        String instagramId = normalizeInstagramId(request.instagramId());
+        String instagramId = MatchingParticipant.normalizeInstagramId(request.instagramId());
         if (matchingParticipantRepository.existsById(instagramId)) {
-            throw new BusinessException(BusinessErrorCode.INVALID_INPUT_VALUE);
+            throw new BusinessException(BusinessErrorCode.MATCHING_DUPLICATE_REGISTRATION);
         }
 
         MatchingParticipant participant = MatchingParticipant.create(
@@ -68,7 +67,7 @@ public class MatchingCommandService {
     public void cancel(MatchingAuthRequest request) {
         MatchingParticipant participant = authenticate(request);
         if (participant.getStatus() == MatchingParticipantStatus.MATCHED) {
-            throw new BusinessException(BusinessErrorCode.INVALID_INPUT_VALUE);
+            throw new BusinessException(BusinessErrorCode.MATCHING_ALREADY_MATCHED);
         }
         participant.cancel();
         matchingRealtimeCache.cacheParticipantResult(participant);
@@ -126,7 +125,7 @@ public class MatchingCommandService {
     }
 
     private MatchingParticipant authenticate(MatchingAuthRequest request) {
-        MatchingParticipant participant = matchingParticipantRepository.findById(normalizeInstagramId(request.instagramId()))
+        MatchingParticipant participant = matchingParticipantRepository.findById(MatchingParticipant.normalizeInstagramId(request.instagramId()))
                 .orElseThrow(() -> new BusinessException(BusinessErrorCode.RESOURCE_NOT_FOUND));
         if (!passwordEncoder.matches(request.password(), participant.getPassword())) {
             throw new BusinessException(BusinessErrorCode.UNAUTHORIZED_USER);
@@ -157,10 +156,6 @@ public class MatchingCommandService {
             return true;
         }
         return false;
-    }
-
-    private String normalizeInstagramId(String instagramId) {
-        return instagramId.trim().replaceFirst("^@", "").toLowerCase();
     }
 
     private String normalizeNationality(String nationality) {
