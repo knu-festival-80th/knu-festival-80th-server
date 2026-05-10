@@ -20,7 +20,8 @@ public interface MatchingCommandControllerDocs {
     @Operation(summary = "매칭 신청")
     @ApiResponses({
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "201", description = "신청 성공"),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "중복 신청 또는 매칭 일시중단")
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "403", description = "매칭 신청 중단"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "409", description = "중복 신청")
     })
     ResponseEntity<ApiResponse<MatchingRegisterResponse>> register(MatchingCreateRequest request);
 

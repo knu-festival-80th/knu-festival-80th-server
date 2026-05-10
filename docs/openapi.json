@@ -212,7 +212,7 @@
                 }
             }
         },
-        "/v1/matchings": {
+        "/matchings": {
             "post": {
                 "tags": [
                     "\ub9e4\uce6d Command"
@@ -282,7 +282,7 @@
                 }
             }
         },
-        "/v1/matchings/result": {
+        "/matchings/result": {
             "post": {
                 "tags": [
                     "\ub9e4\uce6d Query"
@@ -544,7 +544,7 @@
                 }
             }
         },
-        "/admin/v1/matching-jobs": {
+        "/admin/matching-jobs": {
             "post": {
                 "tags": [
                     "\ub9e4\uce6d Command"
@@ -964,7 +964,7 @@
                 }
             }
         },
-        "/admin/v1/matchings/status": {
+        "/admin/matchings/status": {
             "patch": {
                 "tags": [
                     "\ub9e4\uce6d Command"
@@ -1200,7 +1200,7 @@
                 }
             }
         },
-        "/v1/matchings/unmatched": {
+        "/matchings/unmatched": {
             "get": {
                 "tags": [
                     "\ub9e4\uce6d Query"
@@ -1221,7 +1221,7 @@
                 }
             }
         },
-        "/v1/matchings/status": {
+        "/matchings/status": {
             "get": {
                 "tags": [
                     "\ub9e4\uce6d Query"

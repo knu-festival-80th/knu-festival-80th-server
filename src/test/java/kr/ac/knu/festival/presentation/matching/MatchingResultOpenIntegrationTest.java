@@ -65,7 +65,7 @@ class MatchingResultOpenIntegrationTest {
 
         MatchingAuthRequest request = new MatchingAuthRequest("male_user", "1234");
 
-        mockMvc.perform(post("/v1/matchings/result")
+        mockMvc.perform(post("/matchings/result")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
