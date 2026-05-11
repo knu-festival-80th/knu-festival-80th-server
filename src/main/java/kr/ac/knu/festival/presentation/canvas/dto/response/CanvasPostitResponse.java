@@ -7,7 +7,6 @@ import java.time.LocalDateTime;
 
 public record CanvasPostitResponse(
         Long canvasPostitId,
-        String nickname,
         String message,
         PostitColor color,
         int positionX,
@@ -19,7 +18,6 @@ public record CanvasPostitResponse(
     public static CanvasPostitResponse fromEntity(CanvasPostit entity) {
         return new CanvasPostitResponse(
                 entity.getId(),
-                entity.getNickname(),
                 entity.getMessage(),
                 entity.getColor(),
                 entity.getPositionX(),

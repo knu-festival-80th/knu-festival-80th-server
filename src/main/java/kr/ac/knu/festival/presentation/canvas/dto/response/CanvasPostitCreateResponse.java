@@ -8,7 +8,6 @@ import java.time.LocalDateTime;
 public record CanvasPostitCreateResponse(
         Long canvasPostitId,
         int zoneNumber,
-        String nickname,
         String message,
         PostitColor color,
         int positionX,
@@ -21,7 +20,6 @@ public record CanvasPostitCreateResponse(
         return new CanvasPostitCreateResponse(
                 entity.getId(),
                 entity.getZoneNumber(),
-                entity.getNickname(),
                 entity.getMessage(),
                 entity.getColor(),
                 entity.getPositionX(),

@@ -36,7 +36,6 @@ public class CanvasCommandService {
         );
 
         CanvasPostit postit = CanvasPostit.createCanvasPostit(
-                request.nickname(),
                 request.message(),
                 request.color(),
                 adjusted[0],

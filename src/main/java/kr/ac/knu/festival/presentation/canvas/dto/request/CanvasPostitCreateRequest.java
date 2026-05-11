@@ -8,10 +8,6 @@ import kr.ac.knu.festival.domain.canvas.entity.PostitColor;
 
 public record CanvasPostitCreateRequest(
         @NotBlank
-        @Size(max = 8, message = "닉네임은 최대 8자입니다.")
-        String nickname,
-
-        @NotBlank
         @Size(max = 60, message = "메시지는 최대 60자입니다.")
         String message,
 

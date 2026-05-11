@@ -37,9 +37,6 @@ public class CanvasPostit extends BaseTimeEntity {
     @Column(name = "canvas_postit_id")
     private Long id;
 
-    @Column(nullable = false, length = 8)
-    private String nickname;
-
     @Column(nullable = false, length = 60)
     private String message;
 
@@ -66,7 +63,6 @@ public class CanvasPostit extends BaseTimeEntity {
     private LocalDateTime deletedAt;
 
     public static CanvasPostit createCanvasPostit(
-            String nickname,
             String message,
             PostitColor color,
             int positionX,
@@ -75,7 +71,6 @@ public class CanvasPostit extends BaseTimeEntity {
             int height
     ) {
         return CanvasPostit.builder()
-                .nickname(nickname)
                 .message(message)
                 .color(color)
                 .positionX(positionX)
