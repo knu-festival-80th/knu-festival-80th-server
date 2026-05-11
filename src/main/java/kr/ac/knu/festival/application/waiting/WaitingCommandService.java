@@ -120,7 +120,7 @@ public class WaitingCommandService {
         Waiting waiting = waitingRepository.findById(waitingId)
                 .orElseThrow(() -> new BusinessException(BusinessErrorCode.WAITING_NOT_FOUND));
         waiting.markCalled();
-        String message = "[%s] %d번 손님, 입장 차례입니다. 10분 내 도착 부탁드립니다."
+        String message = "[%s] %d번 손님 입장 차례! 10분 내 도착해 주세요."
                 .formatted(waiting.getBooth().getName(), waiting.getWaitingNumber());
         sendSmsAsync(waiting.getId(), waiting.getPhoneNumber(), message);
     }
@@ -241,7 +241,7 @@ public class WaitingCommandService {
             throw new BusinessException(BusinessErrorCode.INVALID_WAITING_STATUS_TRANSITION);
         }
         waiting.markSmsFailed();
-        String message = "[%s] %d번 손님, 입장 차례입니다. 10분 내 도착 부탁드립니다."
+        String message = "[%s] %d번 손님 입장 차례! 10분 내 도착해 주세요."
                 .formatted(waiting.getBooth().getName(), waiting.getWaitingNumber());
         sendSmsAsync(waiting.getId(), waiting.getPhoneNumber(), message);
     }

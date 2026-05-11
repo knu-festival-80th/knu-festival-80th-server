@@ -106,7 +106,7 @@ public interface WaitingRepository extends JpaRepository<Waiting, Long> {
     int findMaxSortOrderByBoothId(@Param("boothId") Long boothId);
 
     /**
-     * M4: 5분 미방문 대기를 단일 UPDATE 로 일괄 SKIP.
+     * M4: 10분 미방문 대기를 단일 UPDATE 로 일괄 SKIP.
      */
     @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Query("""

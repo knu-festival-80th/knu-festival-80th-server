@@ -40,13 +40,12 @@ public class WaitingAutoSkipScheduler {
         var expiredCountByBooth = waitingRepository.countExpiredCallsByBooth(threshold);
         int skipped = waitingRepository.skipExpiredCalls(threshold);
 
-        for (Waiting waiting : expiredWaitings) {
-            String message = "[%s] %d번 대기가 시간 초과로 취소되었습니다."
-                    .formatted(waiting.getBooth().getName(), waiting.getWaitingNumber());
-            waitingCommandService.sendSmsAsync(waiting.getId(), waiting.getPhoneNumber(), message);
-        }
-
         afterCommit(() -> {
+            for (Waiting waiting : expiredWaitings) {
+                String message = "[%s] %d번 대기가 시간 초과로 취소되었습니다."
+                        .formatted(waiting.getBooth().getName(), waiting.getWaitingNumber());
+                waitingCommandService.sendSmsAsync(waiting.getId(), waiting.getPhoneNumber(), message);
+            }
             for (Object[] row : expiredCountByBooth) {
                 boothRankingRedisRepository.decrementWaitingCount((Long) row[0], (Long) row[1]);
             }

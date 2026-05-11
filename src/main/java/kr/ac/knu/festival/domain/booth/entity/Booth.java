@@ -83,7 +83,7 @@ public class Booth extends BaseTimeEntity {
                 .imageUrl(imageUrl)
                 .menuBoardImageUrl(menuBoardImageUrl)
                 .likeCount(0)
-                .waitingOpen(true)
+                .waitingOpen(false)
                 .adminPassword(encodedAdminPassword)
                 .build();
     }
