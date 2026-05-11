@@ -6,6 +6,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import kr.ac.knu.festival.global.auth.AdminInfo;
 import kr.ac.knu.festival.global.response.ApiResponse;
+import kr.ac.knu.festival.presentation.canvas.dto.request.CanvasBoardCreateRequest;
 import kr.ac.knu.festival.presentation.canvas.dto.request.CanvasPostitCreateRequest;
 import kr.ac.knu.festival.presentation.canvas.dto.response.CanvasPostitCreateResponse;
 import org.springframework.http.ResponseEntity;
@@ -24,13 +25,15 @@ public interface CanvasCommandControllerDocs {
             CanvasPostitCreateRequest request
     );
 
-    @Operation(summary = "보드 생성 (슈퍼 관리자)", description = "새 롤링페이퍼 보드를 생성합니다. boardVariant는 boardId 홀짝으로 자동 결정됩니다.")
+    @Operation(summary = "보드 생성 (슈퍼 관리자)", description = "특정 문항에 보드를 추가합니다. boardVariant는 1 또는 2로 지정합니다.")
     @ApiResponses({
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "201", description = "생성 성공"),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "403", description = "슈퍼 관리자 권한 필요")
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "403", description = "슈퍼 관리자 권한 필요"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "문항 없음")
     })
     ResponseEntity<ApiResponse<Long>> createBoard(
-            @Parameter(hidden = true) AdminInfo admin
+            @Parameter(hidden = true) AdminInfo admin,
+            CanvasBoardCreateRequest request
     );
 
     @Operation(summary = "포스트잇 삭제 (슈퍼 관리자)", description = "부적절한 포스트잇을 소프트 딜리트합니다.")

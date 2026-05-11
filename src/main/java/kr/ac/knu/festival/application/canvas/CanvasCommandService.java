@@ -1,8 +1,10 @@
 package kr.ac.knu.festival.application.canvas;
 
 import kr.ac.knu.festival.domain.canvas.entity.CanvasBoard;
+import kr.ac.knu.festival.domain.canvas.entity.CanvasBoardQuestion;
 import kr.ac.knu.festival.domain.canvas.entity.CanvasPostit;
 import kr.ac.knu.festival.domain.canvas.entity.StickerMeta;
+import kr.ac.knu.festival.domain.canvas.repository.CanvasBoardQuestionRepository;
 import kr.ac.knu.festival.domain.canvas.repository.CanvasBoardRepository;
 import kr.ac.knu.festival.domain.canvas.repository.CanvasPostitRepository;
 import kr.ac.knu.festival.global.exception.BusinessErrorCode;
@@ -20,7 +22,6 @@ import java.util.List;
 @Transactional
 public class CanvasCommandService {
 
-    private static final int MAX_NOTES_PER_BOARD = 100;
     private static final double BOARD_SIZE = 852.0;
     private static final double COLLISION_SCALE = 0.4;
     private static final double PAD_LEFT = 14.0;
@@ -30,6 +31,7 @@ public class CanvasCommandService {
     private static final double FRAME_SIZE = 320.0;
     private static final double FRAME_BLOCKED_PADDING = 26.0;
 
+    private final CanvasBoardQuestionRepository canvasBoardQuestionRepository;
     private final CanvasBoardRepository canvasBoardRepository;
     private final CanvasPostitRepository canvasPostitRepository;
 
@@ -37,7 +39,7 @@ public class CanvasCommandService {
         CanvasBoard board = canvasBoardRepository.findById(request.boardId())
                 .orElseThrow(() -> new BusinessException(BusinessErrorCode.CANVAS_BOARD_NOT_FOUND));
 
-        if (canvasPostitRepository.countByBoard(board) >= MAX_NOTES_PER_BOARD) {
+        if (canvasPostitRepository.countByBoard(board) >= board.getMaxNoteCount()) {
             throw new BusinessException(BusinessErrorCode.CANVAS_BOARD_FULL);
         }
 
@@ -56,9 +58,10 @@ public class CanvasCommandService {
         return CanvasPostitCreateResponse.fromEntity(postit);
     }
 
-    public Long createBoard() {
-        CanvasBoard board = canvasBoardRepository.save(CanvasBoard.create());
-        return board.getId();
+    public Long createBoard(Long questionId, int boardVariant, int maxNoteCount) {
+        CanvasBoardQuestion question = canvasBoardQuestionRepository.findById(questionId)
+                .orElseThrow(() -> new BusinessException(BusinessErrorCode.CANVAS_QUESTION_NOT_FOUND));
+        return canvasBoardRepository.save(CanvasBoard.create(question, boardVariant, maxNoteCount)).getId();
     }
 
     public void deletePostit(Long postitId) {

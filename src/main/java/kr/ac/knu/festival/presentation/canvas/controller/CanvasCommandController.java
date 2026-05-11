@@ -6,6 +6,7 @@ import kr.ac.knu.festival.global.auth.AdminInfo;
 import kr.ac.knu.festival.global.auth.CurrentAdmin;
 import kr.ac.knu.festival.global.response.ApiResponse;
 import kr.ac.knu.festival.presentation.canvas.controller.docs.CanvasCommandControllerDocs;
+import kr.ac.knu.festival.presentation.canvas.dto.request.CanvasBoardCreateRequest;
 import kr.ac.knu.festival.presentation.canvas.dto.request.CanvasPostitCreateRequest;
 import kr.ac.knu.festival.presentation.canvas.dto.response.CanvasPostitCreateResponse;
 import lombok.RequiredArgsConstructor;
@@ -30,17 +31,18 @@ public class CanvasCommandController implements CanvasCommandControllerDocs {
     public ResponseEntity<ApiResponse<CanvasPostitCreateResponse>> createPostit(
             @RequestBody @Valid CanvasPostitCreateRequest request
     ) {
-        CanvasPostitCreateResponse result = canvasCommandService.createPostit(request);
-        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(result));
+        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(canvasCommandService.createPostit(request)));
     }
 
     @Override
     @PostMapping("/admin/v1/canvas/boards")
     public ResponseEntity<ApiResponse<Long>> createBoard(
-            @CurrentAdmin AdminInfo admin
+            @CurrentAdmin AdminInfo admin,
+            @RequestBody @Valid CanvasBoardCreateRequest request
     ) {
         admin.requireSuperAdmin();
-        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(canvasCommandService.createBoard()));
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(ApiResponse.success(canvasCommandService.createBoard(request.questionId(), request.boardVariant(), request.maxNoteCount())));
     }
 
     @Override

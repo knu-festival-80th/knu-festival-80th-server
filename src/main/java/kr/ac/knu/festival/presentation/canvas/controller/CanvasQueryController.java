@@ -4,6 +4,7 @@ import kr.ac.knu.festival.application.canvas.CanvasQueryService;
 import kr.ac.knu.festival.global.response.ApiResponse;
 import kr.ac.knu.festival.presentation.canvas.controller.docs.CanvasQueryControllerDocs;
 import kr.ac.knu.festival.presentation.canvas.dto.response.BoardSummaryResponse;
+import kr.ac.knu.festival.presentation.canvas.dto.response.CanvasBoardQuestionResponse;
 import kr.ac.knu.festival.presentation.canvas.dto.response.CanvasPostitResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -22,16 +23,24 @@ public class CanvasQueryController implements CanvasQueryControllerDocs {
     private final CanvasQueryService canvasQueryService;
 
     @Override
-    @GetMapping("/postits")
-    public ResponseEntity<ApiResponse<List<CanvasPostitResponse>>> getPostits(
-            @RequestParam(value = "boardId", required = false) Long boardId
-    ) {
-        return ResponseEntity.ok(ApiResponse.success(canvasQueryService.getPostits(boardId)));
+    @GetMapping("/questions")
+    public ResponseEntity<ApiResponse<List<CanvasBoardQuestionResponse>>> getQuestions() {
+        return ResponseEntity.ok(ApiResponse.success(canvasQueryService.getQuestions()));
     }
 
     @Override
     @GetMapping("/boards")
-    public ResponseEntity<ApiResponse<List<BoardSummaryResponse>>> getBoardSummaries() {
-        return ResponseEntity.ok(ApiResponse.success(canvasQueryService.getBoardSummaries()));
+    public ResponseEntity<ApiResponse<List<BoardSummaryResponse>>> getBoardSummaries(
+            @RequestParam("questionId") Long questionId
+    ) {
+        return ResponseEntity.ok(ApiResponse.success(canvasQueryService.getBoardSummaries(questionId)));
+    }
+
+    @Override
+    @GetMapping("/postits")
+    public ResponseEntity<ApiResponse<List<CanvasPostitResponse>>> getPostits(
+            @RequestParam("boardId") Long boardId
+    ) {
+        return ResponseEntity.ok(ApiResponse.success(canvasQueryService.getPostits(boardId)));
     }
 }
