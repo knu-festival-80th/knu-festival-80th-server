@@ -17,6 +17,8 @@ public enum BusinessErrorCode implements ErrorCode {
     INVALID_WAITING_STATUS_TRANSITION(HttpStatus.BAD_REQUEST, "W001", "허용되지 않는 대기 상태 전환입니다."),
     INVALID_PHONE_NUMBER(HttpStatus.BAD_REQUEST, "W002", "전화번호 형식이 올바르지 않습니다."),
     MATCHING_ALREADY_MATCHED(HttpStatus.BAD_REQUEST, "M001", "이미 매칭된 상태에서는 취소할 수 없습니다."),
+    WAITING_LIMIT_EXCEEDED(HttpStatus.BAD_REQUEST, "W007", "최대 3건까지만 대기 등록이 가능합니다."),
+    WAITING_NAME_MISMATCH(HttpStatus.BAD_REQUEST, "W008", "이미 등록된 전화번호의 예약자명과 일치하지 않습니다."),
 
     /*
      * 401 UNAUTHORIZED

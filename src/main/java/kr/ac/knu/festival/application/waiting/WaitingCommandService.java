@@ -34,6 +34,7 @@ public class WaitingCommandService {
 
     private static final List<WaitingStatus> ACTIVE_STATUSES = List.of(WaitingStatus.WAITING, WaitingStatus.CALLED);
     private static final int MINUTES_PER_TEAM = 5;
+    private static final int MAX_ACTIVE_WAITINGS = 3;
 
     private final BoothRepository boothRepository;
     private final WaitingRepository waitingRepository;
@@ -68,7 +69,6 @@ public class WaitingCommandService {
     }
 
     public WaitingRegisterResponse registerWaiting(Long boothId, WaitingCreateRequest request) {
-        // 부스 행을 SELECT FOR UPDATE 로 잡아 같은 부스의 등록·중복검사·채번을 직렬화한다.
         Booth booth = boothRepository.findByIdForUpdate(boothId)
                 .orElseThrow(() -> new BusinessException(BusinessErrorCode.BOOTH_NOT_FOUND));
         if (!booth.isWaitingOpen()) {
@@ -84,6 +84,19 @@ public class WaitingCommandService {
                     throw new BusinessException(BusinessErrorCode.DUPLICATE_WAITING);
                 });
 
+        long totalActive = waitingRepository.countByPhoneLookupHashAndStatusIn(lookupHash, ACTIVE_STATUSES);
+        if (totalActive >= MAX_ACTIVE_WAITINGS) {
+            throw new BusinessException(BusinessErrorCode.WAITING_LIMIT_EXCEEDED);
+        }
+
+        if (totalActive > 0) {
+            List<String> existingNames = waitingRepository.findDistinctNamesByPhoneLookupHashAndStatusIn(lookupHash, ACTIVE_STATUSES);
+            boolean nameMatches = existingNames.stream().anyMatch(n -> n.equals(request.name()));
+            if (!nameMatches) {
+                throw new BusinessException(BusinessErrorCode.WAITING_NAME_MISMATCH);
+            }
+        }
+
         int nextNumber = waitingRepository.findMaxWaitingNumberByBoothId(boothId) + 1;
         int nextSortOrder = waitingRepository.findMaxSortOrderByBoothId(boothId) + 1;
 
@@ -95,6 +108,11 @@ public class WaitingCommandService {
         long currentWaitingTeams = waitingRepository.countByBoothIdAndStatusIn(boothId, ACTIVE_STATUSES);
         int estimatedWaitMinutes = Math.max(0, (int) (currentWaitingTeams - 1)) * MINUTES_PER_TEAM;
         incrementWaitingCountAfterCommit(boothId);
+
+        String registerMsg = "[%s] 대기 등록 완료! 대기번호 %d번 (현재 %d팀 대기 중)"
+                .formatted(booth.getName(), nextNumber, currentWaitingTeams);
+        sendSmsAsync(saved.getId(), encryptedPhone, registerMsg);
+
         return WaitingRegisterResponse.of(saved, booth, currentWaitingTeams, estimatedWaitMinutes);
     }
 
@@ -102,7 +120,9 @@ public class WaitingCommandService {
         Waiting waiting = waitingRepository.findById(waitingId)
                 .orElseThrow(() -> new BusinessException(BusinessErrorCode.WAITING_NOT_FOUND));
         waiting.markCalled();
-        sendCallSmsAsync(waiting.getId(), waiting.getPhoneNumber(), waiting.getBooth().getName(), waiting.getWaitingNumber());
+        String message = "[%s] %d번 손님, 입장 차례입니다. 10분 내 도착 부탁드립니다."
+                .formatted(waiting.getBooth().getName(), waiting.getWaitingNumber());
+        sendSmsAsync(waiting.getId(), waiting.getPhoneNumber(), message);
     }
 
     public void enterWaiting(Long waitingId) {
@@ -111,6 +131,18 @@ public class WaitingCommandService {
         WaitingStatus previousStatus = waiting.getStatus();
         waiting.markEntered();
         decrementWaitingCountIfBecameInactiveAfterCommit(waiting.getBooth().getId(), previousStatus, waiting.getStatus());
+
+        List<Waiting> otherActiveWaitings = waitingRepository.findActiveByPhoneLookupHashExcludingBooth(
+                waiting.getPhoneLookupHash(), ACTIVE_STATUSES, waiting.getBooth().getId());
+
+        for (Waiting other : otherActiveWaitings) {
+            WaitingStatus otherPrevious = other.getStatus();
+            other.markCancelled();
+            decrementWaitingCountIfBecameInactiveAfterCommit(other.getBooth().getId(), otherPrevious, other.getStatus());
+            String cancelMsg = "[%s] 대기가 다른 부스 입장 확정으로 인해 자동 취소되었습니다."
+                    .formatted(other.getBooth().getName());
+            sendSmsAsync(other.getId(), other.getPhoneNumber(), cancelMsg);
+        }
     }
 
     public void cancelWaiting(Long waitingId) {
@@ -154,7 +186,7 @@ public class WaitingCommandService {
                 });
 
         int insertAt = request.insertAfterSortOrder();
-        waitingRepository.shiftSortOrdersUp(boothId, insertAt); // 단일 UPDATE 로 일괄 시프트
+        waitingRepository.shiftSortOrdersUp(boothId, insertAt);
 
         int nextNumber = waitingRepository.findMaxWaitingNumberByBoothId(boothId) + 1;
         Waiting saved = waitingRepository.save(Waiting.createWaiting(
@@ -172,7 +204,6 @@ public class WaitingCommandService {
         Waiting target = waitingRepository.findById(waitingId)
                 .orElseThrow(() -> new BusinessException(BusinessErrorCode.WAITING_NOT_FOUND));
         Long boothId = target.getBooth().getId();
-        // 부스 락으로 같은 부스의 reorder/insert 직렬화
         boothRepository.findByIdForUpdate(boothId)
                 .orElseThrow(() -> new BusinessException(BusinessErrorCode.BOOTH_NOT_FOUND));
 
@@ -210,20 +241,20 @@ public class WaitingCommandService {
             throw new BusinessException(BusinessErrorCode.INVALID_WAITING_STATUS_TRANSITION);
         }
         waiting.markSmsFailed();
-        sendCallSmsAsync(waiting.getId(), waiting.getPhoneNumber(), waiting.getBooth().getName(), waiting.getWaitingNumber());
+        String message = "[%s] %d번 손님, 입장 차례입니다. 10분 내 도착 부탁드립니다."
+                .formatted(waiting.getBooth().getName(), waiting.getWaitingNumber());
+        sendSmsAsync(waiting.getId(), waiting.getPhoneNumber(), message);
     }
 
-    private void sendCallSmsAsync(Long waitingId, String encryptedPhone, String boothName, int waitingNumber) {
+    public void sendSmsAsync(Long waitingId, String encryptedPhone, String message) {
         String plainPhone = phoneNumberEncryptor.decrypt(encryptedPhone);
         if (plainPhone == null) {
             log.error("Phone decrypt failed for waiting {}", waitingId);
             return;
         }
-        String message = "[%s] %d번 손님, 입장 차례입니다. 5분 내 도착 부탁드립니다.".formatted(boothName, waitingNumber);
         CompletableFuture.runAsync(() -> {
             boolean success = smsSender.send(plainPhone, message);
             if (success) {
-                // 별도 빈을 통해 호출 → Spring AOP 프록시로 진입해 @Transactional 적용
                 smsStatusUpdater.markSent(waitingId);
             }
         }, smsExecutor).exceptionally(ex -> {
