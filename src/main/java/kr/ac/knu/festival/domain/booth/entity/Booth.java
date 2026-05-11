@@ -48,11 +48,17 @@ public class Booth extends BaseTimeEntity {
     @Column(name = "y_ratio", precision = 8, scale = 7)
     private BigDecimal yRatio;
 
+    @Column(length = 100)
+    private String department;
+
+
+    @Column(length = 200)
+    private String location;
+
+
+
     @Column(name = "like_count", nullable = false)
     private int likeCount;
-
-    @Column(name = "image_url", length = 500)
-    private String imageUrl;
 
     @Column(name = "menu_board_image_url", length = 500)
     private String menuBoardImageUrl;
@@ -71,20 +77,22 @@ public class Booth extends BaseTimeEntity {
             String description,
             BigDecimal xRatio,
             BigDecimal yRatio,
-            String imageUrl,
             String menuBoardImageUrl,
-            String encodedAdminPassword
+            String encodedAdminPassword,
+            String department,
+            String location
     ) {
         return Booth.builder()
                 .name(name)
                 .description(description)
                 .xRatio(xRatio)
                 .yRatio(yRatio)
-                .imageUrl(imageUrl)
                 .menuBoardImageUrl(menuBoardImageUrl)
                 .likeCount(0)
                 .waitingOpen(false)
                 .adminPassword(encodedAdminPassword)
+                .department(department)
+                .location(location)
                 .build();
     }
 
@@ -93,27 +101,17 @@ public class Booth extends BaseTimeEntity {
             String description,
             BigDecimal xRatio,
             BigDecimal yRatio,
-            String imageUrl,
-            String menuBoardImageUrl
+            String menuBoardImageUrl,
+            String department,
+            String location
     ) {
-        if (name != null && !name.isBlank()) {
-            this.name = name;
-        }
-        if (description != null) {
-            this.description = description;
-        }
-        if (xRatio != null) {
-            this.xRatio = xRatio;
-        }
-        if (yRatio != null) {
-            this.yRatio = yRatio;
-        }
-        if (imageUrl != null) {
-            this.imageUrl = imageUrl;
-        }
-        if (menuBoardImageUrl != null) {
-            this.menuBoardImageUrl = menuBoardImageUrl;
-        }
+        if (name != null && !name.isBlank()) this.name = name;
+        if (description != null) this.description = description;
+        if (xRatio != null) this.xRatio = xRatio;
+        if (yRatio != null) this.yRatio = yRatio;
+        if (menuBoardImageUrl != null) this.menuBoardImageUrl = menuBoardImageUrl;
+        if (department != null) this.department = department;
+        if (location != null) this.location = location;
     }
 
     public void increaseLike() {

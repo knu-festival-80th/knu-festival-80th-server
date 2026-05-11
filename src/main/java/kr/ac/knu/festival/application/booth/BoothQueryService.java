@@ -1,9 +1,7 @@
 package kr.ac.knu.festival.application.booth;
 
 import kr.ac.knu.festival.domain.booth.entity.Booth;
-import kr.ac.knu.festival.domain.booth.entity.Menu;
 import kr.ac.knu.festival.domain.booth.repository.BoothRepository;
-import kr.ac.knu.festival.domain.booth.repository.MenuRepository;
 import kr.ac.knu.festival.domain.waiting.entity.WaitingStatus;
 import kr.ac.knu.festival.domain.waiting.repository.WaitingRepository;
 import kr.ac.knu.festival.global.exception.BusinessErrorCode;
@@ -26,7 +24,6 @@ public class BoothQueryService {
 
     private static final List<WaitingStatus> ACTIVE_STATUSES = List.of(WaitingStatus.WAITING, WaitingStatus.CALLED);
     private final BoothRepository boothRepository;
-    private final MenuRepository menuRepository;
     private final WaitingRepository waitingRepository;
     private final ImageUrlResolver imageUrlResolver;
     private final BoothRankingService boothRankingService;
@@ -39,10 +36,9 @@ public class BoothQueryService {
     public BoothDetailResponse getBooth(Long boothId) {
         Booth booth = boothRepository.findById(boothId)
                 .orElseThrow(() -> new BusinessException(BusinessErrorCode.BOOTH_NOT_FOUND));
-        List<Menu> menus = menuRepository.findAllByBoothIdOrderByIdAsc(boothId);
         long activeWaiting = waitingRepository.countByBoothIdAndStatusIn(boothId, ACTIVE_STATUSES);
         int likeCount = boothRankingRedisRepository.getLikeCount(boothId, booth.getLikeCount());
-        return BoothDetailResponse.of(booth, menus, activeWaiting, likeCount, imageUrlResolver);
+        return BoothDetailResponse.of(booth, activeWaiting, likeCount, imageUrlResolver);
     }
 
     public List<BoothMapResponse> getBoothsForMap() {

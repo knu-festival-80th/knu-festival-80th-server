@@ -12,7 +12,8 @@ public record BoothCreateRequest(
         String description,
         @DecimalMin("0.0") @DecimalMax("1.0") BigDecimal xRatio,
         @DecimalMin("0.0") @DecimalMax("1.0") BigDecimal yRatio,
-        @Size(max = 500) String imageUrl,
         @Size(max = 500) String menuBoardImageUrl,
-        @NotBlank String adminPassword
+        @NotBlank String adminPassword,
+        @Size(max = 100) String department,
+        @Size(max = 200) String location
 ) {}

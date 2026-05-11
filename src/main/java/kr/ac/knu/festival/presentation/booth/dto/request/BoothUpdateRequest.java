@@ -11,6 +11,7 @@ public record BoothUpdateRequest(
         String description,
         @DecimalMin("0.0") @DecimalMax("1.0") BigDecimal xRatio,
         @DecimalMin("0.0") @DecimalMax("1.0") BigDecimal yRatio,
-        @Size(max = 500) String imageUrl,
-        @Size(max = 500) String menuBoardImageUrl
+        @Size(max = 500) String menuBoardImageUrl,
+        @Size(max = 100) String department,
+        @Size(max = 200) String location
 ) {}

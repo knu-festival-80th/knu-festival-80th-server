@@ -41,9 +41,10 @@ public class BoothCommandService {
                 request.description(),
                 request.xRatio(),
                 request.yRatio(),
-                request.imageUrl(),
                 request.menuBoardImageUrl(),
-                passwordEncoder.encode(request.adminPassword())
+                passwordEncoder.encode(request.adminPassword()),
+                request.department(),
+                request.location()
         );
         return BoothResponse.fromEntity(boothRepository.save(booth), imageUrlResolver);
     }
@@ -56,8 +57,9 @@ public class BoothCommandService {
                 request.description(),
                 request.xRatio(),
                 request.yRatio(),
-                request.imageUrl(),
-                request.menuBoardImageUrl()
+                request.menuBoardImageUrl(),
+                request.department(),
+                request.location()
         );
         return BoothResponse.fromEntity(booth, imageUrlResolver);
     }
