@@ -1,8 +1,8 @@
 # 기능 명세서 (FS: Functional Specification)
 
 > **프로젝트**: 2026 경북대학교 80주년 대동제 웹앱 서비스 (백엔드)  
-> **버전**: v1.1  
-> **최종 수정일**: 2026-04-25  
+> **버전**: v1.6  
+> **최종 수정일**: 2026-05-11  
 > **목적**: 백엔드가 제공해야 할 API와 비즈니스 로직을 기능 단위로 정의한다.
 
 ---
@@ -15,6 +15,9 @@
 | v1.1 | 2026-04-25 | 대기열 현장 전용 재설계, API 보안/설계 이슈 반영, 누락 API 추가 | - |
 | v1.2 | 2026-04-27 | 대기열을 웹 온라인 등록 모델로 전환 (현장 태블릿 전제 폐기), 본인 취소 API 추가, 어뷰즈 방지 규칙 보강 | - |
 | v1.3 | 2026-04-27 | 관리자 인증을 부스별 비밀번호 + 세션 기반으로 단순화, member 도메인 제거, 부스 비밀번호 변경 API 추가, 모든 admin API에 소유권 검증 적용 | - |
+| v1.4 | 2026-05-03 | 관리자 API 경로를 권한 단위로 분리: 슈퍼 전용은 `/admin/v1/super/**`, 슈퍼+부스 공통은 `/admin/v1/booth/**`. 구현된 booth/menu/waiting 엔드포인트 경로 갱신, SecurityConfig path 매처 추가 (※ v1.5 에서 root 기준으로 다시 통합) | - |
+| v1.5 | 2026-05-03 | 배포 환경 ingress(`/festival/api` strip)에 맞춰 모든 API 경로를 root 기준으로 재매핑. `/api/v1/`·`/admin/v1/` prefix 제거, super/booth path 분리도 단일 `/admin/` 으로 통합(슈퍼 전용은 HTTP 메서드+path 조합으로 SecurityConfig 에서 분기). 미구현 엔드포인트 path 표기도 동일 컨벤션으로 정정 | - |
+| v1.6 | 2026-05-11 | 솔라피 알림톡 연동, 자동스킵 10분, 예약 제한(전체 3건+이름 검증), 입장확정 시 타부스 자동취소, 내 예약 전체 조회 API 추가 | lsmin3388 |
 
 ---
 
@@ -53,8 +56,8 @@
 
 | Method | Endpoint | 설명 | 인증 |
 |--------|----------|------|------|
-| GET | `/api/v1/festival/info` | 축제 일정 및 현재 상태 조회 | 불필요 |
-| PATCH | `/admin/v1/festival/info` | 축제 일정 수정 | 슈퍼 관리자 |
+| GET | `/festival/info` | 축제 일정 및 현재 상태 조회 | 불필요 |
+| PATCH | `/admin/festival/info` | 축제 일정 수정 | 슈퍼 관리자 |
 
 **응답 포함 항목**
 - 축제 시작/종료 일시
@@ -70,17 +73,17 @@
 
 | Method | Endpoint | 설명 | 인증 |
 |--------|----------|------|------|
-| GET | `/api/v1/booths` | 부스 목록 조회 | 불필요 |
-| GET | `/api/v1/booths/{booth-id}` | 부스 상세 조회 (메뉴, 대기 현황 포함) | 불필요 |
-| GET | `/api/v1/booths/map` | 지도용 부스 목록 (좌표 + 이름만, 경량) | 불필요 |
-| POST | `/api/v1/booths/{booth-id}/likes` | 부스 좋아요 | 불필요 |
-| DELETE | `/api/v1/booths/{booth-id}/likes` | 부스 좋아요 취소 | 불필요 |
-| GET | `/admin/v1/booths` | 관리자용 부스 목록 조회 | 관리자 |
-| POST | `/admin/v1/booths` | 부스 등록 | 슈퍼 관리자 |
-| PUT | `/admin/v1/booths/{booth-id}` | 부스 정보 수정 | 관리자 |
-| DELETE | `/admin/v1/booths/{booth-id}` | 부스 삭제 | 슈퍼 관리자 |
+| GET | `/booths` | 부스 목록 조회 | 불필요 |
+| GET | `/booths/{booth-id}` | 부스 상세 조회 (메뉴, 대기 현황 포함) | 불필요 |
+| GET | `/booths/map` | 지도용 부스 목록 (좌표 + 이름만, 경량) | 불필요 |
+| POST | `/booths/{booth-id}/likes` | 부스 좋아요 | 불필요 |
+| DELETE | `/booths/{booth-id}/likes` | 부스 좋아요 취소 | 불필요 |
+| GET | `/admin/booths` | 관리자용 부스 목록 조회 | 관리자 (booth+) |
+| POST | `/admin/booths` | 부스 등록 | 슈퍼 관리자 |
+| PUT | `/admin/booths/{booth-id}` | 부스 정보 수정 | 관리자 (booth+) |
+| DELETE | `/admin/booths/{booth-id}` | 부스 삭제 | 슈퍼 관리자 |
 
-**Query Parameters** (GET `/api/v1/booths`)
+**Query Parameters** (GET `/booths`)
 - `sort`: `likes` (기본) / `waiting-asc` — 정렬 기준
 
 **비즈니스 규칙**
@@ -100,11 +103,11 @@
 
 | Method | Endpoint | 설명 | 인증 |
 |--------|----------|------|------|
-| GET | `/admin/v1/booths/{booth-id}/menus` | 메뉴 목록 조회 | 관리자 |
-| POST | `/admin/v1/booths/{booth-id}/menus` | 메뉴 등록 | 관리자 |
-| PUT | `/admin/v1/booths/{booth-id}/menus/{menu-id}` | 메뉴 수정 | 관리자 |
-| PATCH | `/admin/v1/booths/{booth-id}/menus/{menu-id}/sold-out` | 품절 상태 토글 | 관리자 |
-| DELETE | `/admin/v1/booths/{booth-id}/menus/{menu-id}` | 메뉴 삭제 | 관리자 |
+| GET | `/admin/booths/{booth-id}/menus` | 메뉴 목록 조회 | 관리자 (booth+) |
+| POST | `/admin/booths/{booth-id}/menus` | 메뉴 등록 | 관리자 (booth+) |
+| PUT | `/admin/booths/{booth-id}/menus/{menu-id}` | 메뉴 수정 | 관리자 (booth+) |
+| PATCH | `/admin/booths/{booth-id}/menus/{menu-id}/sold-out` | 품절 상태 토글 | 관리자 (booth+) |
+| DELETE | `/admin/booths/{booth-id}/menus/{menu-id}` | 메뉴 삭제 | 관리자 (booth+) |
 
 **비즈니스 규칙**
 - BR-MENU-01: 메뉴 사진은 S3에 업로드, URL만 DB에 저장
@@ -121,13 +124,13 @@
 
 | Method | Endpoint | 설명 | 인증 |
 |--------|----------|------|------|
-| GET | `/api/v1/performances` | 전체 공연 목록 조회 | 불필요 |
-| GET | `/api/v1/performances/current` | 현재 진행 중/직후 공연 조회 | 불필요 |
-| POST | `/admin/v1/performances` | 공연 등록 | 슈퍼 관리자 |
-| PUT | `/admin/v1/performances/{performance-id}` | 공연 수정 | 슈퍼 관리자 |
-| DELETE | `/admin/v1/performances/{performance-id}` | 공연 삭제 | 슈퍼 관리자 |
+| GET | `/performances` | 전체 공연 목록 조회 | 불필요 |
+| GET | `/performances/current` | 현재 진행 중/직후 공연 조회 | 불필요 |
+| POST | `/admin/performances` | 공연 등록 | 슈퍼 관리자 |
+| PUT | `/admin/performances/{performance-id}` | 공연 수정 | 슈퍼 관리자 |
+| DELETE | `/admin/performances/{performance-id}` | 공연 삭제 | 슈퍼 관리자 |
 
-**Query Parameters** (GET `/api/v1/performances`)
+**Query Parameters** (GET `/performances`)
 - `date`: `2026-05-01` — 날짜별 필터링
 
 **비즈니스 규칙**
@@ -145,13 +148,13 @@
 
 | Method | Endpoint | 설명 | 인증 |
 |--------|----------|------|------|
-| GET | `/api/v1/notices` | 공지사항 목록 조회 | 불필요 |
-| GET | `/api/v1/notices/{notice-id}` | 공지사항 상세 조회 | 불필요 |
-| POST | `/admin/v1/notices` | 공지사항 등록 | 관리자 |
-| PUT | `/admin/v1/notices/{notice-id}` | 공지사항 수정 | 관리자 |
-| DELETE | `/admin/v1/notices/{notice-id}` | 공지사항 삭제 | 관리자 |
+| GET | `/notices` | 공지사항 목록 조회 | 불필요 |
+| GET | `/notices/{notice-id}` | 공지사항 상세 조회 | 불필요 |
+| POST | `/admin/notices` | 공지사항 등록 | 관리자 |
+| PUT | `/admin/notices/{notice-id}` | 공지사항 수정 | 관리자 |
+| DELETE | `/admin/notices/{notice-id}` | 공지사항 삭제 | 관리자 |
 
-**Query Parameters** (GET `/api/v1/notices`)
+**Query Parameters** (GET `/notices`)
 - `type`: `EMERGENCY` / `GENERAL` / `WEATHER` / `SHUTTLE` — 유형 필터
 
 **비즈니스 규칙**
@@ -172,10 +175,11 @@
 
 | Method | Endpoint | 설명 | 인증 |
 |--------|----------|------|------|
-| POST | `/api/v1/booths/{booth-id}/waitings` | 대기 등록 (웹) | 불필요 |
-| GET | `/api/v1/booths/{booth-id}/waitings/status` | 현재 대기 현황 조회 (남은 팀 수) | 불필요 |
-| GET | `/api/v1/waitings/{waiting-id}` | 내 대기 상태 조회 | 전화번호 뒤 4자리 검증 |
-| DELETE | `/api/v1/waitings/{waiting-id}` | 본인 대기 취소 | 전화번호 뒤 4자리 검증 |
+| POST | `/booths/{booth-id}/waitings` | 대기 등록 (웹) | 불필요 |
+| GET | `/booths/{booth-id}/waitings/status` | 현재 대기 현황 조회 (남은 팀 수) | 불필요 |
+| GET | `/waitings/{waiting-id}` | 내 대기 상태 조회 | 전화번호 뒤 4자리 검증 |
+| POST | `/waitings/my` | 내 예약 전체 조회 (이름+전화번호) | 불필요 |
+| DELETE | `/waitings/{waiting-id}` | 본인 대기 취소 | 전화번호 뒤 4자리 검증 |
 
 **대기 등록 요청**
 ```
@@ -203,31 +207,36 @@
 
 | Method | Endpoint | 설명 | 인증 |
 |--------|----------|------|------|
-| GET | `/admin/v1/booths/{booth-id}/waitings` | 대기팀 목록 조회 | 관리자 |
-| PATCH | `/admin/v1/waitings/{waiting-id}/call` | 대기팀 호출 (SMS 발송) | 관리자 |
-| PATCH | `/admin/v1/waitings/{waiting-id}/enter` | 입장 완료 처리 | 관리자 |
-| PATCH | `/admin/v1/waitings/{waiting-id}/cancel` | 관리자가 대기 취소 | 관리자 |
-| PATCH | `/admin/v1/waitings/{waiting-id}/skip` | 미방문 건너뛰기 | 관리자 |
-| POST | `/admin/v1/booths/{booth-id}/waitings/insert` | 대기열 중간 삽입 | 관리자 |
-| PATCH | `/admin/v1/waitings/{waiting-id}/reorder` | 대기 순서 변경 | 관리자 |
-| PATCH | `/admin/v1/booths/{booth-id}/waitings/toggle` | 대기 접수 ON/OFF | 관리자 |
-| POST | `/admin/v1/waitings/{waiting-id}/resend-sms` | SMS 재발송 | 관리자 |
+| GET | `/admin/booths/{booth-id}/waitings` | 대기팀 목록 조회 | 관리자 (booth+) |
+| PATCH | `/admin/waitings/{waiting-id}/call` | 대기팀 호출 (SMS 발송) | 관리자 (booth+) |
+| PATCH | `/admin/waitings/{waiting-id}/enter` | 입장 완료 처리 | 관리자 (booth+) |
+| PATCH | `/admin/waitings/{waiting-id}/cancel` | 관리자가 대기 취소 | 관리자 (booth+) |
+| PATCH | `/admin/waitings/{waiting-id}/skip` | 미방문 건너뛰기 | 관리자 (booth+) |
+| POST | `/admin/booths/{booth-id}/waitings/insert` | 대기열 중간 삽입 | 관리자 (booth+) |
+| PATCH | `/admin/waitings/{waiting-id}/reorder` | 대기 순서 변경 | 관리자 (booth+) |
+| PATCH | `/admin/booths/{booth-id}/waitings/toggle` | 대기 접수 ON/OFF | 관리자 (booth+) |
+| POST | `/admin/waitings/{waiting-id}/resend-sms` | SMS 재발송 | 관리자 (booth+) |
 
 **Query Parameters** (GET 대기팀 목록)
 - `status`: `WAITING` / `CALLED` / `ENTERED` / `SKIPPED` / `CANCELLED` — 상태 필터
 
 **비즈니스 규칙**
-- BR-WAIT-01: 호출(CALL) 시 해당 사용자에게 SMS 발송 (비동기, 실패해도 상태는 CALLED로 전환)
+- BR-WAIT-01: 호출(CALL) 시 해당 사용자에게 알림톡 발송 (비동기, 실패해도 상태는 CALLED로 전환)
 - BR-WAIT-02: 대기 상태 흐름: `WAITING` → `CALLED` → `ENTERED` 또는 `SKIPPED` 또는 `CANCELLED`
-- BR-WAIT-03: 호출 후 5분 내 미방문 시 `SKIPPED` 처리 (관리자 수동 또는 서버 스케줄링)
+- BR-WAIT-03: 호출 후 10분 내 미방문 시 `SKIPPED` 처리 (관리자 수동 또는 서버 스케줄링)
 - BR-WAIT-04: 동일 전화번호로 동일 부스에 중복 대기 등록 불가
 - BR-WAIT-05: 관리자가 대기열 중간에 손님을 삽입하거나 순서를 변경할 수 있음
 - BR-WAIT-06: 대기 접수 OFF 시 신규 등록 API가 403 반환
 - BR-WAIT-07: 부스 관리자는 자신의 담당 부스 대기열만 관리 가능
 - BR-WAIT-08: 대기 상태 조회/본인 취소 시 전화번호 뒤 4자리로 본인 확인 (URL 추측 방지)
-- BR-WAIT-09: SMS 발송 실패 시 관리자 화면에 실패 표시 + 재발송 가능
+- BR-WAIT-09: 알림톡 발송 실패 시 관리자 화면에 실패 표시 + 재발송 가능
 - BR-WAIT-10: 웹 등록 어뷰즈 방지를 위해 신규 등록 API에 IP 기반 Rate Limiting 적용 (구체적 한도는 운영 단계에서 결정)
 - BR-WAIT-11: 본인 취소는 `WAITING` 또는 `CALLED` 상태에서만 허용, 이미 종결된 대기(`ENTERED`/`SKIPPED`/`CANCELLED`)는 취소 불가
+- BR-WAIT-12: 전체 부스 합산 활성 대기 최대 3건 제한 (부스당 1건 + 전체 3건)
+- BR-WAIT-13: 동일 전화번호로 기존 대기가 있으면 예약자명이 일치해야 추가 등록 가능
+- BR-WAIT-14: 입장 확정(ENTERED) 시 해당 전화번호의 다른 부스 활성 대기를 일괄 취소 + 취소 부스명을 통합한 SMS 1건 발송
+- BR-WAIT-15: 시간 초과 자동 스킵 시 취소 SMS 발송
+- BR-WAIT-16: SMS는 호출/스킵/입장확정 취소 시에만 발송 (등록 확인은 UI로 대체, 비용 절감)
 
 ---
 
@@ -239,10 +248,10 @@
 
 | Method | Endpoint | 설명 | 인증 |
 |--------|----------|------|------|
-| POST | `/api/v1/booths/{booth-id}/reviews` | 리뷰 작성 | 불필요 |
-| GET | `/api/v1/booths/{booth-id}/reviews` | 리뷰 목록 조회 | 불필요 |
-| DELETE | `/api/v1/reviews/{review-id}` | 리뷰 본인 삭제 | 비밀번호 검증 |
-| DELETE | `/admin/v1/reviews/{review-id}` | 리뷰 삭제 (관리자) | 관리자 |
+| POST | `/booths/{booth-id}/reviews` | 리뷰 작성 | 불필요 |
+| GET | `/booths/{booth-id}/reviews` | 리뷰 목록 조회 | 불필요 |
+| DELETE | `/reviews/{review-id}` | 리뷰 본인 삭제 | 비밀번호 검증 |
+| DELETE | `/admin/reviews/{review-id}` | 리뷰 삭제 (관리자) | 관리자 |
 
 **비즈니스 규칙**
 - BR-REVIEW-01: 리뷰 작성 시 닉네임 + 비밀번호(4자리) + 별점(1~5) + 텍스트 입력
@@ -261,8 +270,8 @@
 
 | Method | Endpoint | 설명 | 인증 |
 |--------|----------|------|------|
-| GET | `/api/v1/canvas/elements` | 캔버스 요소 조회 (Viewport 기반) | 불필요 |
-| POST | `/api/v1/canvas/elements` | 캔버스 요소 저장 (WebSocket 불가 시 fallback) | 불필요 |
+| GET | `/canvas/elements` | 캔버스 요소 조회 (Viewport 기반) | 불필요 |
+| POST | `/canvas/elements` | 캔버스 요소 저장 (WebSocket 불가 시 fallback) | 불필요 |
 | WS | `/ws/canvas` | 실시간 드로잉 데이터 송수신 | 불필요 |
 
 **Query Parameters** (GET 캔버스 요소)
@@ -289,13 +298,13 @@
 
 | Method | Endpoint | 설명 | 인증 |
 |--------|----------|------|------|
-| POST | `/api/v1/matchings` | 매칭 신청 | 불필요 |
-| POST | `/api/v1/matchings/result` | 매칭 결과 조회 (body로 ID+비밀번호) | 불필요 |
-| DELETE | `/api/v1/matchings` | 매칭 신청 취소 (body로 ID+비밀번호) | 불필요 |
-| GET | `/api/v1/matchings/status` | 매칭 서비스 상태 조회 | 불필요 |
-| GET | `/api/v1/matchings/unmatched` | 미매칭 공개 목록 조회 | 불필요 |
-| POST | `/admin/v1/matching-jobs` | 일괄 매칭 실행 (Time Drop) | 슈퍼 관리자 |
-| PATCH | `/admin/v1/matchings/status` | 매칭 상태 변경 (일시중단/재개) | 슈퍼 관리자 |
+| POST | `/matchings` | 매칭 신청 | 불필요 |
+| POST | `/matchings/result` | 매칭 결과 조회 (body로 ID+비밀번호) | 불필요 |
+| POST | `/matchings/cancel` | 매칭 신청 취소 (body로 ID+비밀번호) | 불필요 |
+| GET | `/matchings/status` | 매칭 서비스 상태 조회 | 불필요 |
+| GET | `/matchings/unmatched` | 미매칭 공개 목록 조회 | 불필요 |
+| POST | `/admin/matching-jobs` | 일괄 매칭 실행 (Time Drop) | 슈퍼 관리자 |
+| PATCH | `/admin/matchings/status` | 매칭 상태 변경 (일시중단/재개) | 슈퍼 관리자 |
 
 **매칭 신청 요청**
 ```
@@ -328,13 +337,13 @@
 
 | Method | Endpoint | 설명 | 인증 |
 |--------|----------|------|------|
-| POST | `/api/v1/photos` | 사진 업로드 | 불필요 |
-| GET | `/api/v1/photos/frames` | 프레임 목록 조회 | 불필요 |
-| GET | `/api/v1/photos/stickers` | 스티커 목록 조회 | 불필요 |
-| POST | `/admin/v1/photos/frames` | 프레임 등록 | 슈퍼 관리자 |
-| DELETE | `/admin/v1/photos/frames/{frame-id}` | 프레임 삭제 | 슈퍼 관리자 |
-| POST | `/admin/v1/photos/stickers` | 스티커 등록 | 슈퍼 관리자 |
-| DELETE | `/admin/v1/photos/stickers/{sticker-id}` | 스티커 삭제 | 슈퍼 관리자 |
+| POST | `/photos` | 사진 업로드 | 불필요 |
+| GET | `/photos/frames` | 프레임 목록 조회 | 불필요 |
+| GET | `/photos/stickers` | 스티커 목록 조회 | 불필요 |
+| POST | `/admin/photos/frames` | 프레임 등록 | 슈퍼 관리자 |
+| DELETE | `/admin/photos/frames/{frame-id}` | 프레임 삭제 | 슈퍼 관리자 |
+| POST | `/admin/photos/stickers` | 스티커 등록 | 슈퍼 관리자 |
+| DELETE | `/admin/photos/stickers/{sticker-id}` | 스티커 삭제 | 슈퍼 관리자 |
 
 **비즈니스 규칙**
 - BR-PHOTO-01: 사진은 S3 업로드 후 URL 반환
@@ -351,16 +360,16 @@
 
 | Method | Endpoint | 설명 | 인증 |
 |--------|----------|------|------|
-| POST | `/api/v1/feeds` | 피드 게시물 등록 | 불필요 |
-| GET | `/api/v1/feeds` | 피드 목록 조회 (페이징) | 불필요 |
-| GET | `/api/v1/feeds/{feed-id}` | 피드 상세 조회 | 불필요 |
-| POST | `/api/v1/feeds/{feed-id}/likes` | 피드 좋아요 | 불필요 |
-| DELETE | `/api/v1/feeds/{feed-id}/likes` | 피드 좋아요 취소 | 불필요 |
-| GET | `/api/v1/feeds/ranking` | 좋아요 랭킹 조회 | 불필요 |
-| DELETE | `/admin/v1/feeds/{feed-id}` | 피드 삭제 (관리자) | 관리자 |
-| PUT | `/admin/v1/feeds/contest-config` | 콘테스트 설정 (주기, 시작/종료일) | 슈퍼 관리자 |
+| POST | `/feeds` | 피드 게시물 등록 | 불필요 |
+| GET | `/feeds` | 피드 목록 조회 (페이징) | 불필요 |
+| GET | `/feeds/{feed-id}` | 피드 상세 조회 | 불필요 |
+| POST | `/feeds/{feed-id}/likes` | 피드 좋아요 | 불필요 |
+| DELETE | `/feeds/{feed-id}/likes` | 피드 좋아요 취소 | 불필요 |
+| GET | `/feeds/ranking` | 좋아요 랭킹 조회 | 불필요 |
+| DELETE | `/admin/feeds/{feed-id}` | 피드 삭제 (관리자) | 관리자 |
+| PUT | `/admin/feeds/contest-config` | 콘테스트 설정 (주기, 시작/종료일) | 슈퍼 관리자 |
 
-**Query Parameters** (GET `/api/v1/feeds`)
+**Query Parameters** (GET `/feeds`)
 - `cursor`: 마지막 feed-id (커서 기반 페이징)
 - `size`: 페이지 크기 (기본 20)
 - `sort`: `latest` (기본) / `ranking`
@@ -384,9 +393,9 @@
 
 | Method | Endpoint | 설명 | 인증 |
 |--------|----------|------|------|
-| POST | `/admin/v1/auth/login` | 관리자 로그인 (boothId + password 또는 masterPassword) | 불필요 |
-| POST | `/admin/v1/auth/logout` | 로그아웃 (세션 무효화) | 관리자 |
-| PATCH | `/admin/v1/booths/{booth-id}/password` | 부스 비밀번호 변경 | 슈퍼 관리자 |
+| POST | `/admin/auth/login` | 관리자 로그인 (boothId + password 또는 masterPassword) | 불필요 |
+| POST | `/admin/auth/logout` | 로그아웃 (세션 무효화) | 관리자 |
+| PATCH | `/admin/booths/{booth-id}/password` | 부스 비밀번호 변경 | 슈퍼 관리자 |
 
 **비즈니스 규칙**
 - BR-AUTH-01: 세션 기반 인증 — 로그인 시 서버가 JSESSIONID 쿠키 발급, 프론트는 `credentials: 'include'` 만 세팅

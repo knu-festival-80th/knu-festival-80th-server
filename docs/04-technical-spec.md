@@ -382,7 +382,7 @@ Send:
 - 영역 분할: 캔버스를 그리드로 분할, 각 그리드를 `region-id`로 식별
 - 클라이언트가 화면 이동 시 구독 토픽을 동적으로 변경
 - Redis Pub/Sub: 멀티 인스턴스 환경에서 메시지 브로드캐스트
-- 재연결: 클라이언트 자동 재연결 시 REST API(`GET /api/v1/canvas/elements`)로 현재 상태 복구
+- 재연결: 클라이언트 자동 재연결 시 REST API(`GET /canvas/elements`)로 현재 상태 복구
 - 영속화: 인메모리 버퍼에 쌓았다가 주기적으로 DB 배치 INSERT
 
 ---

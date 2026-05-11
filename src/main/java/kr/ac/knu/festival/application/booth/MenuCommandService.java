@@ -6,6 +6,7 @@ import kr.ac.knu.festival.domain.booth.repository.BoothRepository;
 import kr.ac.knu.festival.domain.booth.repository.MenuRepository;
 import kr.ac.knu.festival.global.exception.BusinessErrorCode;
 import kr.ac.knu.festival.global.exception.BusinessException;
+import kr.ac.knu.festival.infra.storage.ImageUrlResolver;
 import kr.ac.knu.festival.presentation.booth.dto.request.MenuCreateRequest;
 import kr.ac.knu.festival.presentation.booth.dto.request.MenuUpdateRequest;
 import kr.ac.knu.festival.presentation.booth.dto.response.MenuResponse;
@@ -20,6 +21,7 @@ public class MenuCommandService {
 
     private final BoothRepository boothRepository;
     private final MenuRepository menuRepository;
+    private final ImageUrlResolver imageUrlResolver;
 
     public MenuResponse createMenu(Long boothId, MenuCreateRequest request) {
         Booth booth = boothRepository.findById(boothId)
@@ -31,19 +33,19 @@ public class MenuCommandService {
                 request.imageUrl(),
                 request.description()
         );
-        return MenuResponse.fromEntity(menuRepository.save(menu));
+        return MenuResponse.fromEntity(menuRepository.save(menu), imageUrlResolver);
     }
 
     public MenuResponse updateMenu(Long boothId, Long menuId, MenuUpdateRequest request) {
         Menu menu = findMenuOwnedByBooth(boothId, menuId);
         menu.updateMenu(request.name(), request.price(), request.imageUrl(), request.description());
-        return MenuResponse.fromEntity(menu);
+        return MenuResponse.fromEntity(menu, imageUrlResolver);
     }
 
     public MenuResponse toggleSoldOut(Long boothId, Long menuId) {
         Menu menu = findMenuOwnedByBooth(boothId, menuId);
         menu.toggleSoldOut();
-        return MenuResponse.fromEntity(menu);
+        return MenuResponse.fromEntity(menu, imageUrlResolver);
     }
 
     public void deleteMenu(Long boothId, Long menuId) {

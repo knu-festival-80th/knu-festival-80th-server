@@ -45,6 +45,14 @@ public interface WaitingRepository extends JpaRepository<Waiting, Long> {
     List<Object[]> countActiveByBooth(@Param("statuses") List<WaitingStatus> statuses);
 
     @Query("""
+            SELECT w.booth.id, COUNT(w) FROM Waiting w
+            WHERE w.status = kr.ac.knu.festival.domain.waiting.entity.WaitingStatus.CALLED
+              AND w.calledAt < :threshold
+            GROUP BY w.booth.id
+            """)
+    List<Object[]> countExpiredCallsByBooth(@Param("threshold") LocalDateTime threshold);
+
+    @Query("""
             SELECT w FROM Waiting w
             WHERE w.booth.id = :boothId
               AND w.phoneLookupHash = :phoneLookupHash
@@ -56,6 +64,41 @@ public interface WaitingRepository extends JpaRepository<Waiting, Long> {
             @Param("statuses") List<WaitingStatus> statuses
     );
 
+    long countByPhoneLookupHashAndStatusIn(String phoneLookupHash, List<WaitingStatus> statuses);
+
+    @Query("SELECT DISTINCT w.name FROM Waiting w WHERE w.phoneLookupHash = :hash AND w.status IN :statuses")
+    List<String> findDistinctNamesByPhoneLookupHashAndStatusIn(
+            @Param("hash") String hash,
+            @Param("statuses") List<WaitingStatus> statuses
+    );
+
+    @Query("""
+            SELECT w FROM Waiting w JOIN FETCH w.booth
+            WHERE w.phoneLookupHash = :hash AND w.status IN :statuses AND w.booth.id != :excludeBoothId
+            """)
+    List<Waiting> findActiveByPhoneLookupHashExcludingBooth(
+            @Param("hash") String hash,
+            @Param("statuses") List<WaitingStatus> statuses,
+            @Param("excludeBoothId") Long excludeBoothId
+    );
+
+    @Query("""
+            SELECT w FROM Waiting w JOIN FETCH w.booth
+            WHERE w.phoneLookupHash = :hash AND w.status IN :statuses
+            ORDER BY w.createdAt DESC
+            """)
+    List<Waiting> findAllActiveByPhoneLookupHash(
+            @Param("hash") String hash,
+            @Param("statuses") List<WaitingStatus> statuses
+    );
+
+    @Query("""
+            SELECT w FROM Waiting w JOIN FETCH w.booth
+            WHERE w.status = kr.ac.knu.festival.domain.waiting.entity.WaitingStatus.CALLED
+              AND w.calledAt < :threshold
+            """)
+    List<Waiting> findExpiredCalls(@Param("threshold") LocalDateTime threshold);
+
     @Query("SELECT COALESCE(MAX(w.waitingNumber), 0) FROM Waiting w WHERE w.booth.id = :boothId")
     int findMaxWaitingNumberByBoothId(@Param("boothId") Long boothId);
 
@@ -63,7 +106,7 @@ public interface WaitingRepository extends JpaRepository<Waiting, Long> {
     int findMaxSortOrderByBoothId(@Param("boothId") Long boothId);
 
     /**
-     * M4: 5분 미방문 대기를 단일 UPDATE 로 일괄 SKIP.
+     * M4: 10분 미방문 대기를 단일 UPDATE 로 일괄 SKIP.
      */
     @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Query("""
