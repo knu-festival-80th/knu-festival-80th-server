@@ -6,7 +6,6 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 public record SolapiProperties(
         String apiKey,
         String apiSecret,
-        String pfId,
         String senderNumber
 ) {
 }
