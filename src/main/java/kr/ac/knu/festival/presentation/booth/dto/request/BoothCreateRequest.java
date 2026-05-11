@@ -16,6 +16,5 @@ public record BoothCreateRequest(
         @Size(max = 500) String menuBoardImageUrl,
         @NotBlank String adminPassword,
         @Size(max = 100) String department,
-        @Size(max = 50) String category,
         @Size(max = 200) String location
 ) {}

@@ -17,7 +17,6 @@ public record BoothListResponse(
         boolean waitingOpen,
         long currentWaitingTeams,
         String department,
-        String category,
         String location
 ) {
     public static BoothListResponse fromEntity(Booth booth, long currentWaitingTeams, ImageUrlResolver urls) {
@@ -42,7 +41,6 @@ public record BoothListResponse(
                 booth.isWaitingOpen(),
                 currentWaitingTeams,
                 booth.getDepartment(),
-                booth.getCategory(),
                 booth.getLocation()
         );
     }

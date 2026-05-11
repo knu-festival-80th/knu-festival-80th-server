@@ -14,6 +14,5 @@ public record BoothUpdateRequest(
         @Size(max = 500) String imageUrl,
         @Size(max = 500) String menuBoardImageUrl,
         @Size(max = 100) String department,
-        @Size(max = 50) String category,
         @Size(max = 200) String location
 ) {}

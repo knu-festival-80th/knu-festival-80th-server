@@ -45,7 +45,6 @@ public class BoothCommandService {
                 request.menuBoardImageUrl(),
                 passwordEncoder.encode(request.adminPassword()),
                 request.department(),
-                request.category(),
                 request.location()
         );
         return BoothResponse.fromEntity(boothRepository.save(booth), imageUrlResolver);
@@ -62,7 +61,6 @@ public class BoothCommandService {
                 request.imageUrl(),
                 request.menuBoardImageUrl(),
                 request.department(),
-                request.category(),
                 request.location()
         );
         return BoothResponse.fromEntity(booth, imageUrlResolver);

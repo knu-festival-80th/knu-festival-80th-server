@@ -51,8 +51,6 @@ public class Booth extends BaseTimeEntity {
     @Column(length = 100)
     private String department;
 
-    @Column(length = 50)
-    private String category;
 
     @Column(length = 200)
     private String location;
@@ -86,7 +84,6 @@ public class Booth extends BaseTimeEntity {
             String menuBoardImageUrl,
             String encodedAdminPassword,
             String department,
-            String category,
             String location
     ) {
         return Booth.builder()
@@ -100,7 +97,6 @@ public class Booth extends BaseTimeEntity {
                 .waitingOpen(false)
                 .adminPassword(encodedAdminPassword)
                 .department(department)
-                .category(category)
                 .location(location)
                 .build();
     }
@@ -113,7 +109,6 @@ public class Booth extends BaseTimeEntity {
             String imageUrl,
             String menuBoardImageUrl,
             String department,
-            String category,
             String location
     ) {
         if (name != null && !name.isBlank()) this.name = name;
@@ -123,7 +118,6 @@ public class Booth extends BaseTimeEntity {
         if (imageUrl != null) this.imageUrl = imageUrl;
         if (menuBoardImageUrl != null) this.menuBoardImageUrl = menuBoardImageUrl;
         if (department != null) this.department = department;
-        if (category != null) this.category = category;
         if (location != null) this.location = location;
     }
 

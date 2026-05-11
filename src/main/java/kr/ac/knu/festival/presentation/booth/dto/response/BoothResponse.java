@@ -16,7 +16,6 @@ public record BoothResponse(
         String menuBoardImageUrl,
         boolean waitingOpen,
         String department,
-        String category,
         String location
 ) {
     public static BoothResponse fromEntity(Booth booth, ImageUrlResolver urls) {
@@ -35,7 +34,6 @@ public record BoothResponse(
                 urls.toPublicUrl(booth.getMenuBoardImageUrl()),
                 booth.isWaitingOpen(),
                 booth.getDepartment(),
-                booth.getCategory(),
                 booth.getLocation()
         );
     }
