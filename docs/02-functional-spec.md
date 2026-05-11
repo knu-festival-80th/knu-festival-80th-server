@@ -1,8 +1,8 @@
 # 기능 명세서 (FS: Functional Specification)
 
 > **프로젝트**: 2026 경북대학교 80주년 대동제 웹앱 서비스 (백엔드)  
-> **버전**: v1.5  
-> **최종 수정일**: 2026-05-03  
+> **버전**: v1.6  
+> **최종 수정일**: 2026-05-11  
 > **목적**: 백엔드가 제공해야 할 API와 비즈니스 로직을 기능 단위로 정의한다.
 
 ---
@@ -17,6 +17,7 @@
 | v1.3 | 2026-04-27 | 관리자 인증을 부스별 비밀번호 + 세션 기반으로 단순화, member 도메인 제거, 부스 비밀번호 변경 API 추가, 모든 admin API에 소유권 검증 적용 | - |
 | v1.4 | 2026-05-03 | 관리자 API 경로를 권한 단위로 분리: 슈퍼 전용은 `/admin/v1/super/**`, 슈퍼+부스 공통은 `/admin/v1/booth/**`. 구현된 booth/menu/waiting 엔드포인트 경로 갱신, SecurityConfig path 매처 추가 (※ v1.5 에서 root 기준으로 다시 통합) | - |
 | v1.5 | 2026-05-03 | 배포 환경 ingress(`/festival/api` strip)에 맞춰 모든 API 경로를 root 기준으로 재매핑. `/api/v1/`·`/admin/v1/` prefix 제거, super/booth path 분리도 단일 `/admin/` 으로 통합(슈퍼 전용은 HTTP 메서드+path 조합으로 SecurityConfig 에서 분기). 미구현 엔드포인트 path 표기도 동일 컨벤션으로 정정 | - |
+| v1.6 | 2026-05-11 | 솔라피 알림톡 연동, 자동스킵 10분, 예약 제한(전체 3건+이름 검증), 입장확정 시 타부스 자동취소, 내 예약 전체 조회 API 추가 | lsmin3388 |
 
 ---
 
@@ -177,6 +178,7 @@
 | POST | `/booths/{booth-id}/waitings` | 대기 등록 (웹) | 불필요 |
 | GET | `/booths/{booth-id}/waitings/status` | 현재 대기 현황 조회 (남은 팀 수) | 불필요 |
 | GET | `/waitings/{waiting-id}` | 내 대기 상태 조회 | 전화번호 뒤 4자리 검증 |
+| POST | `/waitings/my` | 내 예약 전체 조회 (이름+전화번호) | 불필요 |
 | DELETE | `/waitings/{waiting-id}` | 본인 대기 취소 | 전화번호 뒤 4자리 검증 |
 
 **대기 등록 요청**
@@ -219,17 +221,22 @@
 - `status`: `WAITING` / `CALLED` / `ENTERED` / `SKIPPED` / `CANCELLED` — 상태 필터
 
 **비즈니스 규칙**
-- BR-WAIT-01: 호출(CALL) 시 해당 사용자에게 SMS 발송 (비동기, 실패해도 상태는 CALLED로 전환)
+- BR-WAIT-01: 호출(CALL) 시 해당 사용자에게 알림톡 발송 (비동기, 실패해도 상태는 CALLED로 전환)
 - BR-WAIT-02: 대기 상태 흐름: `WAITING` → `CALLED` → `ENTERED` 또는 `SKIPPED` 또는 `CANCELLED`
-- BR-WAIT-03: 호출 후 5분 내 미방문 시 `SKIPPED` 처리 (관리자 수동 또는 서버 스케줄링)
+- BR-WAIT-03: 호출 후 10분 내 미방문 시 `SKIPPED` 처리 (관리자 수동 또는 서버 스케줄링)
 - BR-WAIT-04: 동일 전화번호로 동일 부스에 중복 대기 등록 불가
 - BR-WAIT-05: 관리자가 대기열 중간에 손님을 삽입하거나 순서를 변경할 수 있음
 - BR-WAIT-06: 대기 접수 OFF 시 신규 등록 API가 403 반환
 - BR-WAIT-07: 부스 관리자는 자신의 담당 부스 대기열만 관리 가능
 - BR-WAIT-08: 대기 상태 조회/본인 취소 시 전화번호 뒤 4자리로 본인 확인 (URL 추측 방지)
-- BR-WAIT-09: SMS 발송 실패 시 관리자 화면에 실패 표시 + 재발송 가능
+- BR-WAIT-09: 알림톡 발송 실패 시 관리자 화면에 실패 표시 + 재발송 가능
 - BR-WAIT-10: 웹 등록 어뷰즈 방지를 위해 신규 등록 API에 IP 기반 Rate Limiting 적용 (구체적 한도는 운영 단계에서 결정)
 - BR-WAIT-11: 본인 취소는 `WAITING` 또는 `CALLED` 상태에서만 허용, 이미 종결된 대기(`ENTERED`/`SKIPPED`/`CANCELLED`)는 취소 불가
+- BR-WAIT-12: 전체 부스 합산 활성 대기 최대 3건 제한 (부스당 1건 + 전체 3건)
+- BR-WAIT-13: 동일 전화번호로 기존 대기가 있으면 예약자명이 일치해야 추가 등록 가능
+- BR-WAIT-14: 입장 확정(ENTERED) 시 해당 전화번호의 다른 부스 활성 대기를 일괄 취소 + 알림톡 발송
+- BR-WAIT-15: 대기 등록 완료 시 등록 확인 알림톡 발송
+- BR-WAIT-16: 시간 초과 자동 스킵 시 취소 알림톡 발송
 
 ---
 
