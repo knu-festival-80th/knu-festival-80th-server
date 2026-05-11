@@ -16,6 +16,8 @@ public enum BusinessErrorCode implements ErrorCode {
     BOOTH_HAS_ACTIVE_WAITINGS(HttpStatus.BAD_REQUEST, "B003", "대기 중인 팀이 있어 부스를 삭제할 수 없습니다."),
     INVALID_WAITING_STATUS_TRANSITION(HttpStatus.BAD_REQUEST, "W001", "허용되지 않는 대기 상태 전환입니다."),
     INVALID_PHONE_NUMBER(HttpStatus.BAD_REQUEST, "W002", "전화번호 형식이 올바르지 않습니다."),
+    POSTIT_OUT_OF_BOARD(HttpStatus.BAD_REQUEST, "CP004", "보드 경계를 벗어난 위치입니다."),
+    POSTIT_IN_BLOCKED_AREA(HttpStatus.BAD_REQUEST, "CP005", "포스트잇을 배치할 수 없는 영역입니다."),
 
     /*
      * 401 UNAUTHORIZED
@@ -44,6 +46,7 @@ public enum BusinessErrorCode implements ErrorCode {
      */
     DUPLICATE_WAITING(HttpStatus.CONFLICT, "W006", "동일 부스에 이미 대기 중인 전화번호입니다."),
     CANVAS_BOARD_FULL(HttpStatus.CONFLICT, "CP003", "보드가 가득 찼습니다. 다른 보드를 이용해주세요."),
+    POSTIT_POSITION_CONFLICT(HttpStatus.CONFLICT, "CP006", "해당 위치에 이미 포스트잇이 있습니다."),
 
     /*
      * 500 INTERNAL_SERVER_ERROR

@@ -16,9 +16,9 @@ public interface CanvasCommandControllerDocs {
     @Operation(summary = "포스트잇 생성", description = "boardId·colorId·메시지·좌표(0~100 상대좌표, 중심점)를 입력해 롤링페이퍼 보드에 포스트잇을 추가합니다.")
     @ApiResponses({
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "201", description = "생성 성공"),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "입력값 오류"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "입력값 오류 / 보드 경계 벗어남 / 금지 영역"),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "보드 없음"),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "409", description = "보드가 가득 참 (100개)")
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "409", description = "보드 가득 참 / 해당 위치에 포스트잇 충돌")
     })
     ResponseEntity<ApiResponse<CanvasPostitCreateResponse>> createPostit(
             CanvasPostitCreateRequest request
