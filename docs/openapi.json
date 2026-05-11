@@ -212,6 +212,38 @@
                 }
             }
         },
+        "/waitings/my": {
+            "post": {
+                "tags": [
+                    "\ub300\uae30\uc5f4 Query"
+                ],
+                "summary": "\ub0b4 \uc608\uc57d \uc804\uccb4 \uc870\ud68c",
+                "description": "\uc774\ub984 + \uc804\ud654\ubc88\ud638\ub85c \ud65c\uc131 \ub300\uae30 \ubaa9\ub85d \uc870\ud68c",
+                "operationId": "getMyWaitings",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/MyWaitingLookupRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiResponseListMyWaitingResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/matchings": {
             "post": {
                 "tags": [
@@ -240,8 +272,8 @@
                             }
                         }
                     },
-                    "400": {
-                        "description": "\uc911\ubcf5 \uc2e0\uccad \ub610\ub294 \ub9e4\uce6d \uc77c\uc2dc\uc911\ub2e8",
+                    "403": {
+                        "description": "\ub9e4\uce6d \uc2e0\uccad \uc911\ub2e8",
                         "content": {
                             "*/*": {
                                 "schema": {
@@ -249,32 +281,13 @@
                                 }
                             }
                         }
-                    }
-                }
-            },
-            "delete": {
-                "tags": [
-                    "\ub9e4\uce6d Command"
-                ],
-                "summary": "\ub9e4\uce6d \uc2e0\uccad \ucde8\uc18c",
-                "operationId": "cancel",
-                "requestBody": {
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "$ref": "#/components/schemas/MatchingAuthRequest"
-                            }
-                        }
                     },
-                    "required": true
-                },
-                "responses": {
-                    "200": {
-                        "description": "OK",
+                    "409": {
+                        "description": "\uc911\ubcf5 \uc2e0\uccad",
                         "content": {
                             "*/*": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/ApiResponseVoid"
+                                    "$ref": "#/components/schemas/ApiResponseMatchingRegisterResponse"
                                 }
                             }
                         }
@@ -306,6 +319,37 @@
                             "*/*": {
                                 "schema": {
                                     "$ref": "#/components/schemas/ApiResponseMatchingResultResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/matchings/cancel": {
+            "post": {
+                "tags": [
+                    "\ub9e4\uce6d Command"
+                ],
+                "summary": "\ub9e4\uce6d \uc2e0\uccad \ucde8\uc18c",
+                "operationId": "cancel",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/MatchingAuthRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiResponseVoid"
                                 }
                             }
                         }
@@ -544,27 +588,6 @@
                 }
             }
         },
-        "/admin/matching-jobs": {
-            "post": {
-                "tags": [
-                    "\ub9e4\uce6d Command"
-                ],
-                "summary": "\uc77c\uad04 \ub9e4\uce6d \uc2e4\ud589",
-                "operationId": "runMatchingJob",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "content": {
-                            "*/*": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/ApiResponseMatchingJobResponse"
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
         "/admin/uploads/images": {
             "post": {
                 "tags": [
@@ -601,6 +624,27 @@
                             "*/*": {
                                 "schema": {
                                     "$ref": "#/components/schemas/ApiResponseImageUploadResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/matching-jobs": {
+            "post": {
+                "tags": [
+                    "\ub9e4\uce6d Command"
+                ],
+                "summary": "\uc77c\uad04 \ub9e4\uce6d \uc2e4\ud589",
+                "operationId": "runMatchingJob",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiResponseMatchingJobResponse"
                                 }
                             }
                         }
@@ -1611,6 +1655,69 @@
                     }
                 }
             },
+            "MyWaitingLookupRequest": {
+                "type": "object",
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "maxLength": 50,
+                        "minLength": 0
+                    },
+                    "phoneNumber": {
+                        "type": "string",
+                        "minLength": 1,
+                        "pattern": "^01[016789]-?\\d{3,4}-?\\d{4}$"
+                    }
+                }
+            },
+            "ApiResponseListMyWaitingResponse": {
+                "type": "object",
+                "properties": {
+                    "success": {
+                        "type": "boolean"
+                    },
+                    "data": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/MyWaitingResponse"
+                        }
+                    },
+                    "error": {
+                        "$ref": "#/components/schemas/ErrorResponse"
+                    }
+                }
+            },
+            "MyWaitingResponse": {
+                "type": "object",
+                "properties": {
+                    "waitingId": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "boothId": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "boothName": {
+                        "type": "string"
+                    },
+                    "waitingNumber": {
+                        "type": "integer",
+                        "format": "int32"
+                    },
+                    "status": {
+                        "type": "string"
+                    },
+                    "aheadCount": {
+                        "type": "integer",
+                        "format": "int32"
+                    },
+                    "estimatedWaitMinutes": {
+                        "type": "integer",
+                        "format": "int32"
+                    }
+                }
+            },
             "MatchingCreateRequest": {
                 "type": "object",
                 "properties": {
@@ -1741,6 +1848,20 @@
                     }
                 }
             },
+            "ApiResponseVoid": {
+                "type": "object",
+                "properties": {
+                    "success": {
+                        "type": "boolean"
+                    },
+                    "data": {
+                        "type": "object"
+                    },
+                    "error": {
+                        "$ref": "#/components/schemas/ErrorResponse"
+                    }
+                }
+            },
             "WaitingCreateRequest": {
                 "type": "object",
                 "properties": {
@@ -1802,20 +1923,6 @@
                     }
                 }
             },
-            "ApiResponseVoid": {
-                "type": "object",
-                "properties": {
-                    "success": {
-                        "type": "boolean"
-                    },
-                    "data": {
-                        "type": "object"
-                    },
-                    "error": {
-                        "$ref": "#/components/schemas/ErrorResponse"
-                    }
-                }
-            },
             "LoginRequest": {
                 "type": "object",
                 "properties": {
@@ -1852,33 +1959,6 @@
                     "boothId": {
                         "type": "integer",
                         "format": "int64"
-                    }
-                }
-            },
-            "ApiResponseMatchingJobResponse": {
-                "type": "object",
-                "properties": {
-                    "success": {
-                        "type": "boolean"
-                    },
-                    "data": {
-                        "$ref": "#/components/schemas/MatchingJobResponse"
-                    },
-                    "error": {
-                        "$ref": "#/components/schemas/ErrorResponse"
-                    }
-                }
-            },
-            "MatchingJobResponse": {
-                "type": "object",
-                "properties": {
-                    "matchedPairCount": {
-                        "type": "integer",
-                        "format": "int32"
-                    },
-                    "unmatchedCount": {
-                        "type": "integer",
-                        "format": "int32"
                     }
                 }
             },
@@ -1919,6 +1999,33 @@
                     },
                     "path": {
                         "type": "string"
+                    }
+                }
+            },
+            "ApiResponseMatchingJobResponse": {
+                "type": "object",
+                "properties": {
+                    "success": {
+                        "type": "boolean"
+                    },
+                    "data": {
+                        "$ref": "#/components/schemas/MatchingJobResponse"
+                    },
+                    "error": {
+                        "$ref": "#/components/schemas/ErrorResponse"
+                    }
+                }
+            },
+            "MatchingJobResponse": {
+                "type": "object",
+                "properties": {
+                    "matchedPairCount": {
+                        "type": "integer",
+                        "format": "int32"
+                    },
+                    "unmatchedCount": {
+                        "type": "integer",
+                        "format": "int32"
                     }
                 }
             },
@@ -2139,37 +2246,6 @@
                     },
                     "error": {
                         "$ref": "#/components/schemas/ErrorResponse"
-                    }
-                }
-            },
-            "MyWaitingResponse": {
-                "type": "object",
-                "properties": {
-                    "waitingId": {
-                        "type": "integer",
-                        "format": "int64"
-                    },
-                    "boothId": {
-                        "type": "integer",
-                        "format": "int64"
-                    },
-                    "boothName": {
-                        "type": "string"
-                    },
-                    "waitingNumber": {
-                        "type": "integer",
-                        "format": "int32"
-                    },
-                    "status": {
-                        "type": "string"
-                    },
-                    "aheadCount": {
-                        "type": "integer",
-                        "format": "int32"
-                    },
-                    "estimatedWaitMinutes": {
-                        "type": "integer",
-                        "format": "int32"
                     }
                 }
             },
