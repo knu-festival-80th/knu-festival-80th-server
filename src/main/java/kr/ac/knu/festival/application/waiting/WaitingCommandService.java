@@ -109,10 +109,6 @@ public class WaitingCommandService {
         int estimatedWaitMinutes = Math.max(0, (int) (currentWaitingTeams - 1)) * MINUTES_PER_TEAM;
         incrementWaitingCountAfterCommit(boothId);
 
-        String registerMsg = "[%s] 대기 등록 완료! 대기번호 %d번 (현재 %d팀 대기 중)"
-                .formatted(booth.getName(), nextNumber, currentWaitingTeams);
-        sendSmsAsync(saved.getId(), encryptedPhone, registerMsg);
-
         return WaitingRegisterResponse.of(saved, booth, currentWaitingTeams, estimatedWaitMinutes);
     }
 
@@ -135,13 +131,17 @@ public class WaitingCommandService {
         List<Waiting> otherActiveWaitings = waitingRepository.findActiveByPhoneLookupHashExcludingBooth(
                 waiting.getPhoneLookupHash(), ACTIVE_STATUSES, waiting.getBooth().getId());
 
-        for (Waiting other : otherActiveWaitings) {
-            WaitingStatus otherPrevious = other.getStatus();
-            other.markCancelled();
-            decrementWaitingCountIfBecameInactiveAfterCommit(other.getBooth().getId(), otherPrevious, other.getStatus());
-            String cancelMsg = "[%s] 대기가 다른 부스 입장 확정으로 인해 자동 취소되었습니다."
-                    .formatted(other.getBooth().getName());
-            sendSmsAsync(other.getId(), other.getPhoneNumber(), cancelMsg);
+        if (!otherActiveWaitings.isEmpty()) {
+            List<String> cancelledBoothNames = new java.util.ArrayList<>();
+            for (Waiting other : otherActiveWaitings) {
+                WaitingStatus otherPrevious = other.getStatus();
+                other.markCancelled();
+                decrementWaitingCountIfBecameInactiveAfterCommit(other.getBooth().getId(), otherPrevious, other.getStatus());
+                cancelledBoothNames.add(other.getBooth().getName());
+            }
+            String boothList = String.join(", ", cancelledBoothNames);
+            String cancelMsg = "[%s] 대기가 자동 취소되었습니다.".formatted(boothList);
+            sendSmsAsync(otherActiveWaitings.get(0).getId(), waiting.getPhoneNumber(), cancelMsg);
         }
     }
 
