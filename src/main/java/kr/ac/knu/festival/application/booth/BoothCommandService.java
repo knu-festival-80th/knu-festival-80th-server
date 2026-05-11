@@ -41,7 +41,6 @@ public class BoothCommandService {
                 request.description(),
                 request.xRatio(),
                 request.yRatio(),
-                request.imageUrl(),
                 request.menuBoardImageUrl(),
                 passwordEncoder.encode(request.adminPassword()),
                 request.department(),
@@ -58,7 +57,6 @@ public class BoothCommandService {
                 request.description(),
                 request.xRatio(),
                 request.yRatio(),
-                request.imageUrl(),
                 request.menuBoardImageUrl(),
                 request.department(),
                 request.location()

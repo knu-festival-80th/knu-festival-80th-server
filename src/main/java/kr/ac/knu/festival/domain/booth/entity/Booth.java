@@ -60,9 +60,6 @@ public class Booth extends BaseTimeEntity {
     @Column(name = "like_count", nullable = false)
     private int likeCount;
 
-    @Column(name = "image_url", length = 500)
-    private String imageUrl;
-
     @Column(name = "menu_board_image_url", length = 500)
     private String menuBoardImageUrl;
 
@@ -80,7 +77,6 @@ public class Booth extends BaseTimeEntity {
             String description,
             BigDecimal xRatio,
             BigDecimal yRatio,
-            String imageUrl,
             String menuBoardImageUrl,
             String encodedAdminPassword,
             String department,
@@ -91,7 +87,6 @@ public class Booth extends BaseTimeEntity {
                 .description(description)
                 .xRatio(xRatio)
                 .yRatio(yRatio)
-                .imageUrl(imageUrl)
                 .menuBoardImageUrl(menuBoardImageUrl)
                 .likeCount(0)
                 .waitingOpen(false)
@@ -106,7 +101,6 @@ public class Booth extends BaseTimeEntity {
             String description,
             BigDecimal xRatio,
             BigDecimal yRatio,
-            String imageUrl,
             String menuBoardImageUrl,
             String department,
             String location
@@ -115,7 +109,6 @@ public class Booth extends BaseTimeEntity {
         if (description != null) this.description = description;
         if (xRatio != null) this.xRatio = xRatio;
         if (yRatio != null) this.yRatio = yRatio;
-        if (imageUrl != null) this.imageUrl = imageUrl;
         if (menuBoardImageUrl != null) this.menuBoardImageUrl = menuBoardImageUrl;
         if (department != null) this.department = department;
         if (location != null) this.location = location;
