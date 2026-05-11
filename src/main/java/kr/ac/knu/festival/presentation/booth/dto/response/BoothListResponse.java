@@ -15,7 +15,10 @@ public record BoothListResponse(
         String imageUrl,
         String menuBoardImageUrl,
         boolean waitingOpen,
-        long currentWaitingTeams
+        long currentWaitingTeams,
+        String department,
+        String category,
+        String location
 ) {
     public static BoothListResponse fromEntity(Booth booth, long currentWaitingTeams, ImageUrlResolver urls) {
         return fromEntity(booth, currentWaitingTeams, booth.getLikeCount(), urls);
@@ -37,7 +40,10 @@ public record BoothListResponse(
                 urls.toPublicUrl(booth.getImageUrl()),
                 urls.toPublicUrl(booth.getMenuBoardImageUrl()),
                 booth.isWaitingOpen(),
-                currentWaitingTeams
+                currentWaitingTeams,
+                booth.getDepartment(),
+                booth.getCategory(),
+                booth.getLocation()
         );
     }
 }

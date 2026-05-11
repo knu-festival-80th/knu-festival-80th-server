@@ -14,7 +14,10 @@ public record BoothResponse(
         int likeCount,
         String imageUrl,
         String menuBoardImageUrl,
-        boolean waitingOpen
+        boolean waitingOpen,
+        String department,
+        String category,
+        String location
 ) {
     public static BoothResponse fromEntity(Booth booth, ImageUrlResolver urls) {
         return fromEntity(booth, booth.getLikeCount(), urls);
@@ -30,7 +33,10 @@ public record BoothResponse(
                 likeCount,
                 urls.toPublicUrl(booth.getImageUrl()),
                 urls.toPublicUrl(booth.getMenuBoardImageUrl()),
-                booth.isWaitingOpen()
+                booth.isWaitingOpen(),
+                booth.getDepartment(),
+                booth.getCategory(),
+                booth.getLocation()
         );
     }
 }
