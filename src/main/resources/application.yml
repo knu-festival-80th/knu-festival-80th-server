@@ -45,7 +45,6 @@ phone:
 solapi:
   api-key: ${SOLAPI_API_KEY:}
   api-secret: ${SOLAPI_API_SECRET:}
-  pf-id: ${SOLAPI_PF_ID:}
   sender-number: ${SOLAPI_SENDER_NUMBER:}
 
 admin:

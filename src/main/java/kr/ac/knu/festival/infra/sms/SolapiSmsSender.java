@@ -21,7 +21,7 @@ import java.util.UUID;
 @Component
 @Primary
 @Profile("!test")
-public class SolapiAlimtalkSender implements SmsSender {
+public class SolapiSmsSender implements SmsSender {
 
     private static final String API_URL = "https://api.solapi.com/messages/v4/send";
     private static final DateTimeFormatter ISO_FORMATTER =
@@ -30,7 +30,7 @@ public class SolapiAlimtalkSender implements SmsSender {
     private final SolapiProperties properties;
     private final RestClient restClient;
 
-    public SolapiAlimtalkSender(SolapiProperties properties) {
+    public SolapiSmsSender(SolapiProperties properties) {
         this.properties = properties;
         this.restClient = RestClient.builder()
                 .defaultHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
@@ -48,11 +48,7 @@ public class SolapiAlimtalkSender implements SmsSender {
                     "message", Map.of(
                             "to", phoneNumber,
                             "from", properties.senderNumber(),
-                            "text", message,
-                            "type", "ATA",
-                            "kakaoOptions", Map.of(
-                                    "pfId", properties.pfId()
-                            )
+                            "text", message
                     )
             );
 
@@ -66,10 +62,10 @@ public class SolapiAlimtalkSender implements SmsSender {
                     .retrieve()
                     .toBodilessEntity();
 
-            log.info("[ALIMTALK] 발송 성공. to={}", maskPhone(phoneNumber));
+            log.info("[SMS] 발송 성공. to={}", maskPhone(phoneNumber));
             return true;
         } catch (Exception e) {
-            log.warn("[ALIMTALK] 발송 실패. to={}, error={}", maskPhone(phoneNumber), e.getMessage());
+            log.warn("[SMS] 발송 실패. to={}, error={}", maskPhone(phoneNumber), e.getMessage());
             return false;
         }
     }
