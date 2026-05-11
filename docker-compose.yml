@@ -58,6 +58,9 @@ services:
       SERVER_PORT: 8080
       PUBLIC_BASE_URL: ${PUBLIC_BASE_URL:-http://localhost:8080}
       UPLOAD_BASE_DIR: /app/uploads
+      SOLAPI_API_KEY: ${SOLAPI_API_KEY:-}
+      SOLAPI_API_SECRET: ${SOLAPI_API_SECRET:-}
+      SOLAPI_SENDER_NUMBER: ${SOLAPI_SENDER_NUMBER:-}
       TZ: Asia/Seoul
     ports:
       - "8080:8080"
