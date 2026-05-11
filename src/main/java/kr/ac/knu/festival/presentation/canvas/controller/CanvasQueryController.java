@@ -3,8 +3,8 @@ package kr.ac.knu.festival.presentation.canvas.controller;
 import kr.ac.knu.festival.application.canvas.CanvasQueryService;
 import kr.ac.knu.festival.global.response.ApiResponse;
 import kr.ac.knu.festival.presentation.canvas.controller.docs.CanvasQueryControllerDocs;
+import kr.ac.knu.festival.presentation.canvas.dto.response.BoardSummaryResponse;
 import kr.ac.knu.festival.presentation.canvas.dto.response.CanvasPostitResponse;
-import kr.ac.knu.festival.presentation.canvas.dto.response.ZoneSummaryResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -24,14 +24,14 @@ public class CanvasQueryController implements CanvasQueryControllerDocs {
     @Override
     @GetMapping("/postits")
     public ResponseEntity<ApiResponse<List<CanvasPostitResponse>>> getPostits(
-            @RequestParam(value = "zone", required = false) Integer zone
+            @RequestParam(value = "boardId", required = false) Long boardId
     ) {
-        return ResponseEntity.ok(ApiResponse.success(canvasQueryService.getPostits(zone)));
+        return ResponseEntity.ok(ApiResponse.success(canvasQueryService.getPostits(boardId)));
     }
 
     @Override
-    @GetMapping("/zones")
-    public ResponseEntity<ApiResponse<List<ZoneSummaryResponse>>> getZoneSummaries() {
-        return ResponseEntity.ok(ApiResponse.success(canvasQueryService.getZoneSummaries()));
+    @GetMapping("/boards")
+    public ResponseEntity<ApiResponse<List<BoardSummaryResponse>>> getBoardSummaries() {
+        return ResponseEntity.ok(ApiResponse.success(canvasQueryService.getBoardSummaries()));
     }
 }

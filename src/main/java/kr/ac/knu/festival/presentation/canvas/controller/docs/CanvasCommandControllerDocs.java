@@ -10,16 +10,27 @@ import kr.ac.knu.festival.presentation.canvas.dto.request.CanvasPostitCreateRequ
 import kr.ac.knu.festival.presentation.canvas.dto.response.CanvasPostitCreateResponse;
 import org.springframework.http.ResponseEntity;
 
-@Tag(name = "Canvas Command", description = "포스트잇 생성 (사용자) / 삭제 (슈퍼 관리자)")
+@Tag(name = "Canvas Command", description = "보드 생성 (슈퍼 관리자) / 포스트잇 생성 (사용자) / 포스트잇 삭제 (슈퍼 관리자)")
 public interface CanvasCommandControllerDocs {
 
-    @Operation(summary = "포스트잇 생성", description = "닉네임·메시지·색상·좌표를 입력해 롤링페이퍼 보드에 포스트잇을 추가합니다. 완전 덮힘이 발생할 경우 서버가 위치를 보정합니다.")
+    @Operation(summary = "포스트잇 생성", description = "boardId·colorId·메시지·좌표(0~100 상대좌표, 중심점)를 입력해 롤링페이퍼 보드에 포스트잇을 추가합니다.")
     @ApiResponses({
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "201", description = "생성 성공"),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "입력값 오류 (글자 수 초과, 잘못된 크기 등)")
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "입력값 오류"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "보드 없음"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "409", description = "보드가 가득 참 (100개)")
     })
     ResponseEntity<ApiResponse<CanvasPostitCreateResponse>> createPostit(
             CanvasPostitCreateRequest request
+    );
+
+    @Operation(summary = "보드 생성 (슈퍼 관리자)", description = "새 롤링페이퍼 보드를 생성합니다. boardVariant는 boardId 홀짝으로 자동 결정됩니다.")
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "201", description = "생성 성공"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "403", description = "슈퍼 관리자 권한 필요")
+    })
+    ResponseEntity<ApiResponse<Long>> createBoard(
+            @Parameter(hidden = true) AdminInfo admin
     );
 
     @Operation(summary = "포스트잇 삭제 (슈퍼 관리자)", description = "부적절한 포스트잇을 소프트 딜리트합니다.")

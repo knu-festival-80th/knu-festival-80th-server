@@ -35,6 +35,15 @@ public class CanvasCommandController implements CanvasCommandControllerDocs {
     }
 
     @Override
+    @PostMapping("/admin/v1/canvas/boards")
+    public ResponseEntity<ApiResponse<Long>> createBoard(
+            @CurrentAdmin AdminInfo admin
+    ) {
+        admin.requireSuperAdmin();
+        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(canvasCommandService.createBoard()));
+    }
+
+    @Override
     @DeleteMapping("/admin/v1/canvas/postits/{postit-id}")
     public ResponseEntity<ApiResponse<Void>> deletePostit(
             @CurrentAdmin AdminInfo admin,

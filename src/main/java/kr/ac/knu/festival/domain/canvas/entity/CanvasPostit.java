@@ -2,12 +2,13 @@ package kr.ac.knu.festival.domain.canvas.entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Index;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import kr.ac.knu.festival.global.base.BaseTimeEntity;
 import lombok.AccessLevel;
@@ -26,7 +27,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Table(name = "canvas_postit", indexes = {
-        @Index(name = "idx_canvas_postit_zone_id", columnList = "zone_number, canvas_postit_id")
+        @Index(name = "idx_canvas_postit_board_id", columnList = "canvas_board_id, canvas_postit_id")
 })
 @SQLDelete(sql = "UPDATE canvas_postit SET deleted_at = CURRENT_TIMESTAMP WHERE canvas_postit_id = ?")
 @SQLRestriction("deleted_at IS NULL")
@@ -37,55 +38,44 @@ public class CanvasPostit extends BaseTimeEntity {
     @Column(name = "canvas_postit_id")
     private Long id;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "canvas_board_id", nullable = false)
+    private CanvasBoard board;
+
     @Column(nullable = false, length = 60)
     private String message;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 10)
-    private PostitColor color;
+    @Column(name = "color_id", nullable = false)
+    private int colorId;
 
+    /** 보드 기준 0~100 상대좌표 (중심점 x). */
     @Column(name = "position_x", nullable = false)
-    private int positionX;
+    private double positionX;
 
+    /** 보드 기준 0~100 상대좌표 (중심점 y). */
     @Column(name = "position_y", nullable = false)
-    private int positionY;
-
-    @Column(nullable = false)
-    private int width;
-
-    @Column(nullable = false)
-    private int height;
-
-    @Column(name = "zone_number", nullable = false)
-    private int zoneNumber;
+    private double positionY;
 
     @Column(name = "deleted_at")
     private LocalDateTime deletedAt;
 
     public static CanvasPostit createCanvasPostit(
+            CanvasBoard board,
+            int colorId,
             String message,
-            PostitColor color,
-            int positionX,
-            int positionY,
-            int width,
-            int height
+            double positionX,
+            double positionY
     ) {
         return CanvasPostit.builder()
+                .board(board)
+                .colorId(colorId)
                 .message(message)
-                .color(color)
                 .positionX(positionX)
                 .positionY(positionY)
-                .width(width)
-                .height(height)
-                .zoneNumber(0)
                 .build();
     }
 
-    public void assignZone() {
-        this.zoneNumber = (int) ((this.id - 1) / 50) + 1;
-    }
-
-    public void adjustPosition(int x, int y) {
+    public void adjustPosition(double x, double y) {
         this.positionX = x;
         this.positionY = y;
     }
