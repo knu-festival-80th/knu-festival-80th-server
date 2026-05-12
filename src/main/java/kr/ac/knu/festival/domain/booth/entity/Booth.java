@@ -39,9 +39,6 @@ public class Booth extends BaseTimeEntity {
     @Column(nullable = false, length = 100)
     private String name;
 
-    @Column(columnDefinition = "TEXT")
-    private String description;
-
     @Column(name = "x_ratio", precision = 8, scale = 7)
     private BigDecimal xRatio;
 
@@ -74,7 +71,6 @@ public class Booth extends BaseTimeEntity {
 
     public static Booth createBooth(
             String name,
-            String description,
             BigDecimal xRatio,
             BigDecimal yRatio,
             String menuBoardImageUrl,
@@ -84,7 +80,6 @@ public class Booth extends BaseTimeEntity {
     ) {
         return Booth.builder()
                 .name(name)
-                .description(description)
                 .xRatio(xRatio)
                 .yRatio(yRatio)
                 .menuBoardImageUrl(menuBoardImageUrl)
@@ -98,7 +93,6 @@ public class Booth extends BaseTimeEntity {
 
     public void updateBooth(
             String name,
-            String description,
             BigDecimal xRatio,
             BigDecimal yRatio,
             String menuBoardImageUrl,
@@ -106,7 +100,6 @@ public class Booth extends BaseTimeEntity {
             String location
     ) {
         if (name != null && !name.isBlank()) this.name = name;
-        if (description != null) this.description = description;
         if (xRatio != null) this.xRatio = xRatio;
         if (yRatio != null) this.yRatio = yRatio;
         if (menuBoardImageUrl != null) this.menuBoardImageUrl = menuBoardImageUrl;

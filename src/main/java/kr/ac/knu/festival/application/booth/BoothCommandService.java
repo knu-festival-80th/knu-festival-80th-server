@@ -38,7 +38,6 @@ public class BoothCommandService {
     public BoothResponse createBooth(BoothCreateRequest request) {
         Booth booth = Booth.createBooth(
                 request.name(),
-                request.description(),
                 request.xRatio(),
                 request.yRatio(),
                 request.menuBoardImageUrl(),
@@ -54,7 +53,6 @@ public class BoothCommandService {
                 .orElseThrow(() -> new BusinessException(BusinessErrorCode.BOOTH_NOT_FOUND));
         booth.updateBooth(
                 request.name(),
-                request.description(),
                 request.xRatio(),
                 request.yRatio(),
                 request.menuBoardImageUrl(),
