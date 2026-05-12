@@ -39,9 +39,6 @@ public class MatchingParticipant extends BaseTimeEntity {
     @Column(nullable = false, length = 100)
     private String password;
 
-    @Column(nullable = false, length = 10)
-    private String nationality;
-
     @Column(name = "matched_id", length = 100)
     private String matchedId;
 
@@ -49,23 +46,24 @@ public class MatchingParticipant extends BaseTimeEntity {
     @Column(nullable = false, length = 20)
     private MatchingParticipantStatus status;
 
+    public static String normalizeInstagramId(String instagramId) {
+        return instagramId.trim().replaceFirst("^@", "").toLowerCase();
+    }
+
     public static MatchingParticipant create(
             String instagramId,
             MatchingGender gender,
-            String encodedPassword,
-            String nationality
+            String encodedPassword
     ) {
         return MatchingParticipant.builder()
                 .instagramId(instagramId)
                 .gender(gender)
                 .password(encodedPassword)
-                .nationality(nationality)
                 .status(MatchingParticipantStatus.PENDING)
                 .build();
     }
 
     public void matchWith(String matchedId) {
-        // 양쪽 참가자 모두에 상대 ID를 저장해 결과 조회 시 별도 매칭 테이블 조인 없이 바로 응답한다.
         this.matchedId = matchedId;
         this.status = MatchingParticipantStatus.MATCHED;
     }
@@ -75,7 +73,4 @@ public class MatchingParticipant extends BaseTimeEntity {
         this.status = MatchingParticipantStatus.UNMATCHED;
     }
 
-    public void cancel() {
-        this.status = MatchingParticipantStatus.CANCELLED;
-    }
 }

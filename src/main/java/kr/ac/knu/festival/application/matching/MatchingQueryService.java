@@ -1,5 +1,6 @@
 package kr.ac.knu.festival.application.matching;
 
+import kr.ac.knu.festival.domain.matching.entity.MatchingOperationStatus;
 import kr.ac.knu.festival.domain.matching.entity.MatchingParticipant;
 import kr.ac.knu.festival.domain.matching.entity.MatchingParticipantStatus;
 import kr.ac.knu.festival.domain.matching.entity.MatchingServiceState;
@@ -35,7 +36,7 @@ public class MatchingQueryService {
     public MatchingResultResponse getResult(MatchingAuthRequest request, String clientIp) {
         // 결과 조회는 비밀번호 기반이라 brute force 대상이 되기 쉽다. 검증 전에 IP별 실패 횟수를 먼저 확인한다.
         matchingRateLimiter.validateAllowed(clientIp);
-        MatchingParticipant participant = matchingParticipantRepository.findById(normalizeInstagramId(request.instagramId()))
+        MatchingParticipant participant = matchingParticipantRepository.findById(MatchingParticipant.normalizeInstagramId(request.instagramId()))
                 .orElseThrow(() -> {
                     matchingRateLimiter.recordFailure(clientIp);
                     return new BusinessException(BusinessErrorCode.RESOURCE_NOT_FOUND);
@@ -56,12 +57,13 @@ public class MatchingQueryService {
     public MatchingStatusResponse getStatus() {
         Map<Object, Object> cachedStatus = matchingRealtimeCache.getStatus();
         if (!cachedStatus.isEmpty()) {
-            // 캐시는 카운트와 안내 문구만 재사용하고, 시간 기반 open 여부는 현재 시각으로 다시 계산한다.
             Map<Object, Object> cachedCounts = matchingRealtimeCache.getParticipantCounts();
-            return MatchingStatusResponse.of(
-                    matchingServiceStateRepository.findById(MatchingServiceState.SINGLETON_ID)
-                            .orElse(MatchingServiceState.defaultOpen()),
-                    matchingScheduleProperties.isRegistrationOpen(),
+            MatchingOperationStatus status = MatchingOperationStatus.valueOf(valueOf(cachedStatus, "status"));
+            return MatchingStatusResponse.ofCached(
+                    status,
+                    valueOf(cachedStatus, "messageKo"),
+                    valueOf(cachedStatus, "messageEn"),
+                    status == MatchingOperationStatus.OPEN && matchingScheduleProperties.isRegistrationOpen(),
                     matchingScheduleProperties.isResultOpen(),
                     valueOf(cachedStatus, "registrationDeadline"),
                     valueOf(cachedStatus, "resultOpenAt"),
@@ -79,7 +81,7 @@ public class MatchingQueryService {
         matchingRealtimeCache.cacheStatus(state, matchingScheduleProperties, pendingCount, matchedCount, unmatchedCount);
         return MatchingStatusResponse.of(
                 state,
-                state.getStatus().name().equals("OPEN") && matchingScheduleProperties.isRegistrationOpen(),
+                state.getStatus() == MatchingOperationStatus.OPEN && matchingScheduleProperties.isRegistrationOpen(),
                 matchingScheduleProperties.isResultOpen(),
                 matchingScheduleProperties.registrationDeadline().toString(),
                 matchingScheduleProperties.resultOpenAt().toString(),
@@ -99,10 +101,6 @@ public class MatchingQueryService {
                 .map(UnmatchedParticipantResponse::fromEntity)
                 .toList();
         return UnmatchedParticipantsResponse.open(matchingScheduleProperties.resultOpenAt().toString(), participants);
-    }
-
-    private String normalizeInstagramId(String instagramId) {
-        return instagramId.trim().replaceFirst("^@", "").toLowerCase();
     }
 
     private String valueOf(Map<Object, Object> values, String key) {

@@ -47,8 +47,7 @@ class MatchingResultRateLimitIntegrationTest {
         matchingParticipantRepository.save(MatchingParticipant.create(
                 "rate_limit_user",
                 MatchingGender.MALE,
-                passwordEncoder.encode("1234"),
-                "KR"
+                passwordEncoder.encode("1234")
         ));
     }
 

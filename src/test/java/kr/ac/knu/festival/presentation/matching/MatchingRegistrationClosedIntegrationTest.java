@@ -45,14 +45,13 @@ class MatchingRegistrationClosedIntegrationTest {
         MatchingCreateRequest request = new MatchingCreateRequest(
                 "late_user",
                 MatchingGender.MALE,
-                "1234",
-                "KR"
+                "1234"
         );
 
         mockMvc.perform(post("/matchings")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isBadRequest())
+                .andExpect(status().isForbidden())
                 .andExpect(jsonPath("$.success").value(false));
 
         assertThat(matchingParticipantRepository.existsById("late_user")).isFalse();

@@ -43,8 +43,7 @@ class UnmatchedParticipantsOpenIntegrationTest {
         MatchingParticipant participant = MatchingParticipant.create(
                 "open_unmatched",
                 MatchingGender.FEMALE,
-                passwordEncoder.encode("1234"),
-                "EN"
+                passwordEncoder.encode("1234")
         );
         participant.markUnmatched();
         matchingParticipantRepository.save(participant);

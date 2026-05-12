@@ -43,8 +43,7 @@ class UnmatchedParticipantsIntegrationTest {
         MatchingParticipant participant = MatchingParticipant.create(
                 "hidden_unmatched",
                 MatchingGender.MALE,
-                passwordEncoder.encode("1234"),
-                "KR"
+                passwordEncoder.encode("1234")
         );
         participant.markUnmatched();
         matchingParticipantRepository.save(participant);

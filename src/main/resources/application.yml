@@ -42,8 +42,24 @@ phone:
   encryption-key: ${PHONE_ENCRYPTION_KEY}
   lookup-hash-key: ${PHONE_LOOKUP_HASH_KEY}
 
+solapi:
+  api-key: ${SOLAPI_API_KEY:}
+  api-secret: ${SOLAPI_API_SECRET:}
+  sender-number: ${SOLAPI_SENDER_NUMBER:}
+
 admin:
   master-password: ${ADMIN_MASTER_PASSWORD}
+
+app:
+  # 외부에 노출되는 베이스 URL. DB의 상대 경로를 완전한 URL로 만들 때 prefix 로 쓴다.
+  # - 로컬 dev: http://localhost:8080
+  # - 운영: ingress 도메인 (예: https://chcse.knu.ac.kr/festival/api)
+  public-base-url: ${PUBLIC_BASE_URL:http://localhost:8080}
+  upload:
+    # 업로드 파일을 저장할 로컬 디렉터리. 컨테이너에서는 볼륨 마운트 경로.
+    base-dir: ${UPLOAD_BASE_DIR:./uploads}
+    # 정적 리소스로 노출되는 URL prefix.
+    url-prefix: /uploads
 
 springdoc:
   swagger-ui:

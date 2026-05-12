@@ -54,8 +54,7 @@ class MatchingRegistrationIntegrationTest {
         MatchingCreateRequest request = new MatchingCreateRequest(
                 "KNU.Student_01",
                 MatchingGender.MALE,
-                "1234",
-                null
+                "1234"
         );
 
         mockMvc.perform(post("/matchings")
@@ -69,7 +68,6 @@ class MatchingRegistrationIntegrationTest {
         MatchingParticipant saved = matchingParticipantRepository.findById("knu.student_01").orElseThrow();
         assertThat(saved.getGender()).isEqualTo(MatchingGender.MALE);
         assertThat(saved.getStatus()).isEqualTo(MatchingParticipantStatus.PENDING);
-        assertThat(saved.getNationality()).isEqualTo("KR");
         assertThat(passwordEncoder.matches("1234", saved.getPassword())).isTrue();
     }
 
@@ -82,14 +80,13 @@ class MatchingRegistrationIntegrationTest {
         MatchingCreateRequest request = new MatchingCreateRequest(
                 "paused_user",
                 MatchingGender.FEMALE,
-                "1234",
-                "EN"
+                "1234"
         );
 
         mockMvc.perform(post("/matchings")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isBadRequest())
+                .andExpect(status().isForbidden())
                 .andExpect(jsonPath("$.success").value(false));
 
         assertThat(matchingParticipantRepository.existsById("paused_user")).isFalse();
@@ -100,14 +97,12 @@ class MatchingRegistrationIntegrationTest {
         MatchingParticipant male = MatchingParticipant.create(
                 "male_user",
                 MatchingGender.MALE,
-                passwordEncoder.encode("1234"),
-                "KR"
+                passwordEncoder.encode("1234")
         );
         MatchingParticipant female = MatchingParticipant.create(
                 "female_user",
                 MatchingGender.FEMALE,
-                passwordEncoder.encode("1234"),
-                "KR"
+                passwordEncoder.encode("1234")
         );
         male.matchWith("female_user");
         female.matchWith("male_user");

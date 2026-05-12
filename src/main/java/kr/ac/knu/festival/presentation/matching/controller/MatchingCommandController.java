@@ -6,7 +6,6 @@ import kr.ac.knu.festival.global.auth.AdminInfo;
 import kr.ac.knu.festival.global.auth.CurrentAdmin;
 import kr.ac.knu.festival.global.response.ApiResponse;
 import kr.ac.knu.festival.presentation.matching.controller.docs.MatchingCommandControllerDocs;
-import kr.ac.knu.festival.presentation.matching.dto.request.MatchingAuthRequest;
 import kr.ac.knu.festival.presentation.matching.dto.request.MatchingCreateRequest;
 import kr.ac.knu.festival.presentation.matching.dto.request.MatchingStatusUpdateRequest;
 import kr.ac.knu.festival.presentation.matching.dto.response.MatchingJobResponse;
@@ -15,7 +14,6 @@ import kr.ac.knu.festival.presentation.matching.dto.response.MatchingStatusRespo
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -36,15 +34,6 @@ public class MatchingCommandController implements MatchingCommandControllerDocs 
     ) {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponse.success(matchingCommandService.register(request)));
-    }
-
-    @Override
-    @DeleteMapping("/matchings")
-    public ResponseEntity<ApiResponse<Void>> cancel(
-            @RequestBody @Valid MatchingAuthRequest request
-    ) {
-        matchingCommandService.cancel(request);
-        return ResponseEntity.ok(ApiResponse.success());
     }
 
     @Override

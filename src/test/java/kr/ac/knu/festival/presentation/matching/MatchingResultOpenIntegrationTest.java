@@ -49,14 +49,12 @@ class MatchingResultOpenIntegrationTest {
         MatchingParticipant male = MatchingParticipant.create(
                 "male_user",
                 MatchingGender.MALE,
-                passwordEncoder.encode("1234"),
-                "KR"
+                passwordEncoder.encode("1234")
         );
         MatchingParticipant female = MatchingParticipant.create(
                 "female_user",
                 MatchingGender.FEMALE,
-                passwordEncoder.encode("1234"),
-                "KR"
+                passwordEncoder.encode("1234")
         );
         male.matchWith("female_user");
         female.matchWith("male_user");

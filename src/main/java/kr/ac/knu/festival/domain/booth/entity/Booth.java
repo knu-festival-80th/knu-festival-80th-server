@@ -42,17 +42,26 @@ public class Booth extends BaseTimeEntity {
     @Column(columnDefinition = "TEXT")
     private String description;
 
-    @Column(name = "location_lat", precision = 10, scale = 7)
-    private BigDecimal locationLat;
+    @Column(name = "x_ratio", precision = 8, scale = 7)
+    private BigDecimal xRatio;
 
-    @Column(name = "location_lng", precision = 10, scale = 7)
-    private BigDecimal locationLng;
+    @Column(name = "y_ratio", precision = 8, scale = 7)
+    private BigDecimal yRatio;
+
+    @Column(length = 100)
+    private String department;
+
+
+    @Column(length = 200)
+    private String location;
+
+
 
     @Column(name = "like_count", nullable = false)
     private int likeCount;
 
-    @Column(name = "image_url", length = 500)
-    private String imageUrl;
+    @Column(name = "menu_board_image_url", length = 500)
+    private String menuBoardImageUrl;
 
     @Column(name = "is_waiting_open", nullable = false)
     private boolean waitingOpen;
@@ -66,45 +75,43 @@ public class Booth extends BaseTimeEntity {
     public static Booth createBooth(
             String name,
             String description,
-            BigDecimal locationLat,
-            BigDecimal locationLng,
-            String imageUrl,
-            String encodedAdminPassword
+            BigDecimal xRatio,
+            BigDecimal yRatio,
+            String menuBoardImageUrl,
+            String encodedAdminPassword,
+            String department,
+            String location
     ) {
         return Booth.builder()
                 .name(name)
                 .description(description)
-                .locationLat(locationLat)
-                .locationLng(locationLng)
-                .imageUrl(imageUrl)
+                .xRatio(xRatio)
+                .yRatio(yRatio)
+                .menuBoardImageUrl(menuBoardImageUrl)
                 .likeCount(0)
-                .waitingOpen(true)
+                .waitingOpen(false)
                 .adminPassword(encodedAdminPassword)
+                .department(department)
+                .location(location)
                 .build();
     }
 
     public void updateBooth(
             String name,
             String description,
-            BigDecimal locationLat,
-            BigDecimal locationLng,
-            String imageUrl
+            BigDecimal xRatio,
+            BigDecimal yRatio,
+            String menuBoardImageUrl,
+            String department,
+            String location
     ) {
-        if (name != null && !name.isBlank()) {
-            this.name = name;
-        }
-        if (description != null) {
-            this.description = description;
-        }
-        if (locationLat != null) {
-            this.locationLat = locationLat;
-        }
-        if (locationLng != null) {
-            this.locationLng = locationLng;
-        }
-        if (imageUrl != null) {
-            this.imageUrl = imageUrl;
-        }
+        if (name != null && !name.isBlank()) this.name = name;
+        if (description != null) this.description = description;
+        if (xRatio != null) this.xRatio = xRatio;
+        if (yRatio != null) this.yRatio = yRatio;
+        if (menuBoardImageUrl != null) this.menuBoardImageUrl = menuBoardImageUrl;
+        if (department != null) this.department = department;
+        if (location != null) this.location = location;
     }
 
     public void increaseLike() {

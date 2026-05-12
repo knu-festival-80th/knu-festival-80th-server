@@ -18,6 +18,7 @@ public interface MatchingParticipantRepository extends JpaRepository<MatchingPar
     @Query("""
             SELECT p FROM MatchingParticipant p
             WHERE p.status = :status AND p.gender = :gender
+            ORDER BY p.createdAt ASC
             """)
     List<MatchingParticipant> findAllByStatusAndGenderForUpdate(
             @Param("status") MatchingParticipantStatus status,
