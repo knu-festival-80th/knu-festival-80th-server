@@ -1,7 +1,7 @@
 # 기능 명세서 (FS: Functional Specification)
 
 > **프로젝트**: 2026 경북대학교 80주년 대동제 웹앱 서비스 (백엔드)  
-> **버전**: v1.11.1
+> **버전**: v1.13
 > **최종 수정일**: 2026-05-13  
 > **목적**: 백엔드가 제공해야 할 API와 비즈니스 로직을 기능 단위로 정의한다.
 
@@ -24,6 +24,8 @@
 | v1.10 | 2026-05-13 | 3.9절 매칭 알고리즘 변경 — 성비 70% pause 폐기, 선착순 컷오프 + 교란 순열로 전환. 결과 응답 `matchedInstagramId` → `pickedInstagramId` (의미: "내가 뽑은 상대") | - |
 | v1.11 | 2026-05-13 | 3.8절 canvas API 경로 정정 — `/api/v1/canvas`·`/admin/v1/canvas` → `/canvas`·`/admin/canvas` (v1.5 root-prefix 컨벤션과 어긋난 누락분 정리) | - |
 | v1.11.1 | 2026-05-13 | BR-AUTH-03 표기 정정 — 옛 `/api/**` 잔존 표현 → `/admin/**` 외 (root-prefix 컨벤션) | - |
+| v1.12 | 2026-05-13 | 3.8절 BR-RP-09 추가 — Gemini AI 비동기 내용 검열 규칙 신설 | milk-stone |
+| v1.13 | 2026-05-13 | 3.8절 포스트잇 검열 상태 도입 — PENDING/APPROVED/REJECTED 흐름 반영, 생성 응답에 moderationStatus 추가, BR-RP-09 갱신 | milk-stone |
 
 ---
 
@@ -311,6 +313,7 @@
     "x": 37.42,
     "y": 62.15
   },
+  "moderationStatus": "PENDING",
   "createdAt": "2026-05-13T15:30:00"
 }
 ```
@@ -324,6 +327,7 @@
 - BR-RP-06: 서버는 보드 경계, 중앙 프레임 금지 영역(320×320 + 26px 패딩), 기존 포스트잇 충돌(AABB, collisionScale=0.4)을 검증하고 위반 시 저장 거부
 - BR-RP-07: 보드당 최대 포스트잇 수(`maxNoteCount`)는 보드 생성 시 설정 (기본값 100)
 - BR-RP-08: 부적절한 포스트잇 삭제는 SUPER_ADMIN만 가능 (소프트 딜리트)
+- BR-RP-09: 포스트잇은 생성 즉시 `PENDING` 상태로 저장되며 목록 조회에 노출되지 않는다. 트랜잭션 커밋 후 Gemini AI가 비동기로 검열하여 `APPROVED` 또는 `REJECTED`로 전환한다. `APPROVED`된 포스트잇만 목록 조회(`GET /canvas/postits`)에 반환된다. API 호출 실패 또는 판단 불가 시 `APPROVED`로 처리하여 과검열을 방지한다.
 
 ---
 

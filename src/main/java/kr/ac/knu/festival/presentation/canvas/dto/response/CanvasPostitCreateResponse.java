@@ -1,6 +1,7 @@
 package kr.ac.knu.festival.presentation.canvas.dto.response;
 
 import kr.ac.knu.festival.domain.canvas.entity.CanvasPostit;
+import kr.ac.knu.festival.domain.canvas.entity.ModerationStatus;
 
 import java.time.LocalDateTime;
 
@@ -11,6 +12,7 @@ public record CanvasPostitCreateResponse(
         int colorId,
         String message,
         Placement placement,
+        ModerationStatus moderationStatus,
         LocalDateTime createdAt
 ) {
     public record Placement(double x, double y) {}
@@ -23,6 +25,7 @@ public record CanvasPostitCreateResponse(
                 entity.getColorId(),
                 entity.getMessage(),
                 new Placement(entity.getPositionX(), entity.getPositionY()),
+                entity.getModerationStatus(),
                 entity.getCreatedAt()
         );
     }
