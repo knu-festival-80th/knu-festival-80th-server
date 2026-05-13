@@ -12,7 +12,7 @@ import org.springframework.http.ResponseEntity;
 
 import java.util.List;
 
-@Tag(name = "Canvas Query", description = "문항 목록 / 보드 목록 / 포스트잇 목록 조회")
+@Tag(name = "롤링페이퍼 Query", description = "문항 목록 / 보드 목록 / 포스트잇 목록 조회")
 public interface CanvasQueryControllerDocs {
 
     @Operation(summary = "문항 목록 조회", description = "롤링페이퍼 문항 전체를 orderIndex 순으로 반환합니다.")
