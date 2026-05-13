@@ -1,6 +1,7 @@
 package kr.ac.knu.festival.application.canvas;
 
 import kr.ac.knu.festival.domain.canvas.entity.CanvasBoard;
+import kr.ac.knu.festival.domain.canvas.entity.ModerationStatus;
 import kr.ac.knu.festival.domain.canvas.repository.CanvasBoardQuestionRepository;
 import kr.ac.knu.festival.domain.canvas.repository.CanvasBoardRepository;
 import kr.ac.knu.festival.domain.canvas.repository.CanvasPostitRepository;
@@ -53,7 +54,7 @@ public class CanvasQueryService {
     public List<CanvasPostitResponse> getPostits(Long boardId) {
         CanvasBoard board = canvasBoardRepository.findById(boardId)
                 .orElseThrow(() -> new BusinessException(BusinessErrorCode.CANVAS_BOARD_NOT_FOUND));
-        return canvasPostitRepository.findAllByBoardOrderByIdAsc(board)
+        return canvasPostitRepository.findAllByBoardAndModerationStatusOrderByIdAsc(board, ModerationStatus.APPROVED)
                 .stream()
                 .map(CanvasPostitResponse::fromEntity)
                 .toList();

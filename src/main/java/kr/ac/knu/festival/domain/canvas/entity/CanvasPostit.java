@@ -2,6 +2,8 @@ package kr.ac.knu.festival.domain.canvas.entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -56,6 +58,10 @@ public class CanvasPostit extends BaseTimeEntity {
     @Column(name = "position_y", nullable = false)
     private double positionY;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "moderation_status", nullable = false)
+    private ModerationStatus moderationStatus;
+
     @Column(name = "deleted_at")
     private LocalDateTime deletedAt;
 
@@ -72,7 +78,16 @@ public class CanvasPostit extends BaseTimeEntity {
                 .message(message)
                 .positionX(positionX)
                 .positionY(positionY)
+                .moderationStatus(ModerationStatus.PENDING)
                 .build();
+    }
+
+    public void approve() {
+        this.moderationStatus = ModerationStatus.APPROVED;
+    }
+
+    public void reject() {
+        this.moderationStatus = ModerationStatus.REJECTED;
     }
 
     public void adjustPosition(double x, double y) {

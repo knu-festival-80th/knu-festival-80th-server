@@ -21,9 +21,11 @@ public class CanvasModerationEventListener {
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handlePostitCreated(PostitCreatedEvent event) {
         try {
-            if (!geminiModerationClient.isAppropriate(event.message())) {
-                log.info("부적절한 포스트잇 삭제 (postitId={})", event.postitId());
-                canvasCommandService.deletePostit(event.postitId());
+            if (geminiModerationClient.isAppropriate(event.message())) {
+                canvasCommandService.approvePostit(event.postitId());
+            } else {
+                log.info("부적절한 포스트잇 거부 (postitId={})", event.postitId());
+                canvasCommandService.rejectPostit(event.postitId());
             }
         } catch (Exception e) {
             log.warn("포스트잇 검열 처리 중 오류 (postitId={}): {}", event.postitId(), e.getMessage());

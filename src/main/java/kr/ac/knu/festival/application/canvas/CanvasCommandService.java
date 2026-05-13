@@ -3,6 +3,7 @@ package kr.ac.knu.festival.application.canvas;
 import kr.ac.knu.festival.domain.canvas.entity.CanvasBoard;
 import kr.ac.knu.festival.domain.canvas.entity.CanvasBoardQuestion;
 import kr.ac.knu.festival.domain.canvas.entity.CanvasPostit;
+import kr.ac.knu.festival.domain.canvas.entity.ModerationStatus;
 import kr.ac.knu.festival.domain.canvas.entity.StickerMeta;
 import kr.ac.knu.festival.domain.canvas.event.PostitCreatedEvent;
 import kr.ac.knu.festival.domain.canvas.repository.CanvasBoardQuestionRepository;
@@ -42,7 +43,7 @@ public class CanvasCommandService {
         CanvasBoard board = canvasBoardRepository.findByIdForUpdate(request.boardId())
                 .orElseThrow(() -> new BusinessException(BusinessErrorCode.CANVAS_BOARD_NOT_FOUND));
 
-        if (canvasPostitRepository.countByBoard(board) >= board.getMaxNoteCount()) {
+        if (canvasPostitRepository.countByBoardAndModerationStatusNot(board, ModerationStatus.REJECTED) >= board.getMaxNoteCount()) {
             throw new BusinessException(BusinessErrorCode.CANVAS_BOARD_FULL);
         }
 
@@ -53,7 +54,7 @@ public class CanvasCommandService {
         validateBoardBoundary(x, y, meta);
         validateFrameArea(x, y, meta);
 
-        List<CanvasPostit> existingPostits = canvasPostitRepository.findAllByBoardOrderByIdAsc(board);
+        List<CanvasPostit> existingPostits = canvasPostitRepository.findAllByBoardAndModerationStatusNotOrderByIdAsc(board, ModerationStatus.REJECTED);
         validateNoCollision(x, y, meta, existingPostits);
 
         CanvasPostit postit = CanvasPostit.createCanvasPostit(board, request.colorId(), request.message(), x, y);
@@ -66,6 +67,18 @@ public class CanvasCommandService {
         CanvasBoardQuestion question = canvasBoardQuestionRepository.findById(questionId)
                 .orElseThrow(() -> new BusinessException(BusinessErrorCode.CANVAS_QUESTION_NOT_FOUND));
         return canvasBoardRepository.save(CanvasBoard.create(question, maxNoteCount)).getId();
+    }
+
+    public void approvePostit(Long postitId) {
+        CanvasPostit postit = canvasPostitRepository.findById(postitId)
+                .orElseThrow(() -> new BusinessException(BusinessErrorCode.CANVAS_POSTIT_NOT_FOUND));
+        postit.approve();
+    }
+
+    public void rejectPostit(Long postitId) {
+        CanvasPostit postit = canvasPostitRepository.findById(postitId)
+                .orElseThrow(() -> new BusinessException(BusinessErrorCode.CANVAS_POSTIT_NOT_FOUND));
+        postit.reject();
     }
 
     public void deletePostit(Long postitId) {
