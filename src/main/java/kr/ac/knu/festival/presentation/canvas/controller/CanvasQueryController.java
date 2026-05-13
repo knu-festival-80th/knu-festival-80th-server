@@ -17,7 +17,7 @@ import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/v1/canvas")
+@RequestMapping("/canvas")
 public class CanvasQueryController implements CanvasQueryControllerDocs {
 
     private final CanvasQueryService canvasQueryService;
