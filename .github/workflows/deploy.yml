@@ -25,6 +25,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       TZ: Asia/Seoul
+      SPRING_PROFILES_ACTIVE: ci
     steps:
     - uses: actions/checkout@v4
 
@@ -46,6 +47,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       TZ: Asia/Seoul
+      SPRING_PROFILES_ACTIVE: ci
     steps:
       - uses: actions/checkout@v4
 
