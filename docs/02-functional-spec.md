@@ -1,7 +1,7 @@
 # 기능 명세서 (FS: Functional Specification)
 
 > **프로젝트**: 2026 경북대학교 80주년 대동제 웹앱 서비스 (백엔드)  
-> **버전**: v1.10
+> **버전**: v1.11.1
 > **최종 수정일**: 2026-05-13  
 > **목적**: 백엔드가 제공해야 할 API와 비즈니스 로직을 기능 단위로 정의한다.
 
@@ -22,6 +22,8 @@
 | v1.8 | 2026-05-13 | 3.8절 canvas API 전면 개편 — 문항(Question) 기반 구조 도입, zone→board 전환, colorId/0~100 좌표계 반영 | milk-stone |
 | v1.9 | 2026-05-13 | 3.9절 matching(인스타팅) 전면 개편 — 일별 윈도우(매일 11–21 신청 / 22–익11 결과), phone 기반 인증, nationality·cancel 제거, applicants/count(성별 분리) 엔드포인트 신설 | - |
 | v1.10 | 2026-05-13 | 3.9절 매칭 알고리즘 변경 — 성비 70% pause 폐기, 선착순 컷오프 + 교란 순열로 전환. 결과 응답 `matchedInstagramId` → `pickedInstagramId` (의미: "내가 뽑은 상대") | - |
+| v1.11 | 2026-05-13 | 3.8절 canvas API 경로 정정 — `/api/v1/canvas`·`/admin/v1/canvas` → `/canvas`·`/admin/canvas` (v1.5 root-prefix 컨벤션과 어긋난 누락분 정리) | - |
+| v1.11.1 | 2026-05-13 | BR-AUTH-03 표기 정정 — 옛 `/api/**` 잔존 표현 → `/admin/**` 외 (root-prefix 컨벤션) | - |
 
 ---
 
@@ -277,12 +279,12 @@
 
 | Method | Endpoint | 설명 | 인증 |
 |--------|----------|------|------|
-| GET | `/api/v1/canvas/questions` | 문항 목록 전체 조회 | 불필요 |
-| GET | `/api/v1/canvas/boards?questionId={id}` | 문항별 보드 목록 조회 (포스트잇 수 포함) | 불필요 |
-| GET | `/api/v1/canvas/postits?boardId={id}` | 보드별 포스트잇 목록 조회 | 불필요 |
-| POST | `/api/v1/canvas/postits` | 포스트잇 생성 | 불필요 |
-| POST | `/admin/v1/canvas/boards` | 보드 추가 | 슈퍼 관리자 |
-| DELETE | `/admin/v1/canvas/postits/{postit-id}` | 포스트잇 삭제 | 슈퍼 관리자 |
+| GET | `/canvas/questions` | 문항 목록 전체 조회 | 불필요 |
+| GET | `/canvas/boards?questionId={id}` | 문항별 보드 목록 조회 (포스트잇 수 포함) | 불필요 |
+| GET | `/canvas/postits?boardId={id}` | 보드별 포스트잇 목록 조회 | 불필요 |
+| POST | `/canvas/postits` | 포스트잇 생성 | 불필요 |
+| POST | `/admin/canvas/boards` | 보드 추가 | 슈퍼 관리자 |
+| DELETE | `/admin/canvas/postits/{postit-id}` | 포스트잇 삭제 | 슈퍼 관리자 |
 
 **포스트잇 생성 요청**
 ```json
@@ -480,7 +482,7 @@
 **비즈니스 규칙**
 - BR-AUTH-01: 세션 기반 인증 — 로그인 시 서버가 JSESSIONID 쿠키 발급, 프론트는 `credentials: 'include'` 만 세팅
 - BR-AUTH-02: `/admin/**` 엔드포인트는 유효한 세션 필수
-- BR-AUTH-03: `/api/**` 엔드포인트는 인증 불필요 (공개 API)
+- BR-AUTH-03: `/admin/**` 외 엔드포인트는 인증 불필요 (공개 API)
 - BR-AUTH-04: 관리자 역할: `SUPER_ADMIN` (환경변수 마스터 비밀번호) / `BOOTH_ADMIN` (부스별 비밀번호)
 - BR-AUTH-05: BOOTH_ADMIN은 자기 부스의 메뉴·대기열만 관리 가능 (소유권 검증)
 - BR-AUTH-06: 로그인 실패 시 Rate Limiting 적용 (brute force 방지, 후속 과제)
