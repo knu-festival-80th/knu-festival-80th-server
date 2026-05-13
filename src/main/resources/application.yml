@@ -50,6 +50,11 @@ solapi:
 admin:
   master-password: ${ADMIN_MASTER_PASSWORD}
 
+gemini:
+  api-key: ${GEMINI_API_KEY:}
+  model: ${GEMINI_MODEL:gemini-2.0-flash}
+  moderation-prompt: ${GEMINI_MODERATION_PROMPT:}
+
 app:
   # 외부에 노출되는 베이스 URL. DB의 상대 경로를 완전한 URL로 만들 때 prefix 로 쓴다.
   # - 로컬 dev: http://localhost:8080

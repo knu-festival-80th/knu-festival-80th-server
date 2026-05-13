@@ -4,6 +4,7 @@ import kr.ac.knu.festival.domain.canvas.entity.CanvasBoard;
 import kr.ac.knu.festival.domain.canvas.entity.CanvasBoardQuestion;
 import kr.ac.knu.festival.domain.canvas.entity.CanvasPostit;
 import kr.ac.knu.festival.domain.canvas.entity.StickerMeta;
+import kr.ac.knu.festival.domain.canvas.event.PostitCreatedEvent;
 import kr.ac.knu.festival.domain.canvas.repository.CanvasBoardQuestionRepository;
 import kr.ac.knu.festival.domain.canvas.repository.CanvasBoardRepository;
 import kr.ac.knu.festival.domain.canvas.repository.CanvasPostitRepository;
@@ -12,6 +13,7 @@ import kr.ac.knu.festival.global.exception.BusinessException;
 import kr.ac.knu.festival.presentation.canvas.dto.request.CanvasPostitCreateRequest;
 import kr.ac.knu.festival.presentation.canvas.dto.response.CanvasPostitCreateResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -34,6 +36,7 @@ public class CanvasCommandService {
     private final CanvasBoardQuestionRepository canvasBoardQuestionRepository;
     private final CanvasBoardRepository canvasBoardRepository;
     private final CanvasPostitRepository canvasPostitRepository;
+    private final ApplicationEventPublisher eventPublisher;
 
     public CanvasPostitCreateResponse createPostit(CanvasPostitCreateRequest request) {
         CanvasBoard board = canvasBoardRepository.findByIdForUpdate(request.boardId())
@@ -55,6 +58,7 @@ public class CanvasCommandService {
 
         CanvasPostit postit = CanvasPostit.createCanvasPostit(board, request.colorId(), request.message(), x, y);
         canvasPostitRepository.save(postit);
+        eventPublisher.publishEvent(new PostitCreatedEvent(postit.getId(), postit.getMessage()));
         return CanvasPostitCreateResponse.fromEntity(postit);
     }
 
