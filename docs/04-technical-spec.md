@@ -420,7 +420,7 @@ SessionAuthFilter (HttpSession 확인)
 
 - 포스트잇 생성 트랜잭션 커밋 후 `AFTER_COMMIT` 이벤트 리스너가 비동기(`geminiExecutor` 스레드풀)로 Gemini API 호출
 - 엔드포인트: `POST https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent`
-- 응답 `REJECT` 판정 시 소프트 딜리트, `APPROVE` 또는 API 오류 시 통과 (fail-open)
+- 판정 결과에 따라 상태 전환: `APPROVE` → `APPROVED`, `REJECT` → `REJECTED`. API 오류 시 `APPROVED`로 처리 (fail-open)
 - 설정 키: `gemini.api-key`, `gemini.model` (기본 `gemini-2.0-flash`), `gemini.moderation-prompt`
 - 스레드풀: core 2 / max 4 / queue 200 (`geminiExecutor`)
 
