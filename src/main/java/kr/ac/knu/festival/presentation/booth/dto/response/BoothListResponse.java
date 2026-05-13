@@ -8,7 +8,6 @@ import java.math.BigDecimal;
 public record BoothListResponse(
         Long boothId,
         String name,
-        String description,
         BigDecimal xRatio,
         BigDecimal yRatio,
         int likeCount,
@@ -31,7 +30,6 @@ public record BoothListResponse(
         return new BoothListResponse(
                 booth.getId(),
                 booth.getName(),
-                booth.getDescription(),
                 booth.getXRatio(),
                 booth.getYRatio(),
                 likeCount,

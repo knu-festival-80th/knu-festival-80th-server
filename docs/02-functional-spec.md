@@ -1,8 +1,8 @@
 # 기능 명세서 (FS: Functional Specification)
 
 > **프로젝트**: 2026 경북대학교 80주년 대동제 웹앱 서비스 (백엔드)  
-> **버전**: v1.6  
-> **최종 수정일**: 2026-05-11  
+> **버전**: v1.8
+> **최종 수정일**: 2026-05-13  
 > **목적**: 백엔드가 제공해야 할 API와 비즈니스 로직을 기능 단위로 정의한다.
 
 ---
@@ -18,6 +18,8 @@
 | v1.4 | 2026-05-03 | 관리자 API 경로를 권한 단위로 분리: 슈퍼 전용은 `/admin/v1/super/**`, 슈퍼+부스 공통은 `/admin/v1/booth/**`. 구현된 booth/menu/waiting 엔드포인트 경로 갱신, SecurityConfig path 매처 추가 (※ v1.5 에서 root 기준으로 다시 통합) | - |
 | v1.5 | 2026-05-03 | 배포 환경 ingress(`/festival/api` strip)에 맞춰 모든 API 경로를 root 기준으로 재매핑. `/api/v1/`·`/admin/v1/` prefix 제거, super/booth path 분리도 단일 `/admin/` 으로 통합(슈퍼 전용은 HTTP 메서드+path 조합으로 SecurityConfig 에서 분기). 미구현 엔드포인트 path 표기도 동일 컨벤션으로 정정 | - |
 | v1.6 | 2026-05-11 | 솔라피 알림톡 연동, 자동스킵 10분, 예약 제한(전체 3건+이름 검증), 입장확정 시 타부스 자동취소, 내 예약 전체 조회 API 추가 | lsmin3388 |
+| v1.7 | 2026-05-12 | canvas(롤링페이퍼) 도메인 기능 명세 추가 — REST API 기반 포스트잇 보드로 재설계 (WebSocket 제거) | milk-stone |
+| v1.8 | 2026-05-13 | 3.8절 canvas API 전면 개편 — 문항(Question) 기반 구조 도입, zone→board 전환, colorId/0~100 좌표계 반영 | milk-stone |
 
 ---
 
@@ -264,29 +266,60 @@
 
 ### 3.8 롤링페이퍼 캔버스 (canvas)
 
-#### FS-USR-03: 실시간 캔버스
+#### FS-USR-03: 포스트잇 보드
+
+> 방문자가 고정 문항 5개 중 하나를 선택하고, 해당 문항의 보드를 탐색하여 포스트잇을 붙이는 참여형 방명록 기능이다.  
+> 인증 불필요. 문항당 보드 20개가 서버 시작 시 사전 생성되며(총 100개), 사용자는 원하는 보드를 골라 포스트잇을 작성한다.
 
 **API 목록**
 
 | Method | Endpoint | 설명 | 인증 |
 |--------|----------|------|------|
-| GET | `/canvas/elements` | 캔버스 요소 조회 (Viewport 기반) | 불필요 |
-| POST | `/canvas/elements` | 캔버스 요소 저장 (WebSocket 불가 시 fallback) | 불필요 |
-| WS | `/ws/canvas` | 실시간 드로잉 데이터 송수신 | 불필요 |
+| GET | `/api/v1/canvas/questions` | 문항 목록 전체 조회 | 불필요 |
+| GET | `/api/v1/canvas/boards?questionId={id}` | 문항별 보드 목록 조회 (포스트잇 수 포함) | 불필요 |
+| GET | `/api/v1/canvas/postits?boardId={id}` | 보드별 포스트잇 목록 조회 | 불필요 |
+| POST | `/api/v1/canvas/postits` | 포스트잇 생성 | 불필요 |
+| POST | `/admin/v1/canvas/boards` | 보드 추가 | 슈퍼 관리자 |
+| DELETE | `/admin/v1/canvas/postits/{postit-id}` | 포스트잇 삭제 | 슈퍼 관리자 |
 
-**Query Parameters** (GET 캔버스 요소)
-- `x`, `y`, `width`, `height` — Viewport 좌표 범위
+**포스트잇 생성 요청**
+```json
+{
+  "boardId": 1,
+  "colorId": 3,
+  "message": "축제 너무 좋아요!",
+  "placement": {
+    "x": 37.42,
+    "y": 62.15
+  }
+}
+```
 
-**WebSocket 메시지 타입**
-- `DRAW`: 드로잉 좌표 데이터 전송
-- `TEXT`: 텍스트 메시지 작성
-- `STICKER`: 스티커 배치
+**포스트잇 생성 응답**
+```json
+{
+  "canvasPostitId": 51,
+  "boardId": 1,
+  "boardVariant": 3,
+  "colorId": 3,
+  "message": "축제 너무 좋아요!",
+  "placement": {
+    "x": 37.42,
+    "y": 62.15
+  },
+  "createdAt": "2026-05-13T15:30:00"
+}
+```
 
 **비즈니스 규칙**
-- BR-CANVAS-01: 스티커 개수는 세션당 제한 (구체적 수치 TBD, 세션 토큰으로 식별)
-- BR-CANVAS-02: Viewport 기반으로 필요한 영역의 데이터만 전송
-- BR-CANVAS-03: 드로잉 데이터는 인메모리 버퍼 후 주기적 DB 저장 (쓰기 폭풍 방지)
-- BR-CANVAS-04: WebSocket 재연결 시 현재 Viewport의 최신 상태를 REST API로 복구
+- BR-RP-01: 포스트잇 생성 시 인증 불필요 (공개 API)
+- BR-RP-02: 메시지 최대 60자, 초과 시 400 반환
+- BR-RP-03: 문항 5개는 서버 시작 시 고정값으로 시드 생성 (어드민 수정 불가)
+- BR-RP-04: `colorId`는 1~6 (1:red, 2:yellow, 3:green, 4:blue, 5:purple, 6:pink)
+- BR-RP-05: 좌표 `x`, `y`는 보드 기준 0~100 상대좌표 (스티커 중심점). 보드 논리 크기 852×852px
+- BR-RP-06: 서버는 보드 경계, 중앙 프레임 금지 영역(320×320 + 26px 패딩), 기존 포스트잇 충돌(AABB, collisionScale=0.4)을 검증하고 위반 시 저장 거부
+- BR-RP-07: 보드당 최대 포스트잇 수(`maxNoteCount`)는 보드 생성 시 설정 (기본값 100)
+- BR-RP-08: 부적절한 포스트잇 삭제는 SUPER_ADMIN만 가능 (소프트 딜리트)
 
 ---
 

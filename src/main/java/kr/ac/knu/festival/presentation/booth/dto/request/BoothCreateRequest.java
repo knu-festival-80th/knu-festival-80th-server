@@ -9,7 +9,6 @@ import java.math.BigDecimal;
 
 public record BoothCreateRequest(
         @NotBlank @Size(max = 100) String name,
-        String description,
         @DecimalMin("0.0") @DecimalMax("1.0") BigDecimal xRatio,
         @DecimalMin("0.0") @DecimalMax("1.0") BigDecimal yRatio,
         @Size(max = 500) String menuBoardImageUrl,
