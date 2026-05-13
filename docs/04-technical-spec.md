@@ -1,7 +1,7 @@
 # 기술/개발 명세서 (TS)
 
 > **프로젝트**: 2026 경북대학교 80주년 대동제 웹앱 서비스 (백엔드)  
-> **버전**: v1.6
+> **버전**: v1.6.1
 > **최종 수정일**: 2026-05-13  
 > **목적**: Verification 기준 문서 — "구현이 명세를 충족하는가?"
 
@@ -18,6 +18,7 @@
 | v1.4 | 2026-05-05 | canvas(롤링페이퍼) DB 스키마 추가 — canvas_postit 테이블로 교체 (섹션 3.8) | milk-stone |
 | v1.5 | 2026-05-13 | 3.8절 canvas 스키마 전면 개편 — canvas_board_question/canvas_board 테이블 추가, canvas_postit 스키마 변경 / 6절 canvas WebSocket 제거 (REST로 전환 완료) | milk-stone |
 | v1.6 | 2026-05-13 | 3.9절 matching 스키마 개편 — surrogate PK 도입, `(instagram_id, festival_day)` 복합 유니크, password 컬럼 제거 후 `phone_lookup_hash`+`phone_encrypted` 도입, nationality 컬럼 제거, CANCELLED 상태 제거 | - |
+| v1.6.1 | 2026-05-13 | SessionAuthFilter 다이어그램 표기 정정 — 옛 `/api/**` → `/admin/**` 외 (root-prefix 컨벤션) | - |
 
 ---
 
@@ -361,7 +362,7 @@ CREATE TABLE photo_asset (
     ▼
 SessionAuthFilter (HttpSession 확인)
     │
-    ├── /api/** → 통과 (인증 불필요, 세션 생성 안 함)
+    ├── /admin/** 외 → 통과 (인증 불필요, 세션 생성 안 함)
     │
     └── /admin/** → 세션에서 AdminInfo 확인
             │
