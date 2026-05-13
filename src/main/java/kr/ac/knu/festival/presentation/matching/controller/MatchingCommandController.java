@@ -6,7 +6,6 @@ import kr.ac.knu.festival.global.auth.AdminInfo;
 import kr.ac.knu.festival.global.auth.CurrentAdmin;
 import kr.ac.knu.festival.global.response.ApiResponse;
 import kr.ac.knu.festival.presentation.matching.controller.docs.MatchingCommandControllerDocs;
-import kr.ac.knu.festival.presentation.matching.dto.request.MatchingAuthRequest;
 import kr.ac.knu.festival.presentation.matching.dto.request.MatchingCreateRequest;
 import kr.ac.knu.festival.presentation.matching.dto.request.MatchingStatusUpdateRequest;
 import kr.ac.knu.festival.presentation.matching.dto.response.MatchingJobResponse;
@@ -35,15 +34,6 @@ public class MatchingCommandController implements MatchingCommandControllerDocs 
     ) {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponse.success(matchingCommandService.register(request)));
-    }
-
-    @Override
-    @PostMapping("/matchings/cancel")
-    public ResponseEntity<ApiResponse<Void>> cancel(
-            @RequestBody @Valid MatchingAuthRequest request
-    ) {
-        matchingCommandService.cancel(request);
-        return ResponseEntity.ok(ApiResponse.success());
     }
 
     @Override

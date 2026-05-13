@@ -9,24 +9,37 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import jakarta.persistence.LockModeType;
+import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
-public interface MatchingParticipantRepository extends JpaRepository<MatchingParticipant, String> {
+public interface MatchingParticipantRepository extends JpaRepository<MatchingParticipant, Long> {
 
-    // 일괄 매칭은 PENDING 참가자를 상태 변경하므로 트랜잭션 안에서 SELECT FOR UPDATE로 직렬화한다.
+    boolean existsByInstagramIdAndFestivalDay(String instagramId, LocalDate festivalDay);
+
+    Optional<MatchingParticipant> findByInstagramIdAndFestivalDay(String instagramId, LocalDate festivalDay);
+
+    // 자동 스케줄러와 관리자 수동 실행이 겹쳐도 같은 참가자를 두 번 매칭하지 않도록 행 락을 잡는다.
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("""
             SELECT p FROM MatchingParticipant p
-            WHERE p.status = :status AND p.gender = :gender
+            WHERE p.festivalDay = :festivalDay
+              AND p.status = :status
+              AND p.gender = :gender
             """)
-    List<MatchingParticipant> findAllByStatusAndGenderForUpdate(
+    List<MatchingParticipant> findAllByDayAndStatusAndGenderForUpdate(
+            @Param("festivalDay") LocalDate festivalDay,
             @Param("status") MatchingParticipantStatus status,
             @Param("gender") MatchingGender gender
     );
 
-    List<MatchingParticipant> findAllByStatus(MatchingParticipantStatus status);
+    List<MatchingParticipant> findAllByFestivalDayAndStatus(LocalDate festivalDay, MatchingParticipantStatus status);
 
-    long countByStatus(MatchingParticipantStatus status);
+    long countByFestivalDayAndStatus(LocalDate festivalDay, MatchingParticipantStatus status);
 
-    long countByStatusAndGender(MatchingParticipantStatus status, MatchingGender gender);
+    long countByFestivalDayAndStatusAndGender(
+            LocalDate festivalDay,
+            MatchingParticipantStatus status,
+            MatchingGender gender
+    );
 }

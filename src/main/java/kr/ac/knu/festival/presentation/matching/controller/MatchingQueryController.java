@@ -6,6 +6,7 @@ import kr.ac.knu.festival.application.matching.MatchingQueryService;
 import kr.ac.knu.festival.global.response.ApiResponse;
 import kr.ac.knu.festival.presentation.matching.controller.docs.MatchingQueryControllerDocs;
 import kr.ac.knu.festival.presentation.matching.dto.request.MatchingAuthRequest;
+import kr.ac.knu.festival.presentation.matching.dto.response.MatchingApplicantsCountResponse;
 import kr.ac.knu.festival.presentation.matching.dto.response.MatchingResultResponse;
 import kr.ac.knu.festival.presentation.matching.dto.response.MatchingStatusResponse;
 import kr.ac.knu.festival.presentation.matching.dto.response.UnmatchedParticipantsResponse;
@@ -37,6 +38,12 @@ public class MatchingQueryController implements MatchingQueryControllerDocs {
     @GetMapping("/matchings/status")
     public ResponseEntity<ApiResponse<MatchingStatusResponse>> getStatus() {
         return ResponseEntity.ok(ApiResponse.success(matchingQueryService.getStatus()));
+    }
+
+    @Override
+    @GetMapping("/matchings/applicants/count")
+    public ResponseEntity<ApiResponse<MatchingApplicantsCountResponse>> getApplicantsCount() {
+        return ResponseEntity.ok(ApiResponse.success(matchingQueryService.getApplicantsCount()));
     }
 
     @Override

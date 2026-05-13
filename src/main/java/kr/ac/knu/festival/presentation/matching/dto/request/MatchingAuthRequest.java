@@ -11,7 +11,7 @@ public record MatchingAuthRequest(
         String instagramId,
 
         @NotBlank
-        @Size(min = 4, max = 100)
-        String password
+        @Pattern(regexp = "^01[0-9]{8,9}$", message = "연락처 형식이 올바르지 않습니다.")
+        String phoneNumber
 ) {
 }
