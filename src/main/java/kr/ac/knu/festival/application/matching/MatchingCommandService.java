@@ -9,109 +9,93 @@ import kr.ac.knu.festival.domain.matching.repository.MatchingParticipantReposito
 import kr.ac.knu.festival.domain.matching.repository.MatchingServiceStateRepository;
 import kr.ac.knu.festival.global.exception.BusinessErrorCode;
 import kr.ac.knu.festival.global.exception.BusinessException;
-import kr.ac.knu.festival.presentation.matching.dto.request.MatchingAuthRequest;
+import kr.ac.knu.festival.infra.security.PhoneLookupHasher;
+import kr.ac.knu.festival.infra.security.PhoneNumberEncryptor;
 import kr.ac.knu.festival.presentation.matching.dto.request.MatchingCreateRequest;
 import kr.ac.knu.festival.presentation.matching.dto.request.MatchingStatusUpdateRequest;
 import kr.ac.knu.festival.presentation.matching.dto.response.MatchingJobResponse;
 import kr.ac.knu.festival.presentation.matching.dto.response.MatchingRegisterResponse;
 import kr.ac.knu.festival.presentation.matching.dto.response.MatchingStatusResponse;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Collections;
+import java.time.LocalDate;
 import java.util.List;
+import java.util.Random;
 
 @Service
 @RequiredArgsConstructor
 @Transactional
 public class MatchingCommandService {
 
-    private static final String DEFAULT_NATIONALITY = "KR";
-
     private final MatchingParticipantRepository matchingParticipantRepository;
     private final MatchingServiceStateRepository matchingServiceStateRepository;
-    private final PasswordEncoder passwordEncoder;
+    private final PhoneLookupHasher phoneLookupHasher;
+    private final PhoneNumberEncryptor phoneNumberEncryptor;
     private final MatchingScheduleProperties matchingScheduleProperties;
     private final MatchingRealtimeCache matchingRealtimeCache;
 
     public MatchingRegisterResponse register(MatchingCreateRequest request) {
         MatchingServiceState state = getOrCreateState();
-        if (state.getStatus() != MatchingOperationStatus.OPEN || !matchingScheduleProperties.isRegistrationOpen()) {
+        LocalDate festivalDay = matchingScheduleProperties.currentRegistrationDay()
+                .orElseThrow(() -> new BusinessException(BusinessErrorCode.MATCHING_REGISTRATION_CLOSED));
+        if (state.getStatus() != MatchingOperationStatus.OPEN) {
             throw new BusinessException(BusinessErrorCode.MATCHING_REGISTRATION_CLOSED);
         }
 
         String instagramId = MatchingParticipant.normalizeInstagramId(request.instagramId());
-        if (matchingParticipantRepository.existsById(instagramId)) {
+        if (matchingParticipantRepository.existsByInstagramIdAndFestivalDay(instagramId, festivalDay)) {
             throw new BusinessException(BusinessErrorCode.MATCHING_DUPLICATE_REGISTRATION);
         }
 
+        String normalizedPhone = normalizePhone(request.phoneNumber());
         MatchingParticipant participant = MatchingParticipant.create(
                 instagramId,
+                festivalDay,
                 request.gender(),
-                // 결과 조회/취소에 쓰는 비밀번호는 원문 저장 금지. BCrypt 해시만 DB에 남긴다.
-                passwordEncoder.encode(request.password()),
-                normalizeNationality(request.nationality())
+                phoneLookupHasher.hash(normalizedPhone),
+                phoneNumberEncryptor.encrypt(normalizedPhone)
         );
         MatchingParticipant saved = matchingParticipantRepository.save(participant);
         matchingRealtimeCache.cacheParticipantResult(saved);
-        refreshRealtimeStatus(state);
+        refreshRealtimeStatus(state, festivalDay);
         return MatchingRegisterResponse.fromEntity(
                 saved,
-                matchingScheduleProperties.registrationDeadline().toString(),
-                matchingScheduleProperties.resultOpenAt().toString()
+                matchingScheduleProperties.upcomingRegistrationDeadlineIso(),
+                matchingScheduleProperties.upcomingResultOpenIso()
         );
     }
 
-    public void cancel(MatchingAuthRequest request) {
-        MatchingParticipant participant = authenticate(request);
-        if (participant.getStatus() == MatchingParticipantStatus.MATCHED) {
-            throw new BusinessException(BusinessErrorCode.MATCHING_ALREADY_MATCHED);
-        }
-        participant.cancel();
-        matchingRealtimeCache.cacheParticipantResult(participant);
-        refreshRealtimeStatus(getOrCreateState());
+    public MatchingJobResponse runMatchingJob() {
+        LocalDate targetDay = matchingScheduleProperties.dayPendingMatching()
+                .or(matchingScheduleProperties::currentResultDay)
+                .orElseThrow(() -> new BusinessException(BusinessErrorCode.MATCHING_REGISTRATION_CLOSED));
+        return runMatchingJobFor(targetDay);
     }
 
-    public MatchingJobResponse runMatchingJob() {
-        // Time Drop 실행 중 같은 PENDING 참가자가 중복 매칭되지 않도록 성별별 행 락을 잡는다.
-        // 자동 스케줄러와 관리자 수동 실행이 겹쳐도 한 트랜잭션만 같은 참가자를 처리하게 하기 위한 선택이다.
-        List<MatchingParticipant> males = matchingParticipantRepository.findAllByStatusAndGenderForUpdate(
-                MatchingParticipantStatus.PENDING, MatchingGender.MALE);
-        List<MatchingParticipant> females = matchingParticipantRepository.findAllByStatusAndGenderForUpdate(
-                MatchingParticipantStatus.PENDING, MatchingGender.FEMALE);
+    public MatchingJobResponse runMatchingJobFor(LocalDate festivalDay) {
+        List<MatchingParticipant> males = matchingParticipantRepository.findAllByDayAndStatusAndGenderForUpdate(
+                festivalDay, MatchingParticipantStatus.PENDING, MatchingGender.MALE);
+        List<MatchingParticipant> females = matchingParticipantRepository.findAllByDayAndStatusAndGenderForUpdate(
+                festivalDay, MatchingParticipantStatus.PENDING, MatchingGender.FEMALE);
 
-        // 명세상 성별 한쪽이 70% 이상이면 매칭을 멈추고 상태 API로 안내 메시지를 노출한다.
-        if (pauseWhenGenderImbalanced(males.size(), females.size())) {
-            return new MatchingJobResponse(0, males.size() + females.size());
+        MatchingPairing.Result result = new MatchingPairing(new Random()).pair(males, females);
+
+        for (MatchingPairing.MatchedPair pair : result.matched()) {
+            pair.picker().matchWith(pair.picked().getInstagramId());
+            matchingRealtimeCache.cacheParticipantResult(pair.picker());
+        }
+        for (MatchingParticipant participant : result.unmatched()) {
+            participant.markUnmatched();
+            matchingRealtimeCache.cacheParticipantResult(participant);
         }
 
-        Collections.shuffle(males);
-        Collections.shuffle(females);
-
-        int pairCount = Math.min(males.size(), females.size());
-        for (int i = 0; i < pairCount; i++) {
-            MatchingParticipant male = males.get(i);
-            MatchingParticipant female = females.get(i);
-            male.matchWith(female.getInstagramId());
-            female.matchWith(male.getInstagramId());
-            matchingRealtimeCache.cacheParticipantResult(male);
-            matchingRealtimeCache.cacheParticipantResult(female);
-        }
-
-        // 남녀 수가 맞지 않아 남은 참가자는 공개 목록 API에서 조회할 수 있도록 UNMATCHED로 전환한다.
-        for (int i = pairCount; i < males.size(); i++) {
-            males.get(i).markUnmatched();
-            matchingRealtimeCache.cacheParticipantResult(males.get(i));
-        }
-        for (int i = pairCount; i < females.size(); i++) {
-            females.get(i).markUnmatched();
-            matchingRealtimeCache.cacheParticipantResult(females.get(i));
-        }
-
-        refreshRealtimeStatus(getOrCreateState());
-        return new MatchingJobResponse(pairCount, males.size() + females.size() - pairCount * 2);
+        refreshRealtimeStatus(getOrCreateState(), festivalDay);
+        int pickerCount = result.matched().size();
+        // picker 행은 남녀 각각 잡으므로 실제 사람 수는 pickerCount/2 (단, N=1 fallback 도 동일하게 2건).
+        int matchedPersonCount = pickerCount / 2;
+        return new MatchingJobResponse(matchedPersonCount, result.unmatched().size());
     }
 
     public MatchingStatusResponse updateStatus(MatchingStatusUpdateRequest request) {
@@ -121,49 +105,19 @@ public class MatchingCommandService {
                 defaultMessageKo(request.status(), request.messageKo()),
                 defaultMessageEn(request.status(), request.messageEn())
         );
-        return refreshRealtimeStatus(state);
-    }
-
-    private MatchingParticipant authenticate(MatchingAuthRequest request) {
-        MatchingParticipant participant = matchingParticipantRepository.findById(MatchingParticipant.normalizeInstagramId(request.instagramId()))
-                .orElseThrow(() -> new BusinessException(BusinessErrorCode.RESOURCE_NOT_FOUND));
-        if (!passwordEncoder.matches(request.password(), participant.getPassword())) {
-            throw new BusinessException(BusinessErrorCode.UNAUTHORIZED_USER);
-        }
-        return participant;
+        LocalDate day = matchingScheduleProperties.currentRegistrationDay()
+                .or(matchingScheduleProperties::currentResultDay)
+                .orElse(null);
+        return refreshRealtimeStatus(state, day);
     }
 
     private MatchingServiceState getOrCreateState() {
-        // 운영 상태는 전역 값 하나만 필요하므로 state_id=1 단일 행으로 관리한다.
         return matchingServiceStateRepository.findById(MatchingServiceState.SINGLETON_ID)
                 .orElseGet(() -> matchingServiceStateRepository.save(MatchingServiceState.defaultOpen()));
     }
 
-    private boolean pauseWhenGenderImbalanced(int maleCount, int femaleCount) {
-        int total = maleCount + femaleCount;
-        if (total == 0) {
-            return false;
-        }
-        // 70% 이상 쏠린 상태에서 억지로 매칭하면 한쪽의 미매칭 경험이 커지므로 운영 상태를 PAUSED로 바꾼다.
-        if ((double) Math.max(maleCount, femaleCount) / total >= 0.7) {
-            MatchingServiceState state = getOrCreateState();
-            state.changeStatus(
-                    MatchingOperationStatus.PAUSED,
-                    "성별 비율 불균형으로 매칭이 일시중단되었습니다.",
-                    "Matching is paused because the gender ratio is imbalanced."
-            );
-            refreshRealtimeStatus(state);
-            return true;
-        }
-        return false;
-    }
-
-    private String normalizeNationality(String nationality) {
-        if (nationality == null || nationality.isBlank()) {
-            return DEFAULT_NATIONALITY;
-        }
-        // 국적 코드는 화면 언어 분기 등에 재사용하기 쉽도록 대문자 코드로 맞춘다.
-        return nationality.trim().toUpperCase();
+    private String normalizePhone(String phoneNumber) {
+        return phoneNumber == null ? null : phoneNumber.replaceAll("\\D", "");
     }
 
     private String defaultMessageKo(MatchingOperationStatus status, String message) {
@@ -180,22 +134,26 @@ public class MatchingCommandService {
         return status == MatchingOperationStatus.OPEN ? "Matching is open." : "Matching is paused.";
     }
 
-    private MatchingStatusResponse refreshRealtimeStatus(MatchingServiceState state) {
-        // 상태 API는 프론트가 자주 폴링할 수 있으므로, DB 상태를 계산한 직후 Redis 캐시도 같이 갱신한다.
-        long pendingCount = matchingParticipantRepository.countByStatus(MatchingParticipantStatus.PENDING);
-        long matchedCount = matchingParticipantRepository.countByStatus(MatchingParticipantStatus.MATCHED);
-        long unmatchedCount = matchingParticipantRepository.countByStatus(MatchingParticipantStatus.UNMATCHED);
+    private MatchingStatusResponse refreshRealtimeStatus(MatchingServiceState state, LocalDate day) {
+        long pending = day == null ? 0 : matchingParticipantRepository.countByFestivalDayAndStatus(day, MatchingParticipantStatus.PENDING);
+        long matched = day == null ? 0 : matchingParticipantRepository.countByFestivalDayAndStatus(day, MatchingParticipantStatus.MATCHED);
+        long unmatched = day == null ? 0 : matchingParticipantRepository.countByFestivalDayAndStatus(day, MatchingParticipantStatus.UNMATCHED);
+        long malePending = day == null ? 0 : matchingParticipantRepository.countByFestivalDayAndStatusAndGender(day, MatchingParticipantStatus.PENDING, MatchingGender.MALE);
+        long femalePending = day == null ? 0 : matchingParticipantRepository.countByFestivalDayAndStatusAndGender(day, MatchingParticipantStatus.PENDING, MatchingGender.FEMALE);
+
         MatchingStatusResponse response = MatchingStatusResponse.of(
                 state,
                 state.getStatus() == MatchingOperationStatus.OPEN && matchingScheduleProperties.isRegistrationOpen(),
                 matchingScheduleProperties.isResultOpen(),
-                matchingScheduleProperties.registrationDeadline().toString(),
-                matchingScheduleProperties.resultOpenAt().toString(),
-                pendingCount,
-                matchedCount,
-                unmatchedCount
+                matchingScheduleProperties.upcomingRegistrationDeadlineIso(),
+                matchingScheduleProperties.upcomingResultOpenIso(),
+                pending,
+                matched,
+                unmatched,
+                malePending,
+                femalePending
         );
-        matchingRealtimeCache.cacheStatus(state, matchingScheduleProperties, pendingCount, matchedCount, unmatchedCount);
+        matchingRealtimeCache.cacheStatus(state, matchingScheduleProperties, pending, matched, unmatched, malePending, femalePending);
         return response;
     }
 }

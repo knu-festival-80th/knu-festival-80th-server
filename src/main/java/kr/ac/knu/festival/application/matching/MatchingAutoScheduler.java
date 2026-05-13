@@ -8,6 +8,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
+import java.time.LocalDate;
+import java.util.Optional;
+
 @Slf4j
 @Component
 @RequiredArgsConstructor
@@ -18,26 +21,22 @@ public class MatchingAutoScheduler {
     private final MatchingCommandService matchingCommandService;
 
     @Scheduled(fixedDelayString = "${matching.auto-job-delay-ms:60000}")
-    public void runAfterRegistrationDeadline() {
-        // 현재 기본 정책은 2026-05-20 21:00(KST) 신청 마감, 22:00(KST) 결과 공개다.
-        // 시간은 추후 matching.registration-deadline / matching.result-open-at 환경값으로 바꾸면 된다.
-        // 21~22시 사이에 서버가 재시작될 수 있으므로, 한 번만 실행하지 않고 주기적으로 PENDING 여부를 확인한다.
-        if (!matchingScheduleProperties.isRegistrationClosed()) {
+    public void runDuringMatchingWindow() {
+        // 21:00~22:00 사이에 한정. 서버 재시작 대비해 한 번이 아니라 주기적으로 확인한다.
+        Optional<LocalDate> dayOpt = matchingScheduleProperties.dayPendingMatching();
+        if (dayOpt.isEmpty()) {
+            return;
+        }
+        LocalDate day = dayOpt.get();
+        long pending = matchingParticipantRepository.countByFestivalDayAndStatus(day, MatchingParticipantStatus.PENDING);
+        if (pending == 0) {
             return;
         }
 
-        long pendingCount = matchingParticipantRepository.countByStatus(MatchingParticipantStatus.PENDING);
-        if (pendingCount == 0) {
-            return;
-        }
-
-        // runMatchingJob()은 PENDING만 대상으로 삼기 때문에 반복 호출되어도 이미 매칭된 참가자는 다시 섞이지 않는다.
-        MatchingJobResponse result = matchingCommandService.runMatchingJob();
+        MatchingJobResponse result = matchingCommandService.runMatchingJobFor(day);
         log.info(
-                "Auto matching job finished: pendingBefore={}, matchedPairCount={}, unmatchedCount={}",
-                pendingCount,
-                result.matchedPairCount(),
-                result.unmatchedCount()
+                "Auto matching job finished: day={}, pendingBefore={}, matchedPairCount={}, unmatchedCount={}",
+                day, pending, result.matchedPairCount(), result.unmatchedCount()
         );
     }
 }

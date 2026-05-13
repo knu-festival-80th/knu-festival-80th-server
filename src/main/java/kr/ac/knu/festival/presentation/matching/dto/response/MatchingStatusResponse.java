@@ -13,7 +13,9 @@ public record MatchingStatusResponse(
         String resultOpenAt,
         long pendingCount,
         long matchedCount,
-        long unmatchedCount
+        long unmatchedCount,
+        long malePendingCount,
+        long femalePendingCount
 ) {
     public static MatchingStatusResponse of(
             MatchingServiceState state,
@@ -23,7 +25,9 @@ public record MatchingStatusResponse(
             String resultOpenAt,
             long pendingCount,
             long matchedCount,
-            long unmatchedCount
+            long unmatchedCount,
+            long malePendingCount,
+            long femalePendingCount
     ) {
         return new MatchingStatusResponse(
                 state.getStatus(),
@@ -35,7 +39,9 @@ public record MatchingStatusResponse(
                 resultOpenAt,
                 pendingCount,
                 matchedCount,
-                unmatchedCount
+                unmatchedCount,
+                malePendingCount,
+                femalePendingCount
         );
     }
 
@@ -49,7 +55,9 @@ public record MatchingStatusResponse(
             String resultOpenAt,
             long pendingCount,
             long matchedCount,
-            long unmatchedCount
+            long unmatchedCount,
+            long malePendingCount,
+            long femalePendingCount
     ) {
         return new MatchingStatusResponse(
                 status,
@@ -61,7 +69,9 @@ public record MatchingStatusResponse(
                 resultOpenAt,
                 pendingCount,
                 matchedCount,
-                unmatchedCount
+                unmatchedCount,
+                malePendingCount,
+                femalePendingCount
         );
     }
 }

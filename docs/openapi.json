@@ -13,10 +13,6 @@
     ],
     "tags": [
         {
-            "name": "\ub9e4\uce6d Command",
-            "description": "\ub450\uadfc\ub450\uadfc \uc778\uc2a4\ud0c0\ud305 \uc2e0\uccad\u00b7\ucde8\uc18c + \uad00\ub9ac\uc790 \ub9e4\uce6d \uc2e4\ud589 API"
-        },
-        {
             "name": "\ub9e4\uce6d Query",
             "description": "\ub450\uadfc\ub450\uadfc \uc778\uc2a4\ud0c0\ud305 \uacb0\uacfc\u00b7\uc0c1\ud0dc \uc870\ud68c API"
         },
@@ -39,6 +35,10 @@
         {
             "name": "\ub864\ub9c1\ud398\uc774\ud37c Command",
             "description": "\ubcf4\ub4dc \uc0dd\uc131 (\uc288\ud37c \uad00\ub9ac\uc790) / \ud3ec\uc2a4\ud2b8\uc787 \uc0dd\uc131 (\uc0ac\uc6a9\uc790) / \ud3ec\uc2a4\ud2b8\uc787 \uc0ad\uc81c (\uc288\ud37c \uad00\ub9ac\uc790)"
+        },
+        {
+            "name": "\ub9e4\uce6d Command",
+            "description": "\ub450\uadfc\ub450\uadfc \uc778\uc2a4\ud0c0\ud305 \uc2e0\uccad + \uad00\ub9ac\uc790 \ub9e4\uce6d \uc2e4\ud589 API"
         },
         {
             "name": "\ubd80\uc2a4 Command",
@@ -233,37 +233,6 @@
                             "*/*": {
                                 "schema": {
                                     "$ref": "#/components/schemas/ApiResponseMatchingResultResponse"
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "/matchings/cancel": {
-            "post": {
-                "tags": [
-                    "\ub9e4\uce6d Command"
-                ],
-                "summary": "\ub9e4\uce6d \uc2e0\uccad \ucde8\uc18c",
-                "operationId": "cancel",
-                "requestBody": {
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "$ref": "#/components/schemas/MatchingAuthRequest"
-                            }
-                        }
-                    },
-                    "required": true
-                },
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "content": {
-                            "*/*": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/ApiResponseVoid"
                                 }
                             }
                         }
@@ -1243,6 +1212,27 @@
                 }
             }
         },
+        "/matchings/applicants/count": {
+            "get": {
+                "tags": [
+                    "\ub9e4\uce6d Query"
+                ],
+                "summary": "\ud604\uc7ac \uc2e0\uccad\uc790 \uc218 \uc870\ud68c (\uc131\ubcc4 \ubd84\ub9ac)",
+                "operationId": "getApplicantsCount",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiResponseMatchingApplicantsCountResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/booths": {
             "get": {
                 "tags": [
@@ -1750,15 +1740,10 @@
                             "FEMALE"
                         ]
                     },
-                    "password": {
+                    "phoneNumber": {
                         "type": "string",
-                        "maxLength": 100,
-                        "minLength": 4
-                    },
-                    "nationality": {
-                        "type": "string",
-                        "maxLength": 10,
-                        "minLength": 0
+                        "minLength": 1,
+                        "pattern": "^01[0-9]{8,9}$"
                     }
                 },
                 "required": [
@@ -1785,13 +1770,16 @@
                     "instagramId": {
                         "type": "string"
                     },
+                    "festivalDay": {
+                        "type": "string",
+                        "format": "date"
+                    },
                     "status": {
                         "type": "string",
                         "enum": [
                             "PENDING",
                             "MATCHED",
-                            "UNMATCHED",
-                            "CANCELLED"
+                            "UNMATCHED"
                         ]
                     },
                     "registrationDeadline": {
@@ -1811,10 +1799,10 @@
                         "minLength": 0,
                         "pattern": "^[A-Za-z0-9._]{1,100}$"
                     },
-                    "password": {
+                    "phoneNumber": {
                         "type": "string",
-                        "maxLength": 100,
-                        "minLength": 4
+                        "minLength": 1,
+                        "pattern": "^01[0-9]{8,9}$"
                     }
                 }
             },
@@ -1843,14 +1831,13 @@
                         "enum": [
                             "PENDING",
                             "MATCHED",
-                            "UNMATCHED",
-                            "CANCELLED"
+                            "UNMATCHED"
                         ]
                     },
                     "resultOpen": {
                         "type": "boolean"
                     },
-                    "matchedInstagramId": {
+                    "pickedInstagramId": {
                         "type": "string"
                     },
                     "instagramProfileUrl": {
@@ -1861,20 +1848,6 @@
                     },
                     "messageEn": {
                         "type": "string"
-                    }
-                }
-            },
-            "ApiResponseVoid": {
-                "type": "object",
-                "properties": {
-                    "success": {
-                        "type": "boolean"
-                    },
-                    "data": {
-                        "type": "object"
-                    },
-                    "error": {
-                        "$ref": "#/components/schemas/ErrorResponse"
                     }
                 }
             },
@@ -1936,6 +1909,20 @@
                     "estimatedWaitMinutes": {
                         "type": "integer",
                         "format": "int32"
+                    }
+                }
+            },
+            "ApiResponseVoid": {
+                "type": "object",
+                "properties": {
+                    "success": {
+                        "type": "boolean"
+                    },
+                    "data": {
+                        "type": "object"
+                    },
+                    "error": {
+                        "$ref": "#/components/schemas/ErrorResponse"
                     }
                 }
             },
@@ -2331,6 +2318,14 @@
                     "unmatchedCount": {
                         "type": "integer",
                         "format": "int64"
+                    },
+                    "malePendingCount": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "femalePendingCount": {
+                        "type": "integer",
+                        "format": "int64"
                     }
                 }
             },
@@ -2395,9 +2390,6 @@
                             "FEMALE"
                         ]
                     },
-                    "nationality": {
-                        "type": "string"
-                    },
                     "instagramProfileUrl": {
                         "type": "string"
                     }
@@ -2423,6 +2415,41 @@
                         "items": {
                             "$ref": "#/components/schemas/UnmatchedParticipantResponse"
                         }
+                    }
+                }
+            },
+            "ApiResponseMatchingApplicantsCountResponse": {
+                "type": "object",
+                "properties": {
+                    "success": {
+                        "type": "boolean"
+                    },
+                    "data": {
+                        "$ref": "#/components/schemas/MatchingApplicantsCountResponse"
+                    },
+                    "error": {
+                        "$ref": "#/components/schemas/ErrorResponse"
+                    }
+                }
+            },
+            "MatchingApplicantsCountResponse": {
+                "type": "object",
+                "properties": {
+                    "festivalDay": {
+                        "type": "string",
+                        "format": "date"
+                    },
+                    "malePendingCount": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "femalePendingCount": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "totalPendingCount": {
+                        "type": "integer",
+                        "format": "int64"
                     }
                 }
             },

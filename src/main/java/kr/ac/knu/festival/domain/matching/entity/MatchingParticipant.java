@@ -4,15 +4,20 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Index;
 import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 import kr.ac.knu.festival.global.base.BaseTimeEntity;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+
+import java.time.LocalDate;
 
 @Entity
 @Getter
@@ -21,26 +26,38 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Table(
         name = "matching_participant",
+        uniqueConstraints = {
+                @UniqueConstraint(
+                        name = "uk_matching_participant_id_day",
+                        columnNames = {"instagram_id", "festival_day"}
+                )
+        },
         indexes = {
-                @Index(name = "idx_matching_status_gender", columnList = "status, gender")
+                @Index(name = "idx_matching_day_status_gender", columnList = "festival_day, status, gender")
         }
 )
 public class MatchingParticipant extends BaseTimeEntity {
 
     @Id
-    // 축제 기간 중 1회 참여 제한을 DB 차원에서도 보장하기 위해 Instagram ID를 PK로 사용한다.
-    @Column(name = "instagram_id", length = 100)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "matching_participant_id")
+    private Long id;
+
+    @Column(name = "instagram_id", nullable = false, length = 100)
     private String instagramId;
+
+    @Column(name = "festival_day", nullable = false)
+    private LocalDate festivalDay;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 10)
     private MatchingGender gender;
 
-    @Column(nullable = false, length = 100)
-    private String password;
+    @Column(name = "phone_lookup_hash", nullable = false, length = 100)
+    private String phoneLookupHash;
 
-    @Column(nullable = false, length = 10)
-    private String nationality;
+    @Column(name = "phone_encrypted", nullable = false, length = 255)
+    private String phoneEncrypted;
 
     @Column(name = "matched_id", length = 100)
     private String matchedId;
@@ -55,21 +72,22 @@ public class MatchingParticipant extends BaseTimeEntity {
 
     public static MatchingParticipant create(
             String instagramId,
+            LocalDate festivalDay,
             MatchingGender gender,
-            String encodedPassword,
-            String nationality
+            String phoneLookupHash,
+            String phoneEncrypted
     ) {
         return MatchingParticipant.builder()
                 .instagramId(instagramId)
+                .festivalDay(festivalDay)
                 .gender(gender)
-                .password(encodedPassword)
-                .nationality(nationality)
+                .phoneLookupHash(phoneLookupHash)
+                .phoneEncrypted(phoneEncrypted)
                 .status(MatchingParticipantStatus.PENDING)
                 .build();
     }
 
     public void matchWith(String matchedId) {
-        // 양쪽 참가자 모두에 상대 ID를 저장해 결과 조회 시 별도 매칭 테이블 조인 없이 바로 응답한다.
         this.matchedId = matchedId;
         this.status = MatchingParticipantStatus.MATCHED;
     }
@@ -77,9 +95,5 @@ public class MatchingParticipant extends BaseTimeEntity {
     public void markUnmatched() {
         this.matchedId = null;
         this.status = MatchingParticipantStatus.UNMATCHED;
-    }
-
-    public void cancel() {
-        this.status = MatchingParticipantStatus.CANCELLED;
     }
 }
