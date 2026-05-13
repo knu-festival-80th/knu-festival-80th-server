@@ -19,7 +19,9 @@ FROM eclipse-temurin:21-jre
 WORKDIR /app
 
 RUN groupadd --system app \
- && useradd --system --gid app --home-dir /app --shell /usr/sbin/nologin app
+ && useradd --system --gid app --home-dir /app --shell /usr/sbin/nologin app \
+ && mkdir -p /app/uploads/images \
+ && chown -R app:app /app/uploads
 
 COPY --from=builder /workspace/build/libs/*.jar /app/app.jar
 
