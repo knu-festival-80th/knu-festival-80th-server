@@ -10,11 +10,12 @@ import lombok.RequiredArgsConstructor;
 @Getter
 @RequiredArgsConstructor
 public enum StickerMeta {
-    STICKER_1(1, 80.0, 80.0 * 249.0 / 271.0),
-    STICKER_2(2, 80.0, 80.0 * 270.0 / 274.0),
-    STICKER_3(3, 80.0, 80.0 * 361.0 / 253.0),
-    STICKER_4(4, 80.0, 80.0 * 204.0 / 326.0),
-    STICKER_5(5, 80.0, 80.0);
+    STICKER_1(1, 80.0, 80.0 * 249.0 / 271.0),  // red
+    STICKER_2(2, 80.0, 80.0 * 270.0 / 274.0),  // yellow
+    STICKER_3(3, 80.0, 80.0 * 361.0 / 253.0),  // green
+    STICKER_4(4, 80.0, 80.0 * 204.0 / 326.0),  // blue
+    STICKER_5(5, 80.0, 80.0),                   // purple (259/259 = 1)
+    STICKER_6(6, 80.0, 80.0);                   // pink   (271/271 = 1)
 
     private final int colorId;
     private final double width;

@@ -14,8 +14,8 @@ public record CanvasPostitCreateRequest(
         Long boardId,
 
         @NotNull
-        @Min(value = 1, message = "colorId는 1~5 사이여야 합니다.")
-        @Max(value = 5, message = "colorId는 1~5 사이여야 합니다.")
+        @Min(value = 1, message = "colorId는 1~6 사이여야 합니다.")
+        @Max(value = 6, message = "colorId는 1~6 사이여야 합니다.")
         Integer colorId,
 
         @NotBlank
