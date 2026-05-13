@@ -19,10 +19,8 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.Clock;
 import java.time.Instant;
-import java.time.LocalDate;
 import java.time.ZoneId;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -30,16 +28,15 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SpringBootTest
 @AutoConfigureMockMvc
-@Import(MatchingRegistrationClosedIntegrationTest.FixedClockConfig.class)
-class MatchingRegistrationClosedIntegrationTest {
+@Import(MatchingApplicantsCountIntegrationTest.FixedClockConfig.class)
+class MatchingApplicantsCountIntegrationTest {
 
     @TestConfiguration
     static class FixedClockConfig {
         @Bean
         @Primary
         Clock matchingClock() {
-            // KST 2026-05-20 09:00 (페스티벌 첫날 신청창 11시 이전)
-            return Clock.fixed(Instant.parse("2026-05-20T00:00:00Z"), ZoneId.of("Asia/Seoul"));
+            return Clock.fixed(Instant.parse("2026-05-20T03:00:00Z"), ZoneId.of("Asia/Seoul")); // KST 12:00
         }
     }
 
@@ -62,28 +59,24 @@ class MatchingRegistrationClosedIntegrationTest {
     }
 
     @Test
-    void rejectRegistrationBeforeWindowOpens() throws Exception {
-        MatchingCreateRequest request = new MatchingCreateRequest(
-                "early_user",
-                MatchingGender.MALE,
-                "01012345678"
-        );
+    void countReflectsGenderSplitAfterRegistrations() throws Exception {
+        register("male_a", MatchingGender.MALE, "01011111111");
+        register("male_b", MatchingGender.MALE, "01022222222");
+        register("female_a", MatchingGender.FEMALE, "01033333333");
 
+        mockMvc.perform(get("/matchings/applicants/count"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.festivalDay").value("2026-05-20"))
+                .andExpect(jsonPath("$.data.malePendingCount").value(2))
+                .andExpect(jsonPath("$.data.femalePendingCount").value(1))
+                .andExpect(jsonPath("$.data.totalPendingCount").value(3));
+    }
+
+    private void register(String id, MatchingGender gender, String phone) throws Exception {
+        MatchingCreateRequest request = new MatchingCreateRequest(id, gender, phone);
         mockMvc.perform(post("/matchings")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isForbidden())
-                .andExpect(jsonPath("$.error.code").value("M002"));
-
-        assertThat(matchingParticipantRepository
-                .existsByInstagramIdAndFestivalDay("early_user", LocalDate.parse("2026-05-20"))).isFalse();
-    }
-
-    @Test
-    void statusReflectsClosedRegistration() throws Exception {
-        mockMvc.perform(get("/matchings/status"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data.registrationOpen").value(false))
-                .andExpect(jsonPath("$.data.resultOpen").value(false));
+                .andExpect(status().isCreated());
     }
 }

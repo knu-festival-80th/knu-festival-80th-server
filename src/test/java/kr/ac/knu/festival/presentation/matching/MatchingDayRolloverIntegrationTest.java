@@ -7,7 +7,7 @@ import kr.ac.knu.festival.domain.matching.repository.MatchingParticipantReposito
 import kr.ac.knu.festival.domain.matching.repository.MatchingServiceStateRepository;
 import kr.ac.knu.festival.infra.security.PhoneLookupHasher;
 import kr.ac.knu.festival.infra.security.PhoneNumberEncryptor;
-import kr.ac.knu.festival.presentation.matching.dto.request.MatchingAuthRequest;
+import kr.ac.knu.festival.presentation.matching.dto.request.MatchingCreateRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,24 +25,23 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest
 @AutoConfigureMockMvc
-@Import(MatchingResultRateLimitIntegrationTest.FixedClockConfig.class)
-class MatchingResultRateLimitIntegrationTest {
-
-    private static final String CLIENT_IP = "203.0.113.10";
+@Import(MatchingDayRolloverIntegrationTest.FixedClockConfig.class)
+class MatchingDayRolloverIntegrationTest {
 
     @TestConfiguration
     static class FixedClockConfig {
         @Bean
         @Primary
         Clock matchingClock() {
-            // KST 2026-05-20 12:00 — 신청창 안 (결과 인증 검증 단계까지는 도달함)
-            return Clock.fixed(Instant.parse("2026-05-20T03:00:00Z"), ZoneId.of("Asia/Seoul"));
+            // KST 2026-05-21 13:00 — day-2 신청창. 5/20 신청 데이터가 이미 있다고 가정한 상태에서 5/21 재신청 가능 여부 확인.
+            return Clock.fixed(Instant.parse("2026-05-21T04:00:00Z"), ZoneId.of("Asia/Seoul"));
         }
     }
 
@@ -68,39 +67,35 @@ class MatchingResultRateLimitIntegrationTest {
     void setUp() {
         matchingParticipantRepository.deleteAll();
         matchingServiceStateRepository.deleteAll();
-        matchingParticipantRepository.save(MatchingParticipant.create(
-                "rate_limit_user",
-                LocalDate.parse("2026-05-20"),
-                MatchingGender.MALE,
-                phoneLookupHasher.hash("01012345678"),
-                phoneNumberEncryptor.encrypt("01012345678")
-        ));
     }
 
     @Test
-    void limitResultLookupAfterRepeatedFailuresFromSameIp() throws Exception {
-        MatchingAuthRequest wrongPhone = new MatchingAuthRequest("rate_limit_user", "01099999999");
+    void sameInstagramIdMayRegisterOnEachFestivalDay() throws Exception {
+        // 5/20 에 이미 신청·매칭 완료된 기록을 직접 심는다.
+        MatchingParticipant day1 = MatchingParticipant.create(
+                "repeat_user",
+                LocalDate.parse("2026-05-20"),
+                MatchingGender.MALE,
+                phoneLookupHasher.hash("01011112222"),
+                phoneNumberEncryptor.encrypt("01011112222")
+        );
+        day1.matchWith("yesterday_partner");
+        matchingParticipantRepository.save(day1);
 
-        for (int i = 0; i < 5; i++) {
-            mockMvc.perform(post("/matchings/result")
-                            .with(request -> {
-                                request.setRemoteAddr(CLIENT_IP);
-                                return request;
-                            })
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(objectMapper.writeValueAsString(wrongPhone)))
-                    .andExpect(status().isUnauthorized());
-        }
-
-        mockMvc.perform(post("/matchings/result")
-                        .with(request -> {
-                            request.setRemoteAddr(CLIENT_IP);
-                            return request;
-                        })
+        // 5/21 13:00 시점에 동일 ID 가 다시 신청 → 성공
+        MatchingCreateRequest request = new MatchingCreateRequest(
+                "repeat_user", MatchingGender.MALE, "01011112222"
+        );
+        mockMvc.perform(post("/matchings")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(wrongPhone)))
-                .andExpect(status().isTooManyRequests())
-                .andExpect(jsonPath("$.success").value(false))
-                .andExpect(jsonPath("$.error.code").value("M001"));
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.data.festivalDay").value("2026-05-21"))
+                .andExpect(jsonPath("$.data.status").value("PENDING"));
+
+        assertThat(matchingParticipantRepository
+                .findByInstagramIdAndFestivalDay("repeat_user", LocalDate.parse("2026-05-20"))).isPresent();
+        assertThat(matchingParticipantRepository
+                .findByInstagramIdAndFestivalDay("repeat_user", LocalDate.parse("2026-05-21"))).isPresent();
     }
 }

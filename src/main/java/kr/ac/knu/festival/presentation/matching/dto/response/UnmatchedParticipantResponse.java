@@ -6,14 +6,12 @@ import kr.ac.knu.festival.domain.matching.entity.MatchingParticipant;
 public record UnmatchedParticipantResponse(
         String instagramId,
         MatchingGender gender,
-        String nationality,
         String instagramProfileUrl
 ) {
     public static UnmatchedParticipantResponse fromEntity(MatchingParticipant participant) {
         return new UnmatchedParticipantResponse(
                 participant.getInstagramId(),
                 participant.getGender(),
-                participant.getNationality(),
                 "https://instagram.com/" + participant.getInstagramId()
         );
     }

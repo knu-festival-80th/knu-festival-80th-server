@@ -1,8 +1,8 @@
 # 기술/개발 명세서 (TS)
 
 > **프로젝트**: 2026 경북대학교 80주년 대동제 웹앱 서비스 (백엔드)  
-> **버전**: v1.1  
-> **최종 수정일**: 2026-04-25  
+> **버전**: v1.6
+> **최종 수정일**: 2026-05-13  
 > **목적**: Verification 기준 문서 — "구현이 명세를 충족하는가?"
 
 ---
@@ -17,6 +17,7 @@
 | v1.3 | 2026-04-27 | 인증을 부스별 비밀번호 + 세션 기반으로 단순화 — member 테이블 제거, booth 에 admin_password 컬럼 추가, 인증 아키텍처 재정의 | - |
 | v1.4 | 2026-05-05 | canvas(롤링페이퍼) DB 스키마 추가 — canvas_postit 테이블로 교체 (섹션 3.8) | milk-stone |
 | v1.5 | 2026-05-13 | 3.8절 canvas 스키마 전면 개편 — canvas_board_question/canvas_board 테이블 추가, canvas_postit 스키마 변경 / 6절 canvas WebSocket 제거 (REST로 전환 완료) | milk-stone |
+| v1.6 | 2026-05-13 | 3.9절 matching 스키마 개편 — surrogate PK 도입, `(instagram_id, festival_day)` 복합 유니크, password 컬럼 제거 후 `phone_lookup_hash`+`phone_encrypted` 도입, nationality 컬럼 제거, CANCELLED 상태 제거 | - |
 
 ---
 
@@ -294,18 +295,23 @@ CREATE TABLE canvas_postit (
 
 ```sql
 CREATE TABLE matching_participant (
-    instagram_id VARCHAR(100) PRIMARY KEY,
-    gender       VARCHAR(10) NOT NULL,
-    password     VARCHAR(100) NOT NULL,
-    nationality  VARCHAR(10) DEFAULT 'KR',
-    matched_id   VARCHAR(100),
-    status       VARCHAR(20) NOT NULL DEFAULT 'PENDING',
-    created_at   DATETIME NOT NULL,
-    updated_at   DATETIME NOT NULL,
-    INDEX idx_matching_status_gender (status, gender)
+    matching_participant_id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    instagram_id            VARCHAR(100) NOT NULL,
+    festival_day            DATE NOT NULL,
+    gender                  VARCHAR(10) NOT NULL,
+    phone_lookup_hash       VARCHAR(100) NOT NULL,
+    phone_encrypted         VARCHAR(255) NOT NULL,
+    matched_id              VARCHAR(100),
+    status                  VARCHAR(20) NOT NULL DEFAULT 'PENDING',
+    created_at              DATETIME NOT NULL,
+    updated_at              DATETIME NOT NULL,
+    UNIQUE KEY uk_matching_participant_id_day (instagram_id, festival_day),
+    INDEX idx_matching_day_status_gender (festival_day, status, gender)
 );
 -- status: PENDING, MATCHED, UNMATCHED
--- password: BCrypt 해시 저장
+-- phone_lookup_hash: HmacSHA256(전화번호) — 결과 조회 시 일치 검증용
+-- phone_encrypted: AES/GCM 암호문 — 운영자 안내/표시용
+-- 일별 운영(11–21 신청 / 22–익11 결과)이라 같은 instagram_id 가 매일 새 행으로 다시 들어올 수 있다.
 ```
 
 ### 3.10 feed (피드)
