@@ -13,10 +13,6 @@
     ],
     "tags": [
         {
-            "name": "\ub9e4\uce6d Command",
-            "description": "\ub450\uadfc\ub450\uadfc \uc778\uc2a4\ud0c0\ud305 \uc2e0\uccad\u00b7\ucde8\uc18c + \uad00\ub9ac\uc790 \ub9e4\uce6d \uc2e4\ud589 API"
-        },
-        {
             "name": "\ub9e4\uce6d Query",
             "description": "\ub450\uadfc\ub450\uadfc \uc778\uc2a4\ud0c0\ud305 \uacb0\uacfc\u00b7\uc0c1\ud0dc \uc870\ud68c API"
         },
@@ -29,20 +25,24 @@
             "description": "\ubd80\uc2a4 \uc870\ud68c API (\uc0ac\uc6a9\uc790)"
         },
         {
-            "name": "\ub864\ub9c1\ud398\uc774\ud37c Query",
-            "description": "\ubb38\ud56d \ubaa9\ub85d / \ubcf4\ub4dc \ubaa9\ub85d / \ud3ec\uc2a4\ud2b8\uc787 \ubaa9\ub85d \uc870\ud68c"
+            "name": "Canvas Command",
+            "description": "\ubcf4\ub4dc \uc0dd\uc131 (\uc288\ud37c \uad00\ub9ac\uc790) / \ud3ec\uc2a4\ud2b8\uc787 \uc0dd\uc131 (\uc0ac\uc6a9\uc790) / \ud3ec\uc2a4\ud2b8\uc787 \uc0ad\uc81c (\uc288\ud37c \uad00\ub9ac\uc790)"
         },
         {
             "name": "\ub300\uae30\uc5f4 Command",
             "description": "\uc6f9 \ub300\uae30 \ub4f1\ub85d\u00b7\ubcf8\uc778 \ucde8\uc18c + \uad00\ub9ac\uc790 \ub300\uae30\uc5f4 \uc6b4\uc601 API"
         },
         {
-            "name": "\ub864\ub9c1\ud398\uc774\ud37c Command",
-            "description": "\ubcf4\ub4dc \uc0dd\uc131 (\uc288\ud37c \uad00\ub9ac\uc790) / \ud3ec\uc2a4\ud2b8\uc787 \uc0dd\uc131 (\uc0ac\uc6a9\uc790) / \ud3ec\uc2a4\ud2b8\uc787 \uc0ad\uc81c (\uc288\ud37c \uad00\ub9ac\uc790)"
+            "name": "\ub9e4\uce6d Command",
+            "description": "\ub450\uadfc\ub450\uadfc \uc778\uc2a4\ud0c0\ud305 \uc2e0\uccad + \uad00\ub9ac\uc790 \ub9e4\uce6d \uc2e4\ud589 API"
         },
         {
             "name": "\ubd80\uc2a4 Command",
             "description": "\ubd80\uc2a4 \ub4f1\ub85d/\uc218\uc815/\uc0ad\uc81c API (\uad00\ub9ac\uc790) + \uc88b\uc544\uc694 (\uc0ac\uc6a9\uc790)"
+        },
+        {
+            "name": "Canvas Query",
+            "description": "\ubb38\ud56d \ubaa9\ub85d / \ubcf4\ub4dc \ubaa9\ub85d / \ud3ec\uc2a4\ud2b8\uc787 \ubaa9\ub85d \uc870\ud68c"
         },
         {
             "name": "\ub300\uae30\uc5f4 Query",
@@ -233,37 +233,6 @@
                             "*/*": {
                                 "schema": {
                                     "$ref": "#/components/schemas/ApiResponseMatchingResultResponse"
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "/matchings/cancel": {
-            "post": {
-                "tags": [
-                    "\ub9e4\uce6d Command"
-                ],
-                "summary": "\ub9e4\uce6d \uc2e0\uccad \ucde8\uc18c",
-                "operationId": "cancel",
-                "requestBody": {
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "$ref": "#/components/schemas/MatchingAuthRequest"
-                            }
-                        }
-                    },
-                    "required": true
-                },
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "content": {
-                            "*/*": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/ApiResponseVoid"
                                 }
                             }
                         }
@@ -473,7 +442,7 @@
         "/api/v1/canvas/postits": {
             "get": {
                 "tags": [
-                    "\ub864\ub9c1\ud398\uc774\ud37c Query"
+                    "Canvas Query"
                 ],
                 "summary": "\ud3ec\uc2a4\ud2b8\uc787 \ubaa9\ub85d \uc870\ud68c",
                 "description": "\ud2b9\uc815 \ubcf4\ub4dc\uc758 \ud3ec\uc2a4\ud2b8\uc787 \ubaa9\ub85d\uc744 \ubc18\ud658\ud569\ub2c8\ub2e4.",
@@ -515,7 +484,7 @@
             },
             "post": {
                 "tags": [
-                    "\ub864\ub9c1\ud398\uc774\ud37c Command"
+                    "Canvas Command"
                 ],
                 "summary": "\ud3ec\uc2a4\ud2b8\uc787 \uc0dd\uc131",
                 "description": "boardId\u00b7colorId\u00b7\uba54\uc2dc\uc9c0\u00b7\uc88c\ud45c(0~100 \uc0c1\ub300\uc88c\ud45c, \uc911\uc2ec\uc810)\ub97c \uc785\ub825\ud574 \ub864\ub9c1\ud398\uc774\ud37c \ubcf4\ub4dc\uc5d0 \ud3ec\uc2a4\ud2b8\uc787\uc744 \ucd94\uac00\ud569\ub2c8\ub2e4.",
@@ -609,7 +578,7 @@
         "/admin/v1/canvas/boards": {
             "post": {
                 "tags": [
-                    "\ub864\ub9c1\ud398\uc774\ud37c Command"
+                    "Canvas Command"
                 ],
                 "summary": "\ubcf4\ub4dc \uc0dd\uc131 (\uc288\ud37c \uad00\ub9ac\uc790)",
                 "description": "\ud2b9\uc815 \ubb38\ud56d\uc5d0 \ubcf4\ub4dc\ub97c \ucd94\uac00\ud569\ub2c8\ub2e4.",
@@ -1243,6 +1212,27 @@
                 }
             }
         },
+        "/matchings/applicants/count": {
+            "get": {
+                "tags": [
+                    "\ub9e4\uce6d Query"
+                ],
+                "summary": "\ud604\uc7ac \uc2e0\uccad\uc790 \uc218 \uc870\ud68c (\uc131\ubcc4 \ubd84\ub9ac)",
+                "operationId": "getApplicantsCount",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiResponseMatchingApplicantsCountResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/booths": {
             "get": {
                 "tags": [
@@ -1411,7 +1401,7 @@
         "/api/v1/canvas/questions": {
             "get": {
                 "tags": [
-                    "\ub864\ub9c1\ud398\uc774\ud37c Query"
+                    "Canvas Query"
                 ],
                 "summary": "\ubb38\ud56d \ubaa9\ub85d \uc870\ud68c",
                 "description": "\ub864\ub9c1\ud398\uc774\ud37c \ubb38\ud56d \uc804\uccb4\ub97c orderIndex \uc21c\uc73c\ub85c \ubc18\ud658\ud569\ub2c8\ub2e4.",
@@ -1433,7 +1423,7 @@
         "/api/v1/canvas/boards": {
             "get": {
                 "tags": [
-                    "\ub864\ub9c1\ud398\uc774\ud37c Query"
+                    "Canvas Query"
                 ],
                 "summary": "\ubcf4\ub4dc \ubaa9\ub85d \uc870\ud68c",
                 "description": "\ud2b9\uc815 \ubb38\ud56d\uc5d0 \uc18d\ud55c \ubcf4\ub4dc \ubaa9\ub85d\uacfc \uac01 \ubcf4\ub4dc\uc758 \ud3ec\uc2a4\ud2b8\uc787 \uc218\ub97c \ubc18\ud658\ud569\ub2c8\ub2e4.",
@@ -1524,7 +1514,7 @@
         "/admin/v1/canvas/postits/{postit-id}": {
             "delete": {
                 "tags": [
-                    "\ub864\ub9c1\ud398\uc774\ud37c Command"
+                    "Canvas Command"
                 ],
                 "summary": "\ud3ec\uc2a4\ud2b8\uc787 \uc0ad\uc81c (\uc288\ud37c \uad00\ub9ac\uc790)",
                 "description": "\ubd80\uc801\uc808\ud55c \ud3ec\uc2a4\ud2b8\uc787\uc744 \uc18c\ud504\ud2b8 \ub51c\ub9ac\ud2b8\ud569\ub2c8\ub2e4.",
@@ -1750,15 +1740,10 @@
                             "FEMALE"
                         ]
                     },
-                    "password": {
+                    "phoneNumber": {
                         "type": "string",
-                        "maxLength": 100,
-                        "minLength": 4
-                    },
-                    "nationality": {
-                        "type": "string",
-                        "maxLength": 10,
-                        "minLength": 0
+                        "minLength": 1,
+                        "pattern": "^01[0-9]{8,9}$"
                     }
                 },
                 "required": [
@@ -1785,13 +1770,16 @@
                     "instagramId": {
                         "type": "string"
                     },
+                    "festivalDay": {
+                        "type": "string",
+                        "format": "date"
+                    },
                     "status": {
                         "type": "string",
                         "enum": [
                             "PENDING",
                             "MATCHED",
-                            "UNMATCHED",
-                            "CANCELLED"
+                            "UNMATCHED"
                         ]
                     },
                     "registrationDeadline": {
@@ -1811,10 +1799,10 @@
                         "minLength": 0,
                         "pattern": "^[A-Za-z0-9._]{1,100}$"
                     },
-                    "password": {
+                    "phoneNumber": {
                         "type": "string",
-                        "maxLength": 100,
-                        "minLength": 4
+                        "minLength": 1,
+                        "pattern": "^01[0-9]{8,9}$"
                     }
                 }
             },
@@ -1843,14 +1831,13 @@
                         "enum": [
                             "PENDING",
                             "MATCHED",
-                            "UNMATCHED",
-                            "CANCELLED"
+                            "UNMATCHED"
                         ]
                     },
                     "resultOpen": {
                         "type": "boolean"
                     },
-                    "matchedInstagramId": {
+                    "pickedInstagramId": {
                         "type": "string"
                     },
                     "instagramProfileUrl": {
@@ -1861,20 +1848,6 @@
                     },
                     "messageEn": {
                         "type": "string"
-                    }
-                }
-            },
-            "ApiResponseVoid": {
-                "type": "object",
-                "properties": {
-                    "success": {
-                        "type": "boolean"
-                    },
-                    "data": {
-                        "type": "object"
-                    },
-                    "error": {
-                        "$ref": "#/components/schemas/ErrorResponse"
                     }
                 }
             },
@@ -1936,6 +1909,20 @@
                     "estimatedWaitMinutes": {
                         "type": "integer",
                         "format": "int32"
+                    }
+                }
+            },
+            "ApiResponseVoid": {
+                "type": "object",
+                "properties": {
+                    "success": {
+                        "type": "boolean"
+                    },
+                    "data": {
+                        "type": "object"
+                    },
+                    "error": {
+                        "$ref": "#/components/schemas/ErrorResponse"
                     }
                 }
             },
@@ -2331,6 +2318,14 @@
                     "unmatchedCount": {
                         "type": "integer",
                         "format": "int64"
+                    },
+                    "malePendingCount": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "femalePendingCount": {
+                        "type": "integer",
+                        "format": "int64"
                     }
                 }
             },
@@ -2395,9 +2390,6 @@
                             "FEMALE"
                         ]
                     },
-                    "nationality": {
-                        "type": "string"
-                    },
                     "instagramProfileUrl": {
                         "type": "string"
                     }
@@ -2423,6 +2415,41 @@
                         "items": {
                             "$ref": "#/components/schemas/UnmatchedParticipantResponse"
                         }
+                    }
+                }
+            },
+            "ApiResponseMatchingApplicantsCountResponse": {
+                "type": "object",
+                "properties": {
+                    "success": {
+                        "type": "boolean"
+                    },
+                    "data": {
+                        "$ref": "#/components/schemas/MatchingApplicantsCountResponse"
+                    },
+                    "error": {
+                        "$ref": "#/components/schemas/ErrorResponse"
+                    }
+                }
+            },
+            "MatchingApplicantsCountResponse": {
+                "type": "object",
+                "properties": {
+                    "festivalDay": {
+                        "type": "string",
+                        "format": "date"
+                    },
+                    "malePendingCount": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "femalePendingCount": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "totalPendingCount": {
+                        "type": "integer",
+                        "format": "int64"
                     }
                 }
             },
