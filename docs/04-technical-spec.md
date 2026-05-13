@@ -16,6 +16,7 @@
 | v1.2 | 2026-04-27 | 동시성 감사 반영 — waiting 에 phone_lookup_hash·version 컬럼 추가, 부스 락 기반 채번/순서 변경, booth like atomic UPDATE, like_count 인덱스, status+called_at 인덱스 | - |
 | v1.3 | 2026-04-27 | 인증을 부스별 비밀번호 + 세션 기반으로 단순화 — member 테이블 제거, booth 에 admin_password 컬럼 추가, 인증 아키텍처 재정의 | - |
 | v1.4 | 2026-05-05 | canvas(롤링페이퍼) DB 스키마 추가 — canvas_postit 테이블로 교체 (섹션 3.8) | milk-stone |
+| v1.5 | 2026-05-13 | 3.8절 canvas 스키마 전면 개편 — canvas_board_question/canvas_board 테이블 추가, canvas_postit 스키마 변경 / 6절 canvas WebSocket 제거 (REST로 전환 완료) | milk-stone |
 
 ---
 
@@ -246,28 +247,46 @@ CREATE TABLE review (
 -- password: 해시 저장 (본인 삭제용)
 ```
 
-### 3.8 canvas_postit (롤링페이퍼 포스트잇)
+### 3.8 canvas (롤링페이퍼)
 
 ```sql
+CREATE TABLE canvas_board_question (
+    canvas_board_question_id  BIGINT AUTO_INCREMENT PRIMARY KEY,
+    content                   VARCHAR(200) NOT NULL,
+    description               VARCHAR(200),
+    order_index               INT NOT NULL,
+    board_variant             INT NOT NULL,
+    created_at                DATETIME NOT NULL,
+    updated_at                DATETIME NOT NULL
+);
+-- board_variant: 보드 디자인 식별자 (1~5, 문항별 고유 디자인)
+-- 서버 시작 시 5개 고정값으로 시드 생성 (어드민 수정 불가)
+
+CREATE TABLE canvas_board (
+    canvas_board_id           BIGINT AUTO_INCREMENT PRIMARY KEY,
+    canvas_board_question_id  BIGINT NOT NULL,
+    max_note_count            INT NOT NULL DEFAULT 100,
+    created_at                DATETIME NOT NULL,
+    updated_at                DATETIME NOT NULL,
+    FOREIGN KEY (canvas_board_question_id) REFERENCES canvas_board_question(canvas_board_question_id)
+);
+-- 문항당 20개 보드 사전 생성 (총 100개)
+-- max_note_count: 보드당 최대 포스트잇 수 (기본값 100)
+
 CREATE TABLE canvas_postit (
     canvas_postit_id  BIGINT AUTO_INCREMENT PRIMARY KEY,
-    nickname          VARCHAR(8)  NOT NULL,
+    canvas_board_id   BIGINT  NOT NULL,
+    color_id          INT     NOT NULL,
     message           VARCHAR(60) NOT NULL,
-    color             VARCHAR(10) NOT NULL,
-    position_x        INT         NOT NULL,
-    position_y        INT         NOT NULL,
-    width             INT         NOT NULL,
-    height            INT         NOT NULL,
-    zone_number       INT         NOT NULL,
-    created_at        DATETIME    NOT NULL,
-    updated_at        DATETIME    NOT NULL,
+    position_x        DOUBLE  NOT NULL,
+    position_y        DOUBLE  NOT NULL,
+    created_at        DATETIME NOT NULL,
+    updated_at        DATETIME NOT NULL,
     deleted_at        DATETIME,
-    INDEX idx_canvas_postit_zone_id (zone_number, canvas_postit_id)
+    FOREIGN KEY (canvas_board_id) REFERENCES canvas_board(canvas_board_id)
 );
--- color: YELLOW, PINK, BLUE, GREEN, PURPLE, ORANGE
--- position_x, position_y: px 절댓값 (보드 크기 2000×2000px)
--- width, height: 104 / 120 / 136 중 하나
--- zone_number: (canvas_postit_id - 1) / 50 + 1 으로 자동 산출 (1~50번째 = 1존, ...)
+-- color_id: 1~6 (1:red, 2:yellow, 3:green, 4:blue, 5:purple, 6:pink)
+-- position_x, position_y: 0~100 상대좌표 (보드 논리 크기 852×852px 기준 스티커 중심점)
 -- deleted_at: 소프트 딜리트 (관리자 삭제 시 사용)
 ```
 
@@ -370,28 +389,9 @@ SessionAuthFilter (HttpSession 확인)
 
 ## 6. WebSocket 설계
 
-### 캔버스 실시간 통신
+> canvas(롤링페이퍼)는 REST API 기반으로 전환 완료. WebSocket 미사용.
 
-```
-Endpoint: /ws/canvas
-Protocol: STOMP over WebSocket
-
-Subscribe:
-  /topic/canvas/{region-id}  → 해당 영역의 실시간 업데이트 수신
-
-Send:
-  /app/canvas/draw     → 드로잉 데이터 전송
-  /app/canvas/text     → 텍스트 데이터 전송
-  /app/canvas/sticker  → 스티커 데이터 전송
-```
-
-**설계 원칙**
-- 데이터 포맷: JSON (STOMP 프로토콜 호환, 바이너리 전환은 성능 병목 확인 후 검토)
-- 영역 분할: 캔버스를 그리드로 분할, 각 그리드를 `region-id`로 식별
-- 클라이언트가 화면 이동 시 구독 토픽을 동적으로 변경
-- Redis Pub/Sub: 멀티 인스턴스 환경에서 메시지 브로드캐스트
-- 재연결: 클라이언트 자동 재연결 시 REST API(`GET /api/v1/canvas/elements`)로 현재 상태 복구
-- 영속화: 인메모리 버퍼에 쌓았다가 주기적으로 DB 배치 INSERT
+현재 WebSocket을 사용하는 기능 없음. 향후 실시간 기능 도입 시 이 섹션에 추가한다.
 
 ---
 
