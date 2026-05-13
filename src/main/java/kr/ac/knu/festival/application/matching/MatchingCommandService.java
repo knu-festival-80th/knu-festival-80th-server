@@ -21,8 +21,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
-import java.util.Collections;
 import java.util.List;
+import java.util.Random;
 
 @Service
 @RequiredArgsConstructor
@@ -68,7 +68,6 @@ public class MatchingCommandService {
     }
 
     public MatchingJobResponse runMatchingJob() {
-        // 매칭 실행창(21~22시) → 결과창(22~익11시) 어디든 호출 가능. 데드존이면 그날 데이터를, 결과창 안이면 그 결과창 일자를 잡는다.
         LocalDate targetDay = matchingScheduleProperties.dayPendingMatching()
                 .or(matchingScheduleProperties::currentResultDay)
                 .orElseThrow(() -> new BusinessException(BusinessErrorCode.MATCHING_REGISTRATION_CLOSED));
@@ -81,34 +80,22 @@ public class MatchingCommandService {
         List<MatchingParticipant> females = matchingParticipantRepository.findAllByDayAndStatusAndGenderForUpdate(
                 festivalDay, MatchingParticipantStatus.PENDING, MatchingGender.FEMALE);
 
-        if (pauseWhenGenderImbalanced(males.size(), females.size(), festivalDay)) {
-            return new MatchingJobResponse(0, males.size() + females.size());
-        }
+        MatchingPairing.Result result = new MatchingPairing(new Random()).pair(males, females);
 
-        Collections.shuffle(males);
-        Collections.shuffle(females);
-
-        int pairCount = Math.min(males.size(), females.size());
-        for (int i = 0; i < pairCount; i++) {
-            MatchingParticipant male = males.get(i);
-            MatchingParticipant female = females.get(i);
-            male.matchWith(female.getInstagramId());
-            female.matchWith(male.getInstagramId());
-            matchingRealtimeCache.cacheParticipantResult(male);
-            matchingRealtimeCache.cacheParticipantResult(female);
+        for (MatchingPairing.MatchedPair pair : result.matched()) {
+            pair.picker().matchWith(pair.picked().getInstagramId());
+            matchingRealtimeCache.cacheParticipantResult(pair.picker());
         }
-
-        for (int i = pairCount; i < males.size(); i++) {
-            males.get(i).markUnmatched();
-            matchingRealtimeCache.cacheParticipantResult(males.get(i));
-        }
-        for (int i = pairCount; i < females.size(); i++) {
-            females.get(i).markUnmatched();
-            matchingRealtimeCache.cacheParticipantResult(females.get(i));
+        for (MatchingParticipant participant : result.unmatched()) {
+            participant.markUnmatched();
+            matchingRealtimeCache.cacheParticipantResult(participant);
         }
 
         refreshRealtimeStatus(getOrCreateState(), festivalDay);
-        return new MatchingJobResponse(pairCount, males.size() + females.size() - pairCount * 2);
+        int pickerCount = result.matched().size();
+        // picker 행은 남녀 각각 잡으므로 실제 사람 수는 pickerCount/2 (단, N=1 fallback 도 동일하게 2건).
+        int matchedPersonCount = pickerCount / 2;
+        return new MatchingJobResponse(matchedPersonCount, result.unmatched().size());
     }
 
     public MatchingStatusResponse updateStatus(MatchingStatusUpdateRequest request) {
@@ -127,24 +114,6 @@ public class MatchingCommandService {
     private MatchingServiceState getOrCreateState() {
         return matchingServiceStateRepository.findById(MatchingServiceState.SINGLETON_ID)
                 .orElseGet(() -> matchingServiceStateRepository.save(MatchingServiceState.defaultOpen()));
-    }
-
-    private boolean pauseWhenGenderImbalanced(int maleCount, int femaleCount, LocalDate day) {
-        int total = maleCount + femaleCount;
-        if (total == 0) {
-            return false;
-        }
-        if ((double) Math.max(maleCount, femaleCount) / total >= 0.7) {
-            MatchingServiceState state = getOrCreateState();
-            state.changeStatus(
-                    MatchingOperationStatus.PAUSED,
-                    "성별 비율 불균형으로 매칭이 일시중단되었습니다.",
-                    "Matching is paused because the gender ratio is imbalanced."
-            );
-            refreshRealtimeStatus(state, day);
-            return true;
-        }
-        return false;
     }
 
     private String normalizePhone(String phoneNumber) {

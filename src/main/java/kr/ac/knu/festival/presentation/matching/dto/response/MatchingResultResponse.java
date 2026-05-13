@@ -7,7 +7,7 @@ public record MatchingResultResponse(
         String instagramId,
         MatchingParticipantStatus status,
         boolean resultOpen,
-        String matchedInstagramId,
+        String pickedInstagramId,
         String instagramProfileUrl,
         String messageKo,
         String messageEn
@@ -25,15 +25,15 @@ public record MatchingResultResponse(
     }
 
     public static MatchingResultResponse fromEntity(MatchingParticipant participant) {
-        String matchedId = participant.getMatchedId();
+        String pickedId = participant.getMatchedId();
         return new MatchingResultResponse(
                 participant.getInstagramId(),
                 participant.getStatus(),
                 true,
-                matchedId,
-                matchedId == null ? null : "https://instagram.com/" + matchedId,
-                matchedId == null ? "아직 매칭된 상대가 없습니다." : "매칭 결과가 공개되었습니다.",
-                matchedId == null ? "No matched participant is available yet." : "Matching result is open."
+                pickedId,
+                pickedId == null ? null : "https://instagram.com/" + pickedId,
+                pickedId == null ? "매칭이 성사되지 않았습니다." : "당신이 뽑은 상대가 공개되었습니다.",
+                pickedId == null ? "No partner was matched." : "Your picked partner is open."
         );
     }
 }

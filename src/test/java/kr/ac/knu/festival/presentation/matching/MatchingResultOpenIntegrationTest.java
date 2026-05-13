@@ -97,7 +97,7 @@ class MatchingResultOpenIntegrationTest {
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.resultOpen").value(true))
-                .andExpect(jsonPath("$.data.matchedInstagramId").value("female_user"))
+                .andExpect(jsonPath("$.data.pickedInstagramId").value("female_user"))
                 .andExpect(jsonPath("$.data.instagramProfileUrl").value("https://instagram.com/female_user"));
     }
 

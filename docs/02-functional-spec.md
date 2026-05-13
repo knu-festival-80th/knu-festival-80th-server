@@ -1,7 +1,7 @@
 # 기능 명세서 (FS: Functional Specification)
 
 > **프로젝트**: 2026 경북대학교 80주년 대동제 웹앱 서비스 (백엔드)  
-> **버전**: v1.9
+> **버전**: v1.10
 > **최종 수정일**: 2026-05-13  
 > **목적**: 백엔드가 제공해야 할 API와 비즈니스 로직을 기능 단위로 정의한다.
 
@@ -21,6 +21,7 @@
 | v1.7 | 2026-05-12 | canvas(롤링페이퍼) 도메인 기능 명세 추가 — REST API 기반 포스트잇 보드로 재설계 (WebSocket 제거) | milk-stone |
 | v1.8 | 2026-05-13 | 3.8절 canvas API 전면 개편 — 문항(Question) 기반 구조 도입, zone→board 전환, colorId/0~100 좌표계 반영 | milk-stone |
 | v1.9 | 2026-05-13 | 3.9절 matching(인스타팅) 전면 개편 — 일별 윈도우(매일 11–21 신청 / 22–익11 결과), phone 기반 인증, nationality·cancel 제거, applicants/count(성별 분리) 엔드포인트 신설 | - |
+| v1.10 | 2026-05-13 | 3.9절 매칭 알고리즘 변경 — 성비 70% pause 폐기, 선착순 컷오프 + 교란 순열로 전환. 결과 응답 `matchedInstagramId` → `pickedInstagramId` (의미: "내가 뽑은 상대") | - |
 
 ---
 
@@ -369,6 +370,19 @@
 }
 ```
 
+**매칭 결과 조회 응답 예시 (결과창 안)**
+```
+{
+  "instagramId": "user_id",
+  "status": "MATCHED",
+  "resultOpen": true,
+  "pickedInstagramId": "other_id",
+  "instagramProfileUrl": "https://instagram.com/other_id",
+  "messageKo": "당신이 뽑은 상대가 공개되었습니다.",
+  "messageEn": "Your picked partner is open."
+}
+```
+
 **applicants/count 응답 예시**
 ```
 {
@@ -382,15 +396,16 @@
 **비즈니스 규칙**
 - BR-MATCH-01: `(instagram_id, festival_day)` 복합 유니크 → 같은 날 1회만 참여, 다음 날 재참여 가능
 - BR-MATCH-02: 전화번호는 `phone_lookup_hash`(HmacSHA256)와 `phone_encrypted`(AES-GCM) 두 컬럼으로 분리 저장. 결과 조회는 해시 비교
-- BR-MATCH-03: 매칭 결과/취소 인증은 POST body (instagramId + phoneNumber) — URL 노출 방지
+- BR-MATCH-03: 매칭 결과 인증은 POST body (instagramId + phoneNumber) — URL 노출 방지
 - BR-MATCH-04: 결과 조회 brute-force 방지를 위해 IP 단위 Rate Limiting 적용 (5회 실패 → 10분 차단)
 - BR-MATCH-05: 21:00–22:00 사이 60초 간격 자동 스케줄러가 그날 PENDING 만 매칭. 관리자 수동 트리거 가능
-- BR-MATCH-06: 매칭 후 남은 인원은 `UNMATCHED` 상태로 전환, 결과창 동안 공개 목록 API 노출
-- BR-MATCH-07: 성별 비율 70% 이상 쏠림 시 매칭 PAUSED + 안내 메시지(KO/EN)
+- BR-MATCH-06: 매칭 알고리즘 — 선착순 컷오프(`created_at` 빠른 N=min(남,여)명만 참가) + 교란 순열(남자 i 는 여자 σ(i) 를 뽑고, 여자 σ(i) 는 남자 π(i) 를 뽑되 π(i)≠i 보장). 컷오프 밖 인원은 `UNMATCHED` 상태로 전환되어 결과창에서 공개. N=1 인 경우 교란 순열이 불가능하므로 1:1 양방향 매칭으로 fallback
+- BR-MATCH-07: `pickedInstagramId` 는 "내가 뽑은 상대" 의미. 양방향 짝 보장 없음(상대는 다른 사람 뽑음). 결과창 동안 본인 매칭 결과만 비공개로 조회
 - BR-MATCH-08: 결과창 외 시각(11:00 이후, 21:00 직전)에는 결과·미매칭 목록이 모두 hidden 응답
 - BR-MATCH-09: 매칭 실행은 PENDING 만 대상으로 멱등. 같은 트랜잭션 안에서 `PESSIMISTIC_WRITE` 락으로 직렬화
 - BR-MATCH-10: 신청자 카운트는 그날 PENDING 기준 성별 분리. 결과창 동안에는 해당 결과 일자 기준 표시
 - BR-MATCH-11: 매칭 신청 취소 기능은 제공하지 않는다 (UI 게이트로 "신청 후 취소 불가" 안내)
+- BR-MATCH-12: 관리자 PATCH `/admin/matchings/status` 로만 PAUSED 진입 가능 (자동 PAUSED 룰 없음). PAUSED 동안 신청 차단
 
 ---
 
