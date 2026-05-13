@@ -612,7 +612,7 @@
                     "Canvas Command"
                 ],
                 "summary": "\ubcf4\ub4dc \uc0dd\uc131 (\uc288\ud37c \uad00\ub9ac\uc790)",
-                "description": "\ud2b9\uc815 \ubb38\ud56d\uc5d0 \ubcf4\ub4dc\ub97c \ucd94\uac00\ud569\ub2c8\ub2e4. boardVariant\ub294 1 \ub610\ub294 2\ub85c \uc9c0\uc815\ud569\ub2c8\ub2e4.",
+                "description": "\ud2b9\uc815 \ubb38\ud56d\uc5d0 \ubcf4\ub4dc\ub97c \ucd94\uac00\ud569\ub2c8\ub2e4.",
                 "operationId": "createBoard",
                 "requestBody": {
                     "content": {
