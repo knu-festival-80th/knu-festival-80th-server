@@ -1,7 +1,7 @@
 # 기술/개발 명세서 (TS)
 
 > **프로젝트**: 2026 경북대학교 80주년 대동제 웹앱 서비스 (백엔드)  
-> **버전**: v1.6.1
+> **버전**: v1.8
 > **최종 수정일**: 2026-05-13  
 > **목적**: Verification 기준 문서 — "구현이 명세를 충족하는가?"
 
@@ -19,6 +19,8 @@
 | v1.5 | 2026-05-13 | 3.8절 canvas 스키마 전면 개편 — canvas_board_question/canvas_board 테이블 추가, canvas_postit 스키마 변경 / 6절 canvas WebSocket 제거 (REST로 전환 완료) | milk-stone |
 | v1.6 | 2026-05-13 | 3.9절 matching 스키마 개편 — surrogate PK 도입, `(instagram_id, festival_day)` 복합 유니크, password 컬럼 제거 후 `phone_lookup_hash`+`phone_encrypted` 도입, nationality 컬럼 제거, CANCELLED 상태 제거 | - |
 | v1.6.1 | 2026-05-13 | SessionAuthFilter 다이어그램 표기 정정 — 옛 `/api/**` → `/admin/**` 외 (root-prefix 컨벤션) | - |
+| v1.7 | 2026-05-13 | 7절 TS-GEMINI-01 추가 — Gemini AI 포스트잇 내용 검열 연동 | milk-stone |
+| v1.8 | 2026-05-13 | 3.8절 canvas_postit 스키마에 moderation_status 컬럼 추가 | milk-stone |
 
 ---
 
@@ -282,6 +284,7 @@ CREATE TABLE canvas_postit (
     message           VARCHAR(60) NOT NULL,
     position_x        DOUBLE  NOT NULL,
     position_y        DOUBLE  NOT NULL,
+    moderation_status VARCHAR(20) NOT NULL DEFAULT 'PENDING',
     created_at        DATETIME NOT NULL,
     updated_at        DATETIME NOT NULL,
     deleted_at        DATETIME,
@@ -289,6 +292,7 @@ CREATE TABLE canvas_postit (
 );
 -- color_id: 1~6 (1:red, 2:yellow, 3:green, 4:blue, 5:purple, 6:pink)
 -- position_x, position_y: 0~100 상대좌표 (보드 논리 크기 852×852px 기준 스티커 중심점)
+-- moderation_status: PENDING(생성 직후) → APPROVED(AI 승인) / REJECTED(AI 거부). 목록 조회는 APPROVED만 반환
 -- deleted_at: 소프트 딜리트 (관리자 삭제 시 사용)
 ```
 
@@ -411,6 +415,14 @@ SessionAuthFilter (HttpSession 확인)
 - 타임아웃: 연결 3초, 읽기 5초
 - 발송 실패 시 재시도 (최대 3회), 실패 시 `sms_sent=false` 유지 → 관리자 재발송 가능
 - 발송 성공 시 `sms_sent=true` 업데이트
+
+### TS-GEMINI-01: Gemini AI 포스트잇 내용 검열
+
+- 포스트잇 생성 트랜잭션 커밋 후 `AFTER_COMMIT` 이벤트 리스너가 비동기(`geminiExecutor` 스레드풀)로 Gemini API 호출
+- 엔드포인트: `POST https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent`
+- 판정 결과에 따라 상태 전환: `APPROVE` → `APPROVED`, `REJECT` → `REJECTED`. API 오류 시 `APPROVED`로 처리 (fail-open)
+- 설정 키: `gemini.api-key`, `gemini.model` (기본 `gemini-2.0-flash`), `gemini.moderation-prompt`
+- 스레드풀: core 2 / max 4 / queue 200 (`geminiExecutor`)
 
 ### TS-S3-01: 파일 업로드
 
