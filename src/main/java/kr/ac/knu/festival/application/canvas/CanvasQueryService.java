@@ -42,7 +42,7 @@ public class CanvasQueryService {
                     return new BoardSummaryResponse(
                             board.getId(),
                             board.getQuestion().getId(),
-                            board.getBoardVariant(),
+                            board.getQuestion().getBoardVariant(),
                             ((Number) row[1]).longValue(),
                             board.getMaxNoteCount()
                     );

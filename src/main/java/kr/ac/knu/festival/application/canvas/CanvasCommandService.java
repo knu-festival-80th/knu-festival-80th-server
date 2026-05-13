@@ -58,10 +58,10 @@ public class CanvasCommandService {
         return CanvasPostitCreateResponse.fromEntity(postit);
     }
 
-    public Long createBoard(Long questionId, int boardVariant, int maxNoteCount) {
+    public Long createBoard(Long questionId, int maxNoteCount) {
         CanvasBoardQuestion question = canvasBoardQuestionRepository.findById(questionId)
                 .orElseThrow(() -> new BusinessException(BusinessErrorCode.CANVAS_QUESTION_NOT_FOUND));
-        return canvasBoardRepository.save(CanvasBoard.create(question, boardVariant, maxNoteCount)).getId();
+        return canvasBoardRepository.save(CanvasBoard.create(question, maxNoteCount)).getId();
     }
 
     public void deletePostit(Long postitId) {

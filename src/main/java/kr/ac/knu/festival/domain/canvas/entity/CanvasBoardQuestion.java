@@ -35,11 +35,15 @@ public class CanvasBoardQuestion extends BaseTimeEntity {
     @Column(name = "order_index", nullable = false)
     private int orderIndex;
 
-    public static CanvasBoardQuestion create(String content, String description, int orderIndex) {
+    @Column(name = "board_variant", nullable = false)
+    private int boardVariant;
+
+    public static CanvasBoardQuestion create(String content, String description, int orderIndex, int boardVariant) {
         return CanvasBoardQuestion.builder()
                 .content(content)
                 .description(description)
                 .orderIndex(orderIndex)
+                .boardVariant(boardVariant)
                 .build();
     }
 }

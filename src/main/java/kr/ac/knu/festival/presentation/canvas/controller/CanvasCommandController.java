@@ -42,7 +42,7 @@ public class CanvasCommandController implements CanvasCommandControllerDocs {
     ) {
         admin.requireSuperAdmin();
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(ApiResponse.success(canvasCommandService.createBoard(request.questionId(), request.boardVariant(), request.maxNoteCount())));
+                .body(ApiResponse.success(canvasCommandService.createBoard(request.questionId(), request.maxNoteCount())));
     }
 
     @Override

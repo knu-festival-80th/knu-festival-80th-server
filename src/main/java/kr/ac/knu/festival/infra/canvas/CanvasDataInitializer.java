@@ -17,16 +17,15 @@ public class CanvasDataInitializer implements CommandLineRunner {
 
     private static final int BOARDS_PER_QUESTION = 20;
     private static final int MAX_NOTE_COUNT = 100;
-    private static final int BOARD_VARIANT_COUNT = 2;
 
-    private record QuestionSeed(String content, String description) {}
+    private record QuestionSeed(String content, String description, int boardVariant) {}
 
     private static final List<QuestionSeed> QUESTIONS = List.of(
-            new QuestionSeed("오늘의 기분을 작성해보세요", "지금 축제를 즐기는 마음을 남겨요"),
-            new QuestionSeed("가장 맛있었던 주막 음식은?", "가장 맛있었던 메뉴를 공유해요"),
-            new QuestionSeed("가장 재밌었던 공연은?", "기억에 남는 무대를 기록해요"),
-            new QuestionSeed("오늘 가장 기억에 남는 순간은?", "가장 기억에 남는 장면을 남겨요"),
-            new QuestionSeed("경북대학교 80주년에 남기고 싶은 말", "경북대학교 80주년 축하 메시지를 남겨요")
+            new QuestionSeed("오늘의 기분을 작성해보세요", "지금 축제를 즐기는 마음을 남겨요", 1),
+            new QuestionSeed("가장 맛있었던 주막 음식은?", "가장 맛있었던 메뉴를 공유해요", 2),
+            new QuestionSeed("가장 재밌었던 공연은?", "기억에 남는 무대를 기록해요", 3),
+            new QuestionSeed("오늘 가장 기억에 남는 순간은?", "가장 기억에 남는 장면을 남겨요", 4),
+            new QuestionSeed("경북대학교 80주년에 남기고 싶은 말", "경북대학교 80주년 축하 메시지를 남겨요", 5)
     );
 
     private final CanvasBoardQuestionRepository questionRepository;
@@ -40,10 +39,10 @@ public class CanvasDataInitializer implements CommandLineRunner {
         for (int i = 0; i < QUESTIONS.size(); i++) {
             QuestionSeed seed = QUESTIONS.get(i);
             CanvasBoardQuestion question = questionRepository.save(
-                    CanvasBoardQuestion.create(seed.content(), seed.description(), i + 1)
+                    CanvasBoardQuestion.create(seed.content(), seed.description(), i + 1, seed.boardVariant())
             );
             for (int j = 1; j <= BOARDS_PER_QUESTION; j++) {
-                boardRepository.save(CanvasBoard.create(question, (j - 1) % BOARD_VARIANT_COUNT + 1, MAX_NOTE_COUNT));
+                boardRepository.save(CanvasBoard.create(question, MAX_NOTE_COUNT));
             }
         }
     }

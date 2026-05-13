@@ -33,16 +33,12 @@ public class CanvasBoard extends BaseTimeEntity {
     @JoinColumn(name = "canvas_board_question_id", nullable = false)
     private CanvasBoardQuestion question;
 
-    @Column(name = "board_variant", nullable = false)
-    private int boardVariant;
-
     @Column(name = "max_note_count", nullable = false)
     private int maxNoteCount;
 
-    public static CanvasBoard create(CanvasBoardQuestion question, int boardVariant, int maxNoteCount) {
+    public static CanvasBoard create(CanvasBoardQuestion question, int maxNoteCount) {
         return CanvasBoard.builder()
                 .question(question)
-                .boardVariant(boardVariant)
                 .maxNoteCount(maxNoteCount)
                 .build();
     }

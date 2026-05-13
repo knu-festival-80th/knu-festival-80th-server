@@ -19,7 +19,7 @@ public record CanvasPostitResponse(
         return new CanvasPostitResponse(
                 entity.getId(),
                 entity.getBoard().getId(),
-                entity.getBoard().getBoardVariant(),
+                entity.getBoard().getQuestion().getBoardVariant(),
                 entity.getColorId(),
                 entity.getMessage(),
                 new Placement(entity.getPositionX(), entity.getPositionY()),
