@@ -33,7 +33,7 @@ POST {{baseUrl}}/admin/v1/auth/logout
 ###############################################################
 
 ### [성공] 질문 5개, orderIndex 오름차순 반환
-GET {{baseUrl}}/api/v1/canvas/questions
+GET {{baseUrl}}/canvas/questions
 
 
 ###############################################################
@@ -41,12 +41,12 @@ GET {{baseUrl}}/api/v1/canvas/questions
 ###############################################################
 
 ### [성공] questionId=1 → 보드 20개, noteCount/maxNoteCount 포함
-GET {{baseUrl}}/api/v1/canvas/boards?questionId=1
+GET {{baseUrl}}/canvas/boards?questionId=1
 
 ###
 
 ### [실패] 존재하지 않는 questionId → CANVAS_QUESTION_NOT_FOUND
-GET {{baseUrl}}/api/v1/canvas/boards?questionId=9999
+GET {{baseUrl}}/canvas/boards?questionId=9999
 
 
 ###############################################################
@@ -54,17 +54,17 @@ GET {{baseUrl}}/api/v1/canvas/boards?questionId=9999
 ###############################################################
 
 ### [성공] 빈 보드 → 빈 배열 반환
-GET {{baseUrl}}/api/v1/canvas/postits?boardId=1
+GET {{baseUrl}}/canvas/postits?boardId=1
 
 ###
 
 ### [성공] PostIt 생성 후 재조회 → 목록에 포함 확인 (생성 테스트 후 실행)
-GET {{baseUrl}}/api/v1/canvas/postits?boardId=1
+GET {{baseUrl}}/canvas/postits?boardId=1
 
 ###
 
 ### [실패] 존재하지 않는 boardId → CANVAS_BOARD_NOT_FOUND
-GET {{baseUrl}}/api/v1/canvas/postits?boardId=9999
+GET {{baseUrl}}/canvas/postits?boardId=9999
 
 
 ###############################################################
@@ -73,7 +73,7 @@ GET {{baseUrl}}/api/v1/canvas/postits?boardId=9999
 
 ### [성공] 정상 생성 (좌상단 안전 영역)
 # 이 케이스를 먼저 실행해야 아래 "위치 충돌" 테스트 가능
-POST {{baseUrl}}/api/v1/canvas/postits
+POST {{baseUrl}}/canvas/postits
 Content-Type: application/json
 
 {
@@ -89,7 +89,7 @@ Content-Type: application/json
 ###
 
 ### [성공] 다른 보드에 동일 좌표 → 보드가 다르므로 충돌 없음
-POST {{baseUrl}}/api/v1/canvas/postits
+POST {{baseUrl}}/canvas/postits
 Content-Type: application/json
 
 {
@@ -105,7 +105,7 @@ Content-Type: application/json
 ###
 
 ### [성공] colorId=6 (pink) 정상 생성
-POST {{baseUrl}}/api/v1/canvas/postits
+POST {{baseUrl}}/canvas/postits
 Content-Type: application/json
 
 {
@@ -121,7 +121,7 @@ Content-Type: application/json
 ###
 
 ### [실패] boardId 없음 → CANVAS_BOARD_NOT_FOUND
-POST {{baseUrl}}/api/v1/canvas/postits
+POST {{baseUrl}}/canvas/postits
 Content-Type: application/json
 
 {
@@ -137,7 +137,7 @@ Content-Type: application/json
 ###
 
 ### [실패] colorId 범위 초과 (7) → 400 Validation Error
-POST {{baseUrl}}/api/v1/canvas/postits
+POST {{baseUrl}}/canvas/postits
 Content-Type: application/json
 
 {
@@ -153,7 +153,7 @@ Content-Type: application/json
 ###
 
 ### [실패] colorId 범위 미달 (0) → 400 Validation Error
-POST {{baseUrl}}/api/v1/canvas/postits
+POST {{baseUrl}}/canvas/postits
 Content-Type: application/json
 
 {
@@ -169,7 +169,7 @@ Content-Type: application/json
 ###
 
 ### [실패] 메시지 공백 → 400 Validation Error (@NotBlank)
-POST {{baseUrl}}/api/v1/canvas/postits
+POST {{baseUrl}}/canvas/postits
 Content-Type: application/json
 
 {
@@ -185,7 +185,7 @@ Content-Type: application/json
 ###
 
 ### [실패] 메시지 60자 초과 (61자) → 400 Validation Error
-POST {{baseUrl}}/api/v1/canvas/postits
+POST {{baseUrl}}/canvas/postits
 Content-Type: application/json
 
 {
@@ -201,7 +201,7 @@ Content-Type: application/json
 ###
 
 ### [실패] x 좌표 100 초과 (101.0) → 400 Validation Error (@DecimalMax)
-POST {{baseUrl}}/api/v1/canvas/postits
+POST {{baseUrl}}/canvas/postits
 Content-Type: application/json
 
 {
@@ -217,7 +217,7 @@ Content-Type: application/json
 ###
 
 ### [실패] 보드 경계 밖 - 왼쪽 (x=1.0 → cx=8.5px, halfW=40px → 경계 벗어남) → POSTIT_OUT_OF_BOARD
-POST {{baseUrl}}/api/v1/canvas/postits
+POST {{baseUrl}}/canvas/postits
 Content-Type: application/json
 
 {
@@ -233,7 +233,7 @@ Content-Type: application/json
 ###
 
 ### [실패] 보드 경계 밖 - 위쪽 (y=1.0 → cy=8.5px, halfH≈37px → 경계 벗어남) → POSTIT_OUT_OF_BOARD
-POST {{baseUrl}}/api/v1/canvas/postits
+POST {{baseUrl}}/canvas/postits
 Content-Type: application/json
 
 {
@@ -249,7 +249,7 @@ Content-Type: application/json
 ###
 
 ### [실패] 프레임 차단 영역 - 정중앙 (x=50, y=50 → 중앙 프레임 영역) → POSTIT_IN_BLOCKED_AREA
-POST {{baseUrl}}/api/v1/canvas/postits
+POST {{baseUrl}}/canvas/postits
 Content-Type: application/json
 
 {
@@ -266,7 +266,7 @@ Content-Type: application/json
 
 ### [실패] 위치 충돌 - 위 성공 케이스(x=10, y=10)와 동일 좌표 → POSTIT_POSITION_CONFLICT
 # "PostIt 생성 성공" 케이스 실행 후 테스트
-POST {{baseUrl}}/api/v1/canvas/postits
+POST {{baseUrl}}/canvas/postits
 Content-Type: application/json
 
 {
@@ -290,7 +290,7 @@ Content-Type: application/json
 ###############################################################
 
 ### [성공] questionId=1에 보드 추가
-POST {{baseUrl}}/admin/v1/canvas/boards
+POST {{baseUrl}}/admin/canvas/boards
 Content-Type: application/json
 
 {
@@ -301,7 +301,7 @@ Content-Type: application/json
 ###
 
 ### [성공] maxNoteCount=1인 보드 생성 (CANVAS_BOARD_FULL 테스트용)
-POST {{baseUrl}}/admin/v1/canvas/boards
+POST {{baseUrl}}/admin/canvas/boards
 Content-Type: application/json
 
 {
@@ -312,7 +312,7 @@ Content-Type: application/json
 ###
 
 ### [실패] 존재하지 않는 questionId → CANVAS_QUESTION_NOT_FOUND
-POST {{baseUrl}}/admin/v1/canvas/boards
+POST {{baseUrl}}/admin/canvas/boards
 Content-Type: application/json
 
 {
@@ -323,7 +323,7 @@ Content-Type: application/json
 ###
 
 ### [실패] maxNoteCount=0 → 400 Validation Error
-POST {{baseUrl}}/admin/v1/canvas/boards
+POST {{baseUrl}}/admin/canvas/boards
 Content-Type: application/json
 
 {
@@ -334,7 +334,7 @@ Content-Type: application/json
 ###
 
 ### [실패] 인증 없이 요청 → 401/403 (로그아웃 후 실행)
-POST {{baseUrl}}/admin/v1/canvas/boards
+POST {{baseUrl}}/admin/canvas/boards
 Content-Type: application/json
 
 {
@@ -349,14 +349,14 @@ Content-Type: application/json
 
 ### [성공] PostIt 삭제 후 GET으로 사라진 것 확인
 # postitId는 생성 응답의 id 값으로 변경
-DELETE {{baseUrl}}/admin/v1/canvas/postits/1
+DELETE {{baseUrl}}/admin/canvas/postits/1
 
 ###
 
 ### [실패] 존재하지 않는 postitId → CANVAS_POSTIT_NOT_FOUND
-DELETE {{baseUrl}}/admin/v1/canvas/postits/9999
+DELETE {{baseUrl}}/admin/canvas/postits/9999
 
 ###
 
 ### [실패] 인증 없이 요청 → 401/403 (로그아웃 후 실행)
-DELETE {{baseUrl}}/admin/v1/canvas/postits/1
+DELETE {{baseUrl}}/admin/canvas/postits/1

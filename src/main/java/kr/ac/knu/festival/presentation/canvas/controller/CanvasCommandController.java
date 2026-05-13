@@ -27,7 +27,7 @@ public class CanvasCommandController implements CanvasCommandControllerDocs {
     private final CanvasCommandService canvasCommandService;
 
     @Override
-    @PostMapping("/api/v1/canvas/postits")
+    @PostMapping("/canvas/postits")
     public ResponseEntity<ApiResponse<CanvasPostitCreateResponse>> createPostit(
             @RequestBody @Valid CanvasPostitCreateRequest request
     ) {
@@ -35,7 +35,7 @@ public class CanvasCommandController implements CanvasCommandControllerDocs {
     }
 
     @Override
-    @PostMapping("/admin/v1/canvas/boards")
+    @PostMapping("/admin/canvas/boards")
     public ResponseEntity<ApiResponse<Long>> createBoard(
             @CurrentAdmin AdminInfo admin,
             @RequestBody @Valid CanvasBoardCreateRequest request
@@ -46,7 +46,7 @@ public class CanvasCommandController implements CanvasCommandControllerDocs {
     }
 
     @Override
-    @DeleteMapping("/admin/v1/canvas/postits/{postit-id}")
+    @DeleteMapping("/admin/canvas/postits/{postit-id}")
     public ResponseEntity<ApiResponse<Void>> deletePostit(
             @CurrentAdmin AdminInfo admin,
             @PathVariable("postit-id") Long postitId
