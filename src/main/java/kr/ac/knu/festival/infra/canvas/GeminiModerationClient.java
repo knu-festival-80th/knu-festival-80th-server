@@ -2,6 +2,7 @@ package kr.ac.knu.festival.infra.canvas;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
+import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestClient;
@@ -20,7 +21,13 @@ public class GeminiModerationClient {
 
     public GeminiModerationClient(GeminiProperties properties, RestClient.Builder restClientBuilder) {
         this.properties = properties;
-        this.restClient = restClientBuilder.baseUrl(BASE_URL).build();
+        SimpleClientHttpRequestFactory requestFactory = new SimpleClientHttpRequestFactory();
+        requestFactory.setConnectTimeout(3_000);
+        requestFactory.setReadTimeout(5_000);
+        this.restClient = restClientBuilder
+                .baseUrl(BASE_URL)
+                .requestFactory(requestFactory)
+                .build();
     }
 
     /**
