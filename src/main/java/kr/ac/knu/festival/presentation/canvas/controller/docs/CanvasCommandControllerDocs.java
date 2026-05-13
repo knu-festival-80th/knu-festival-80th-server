@@ -11,7 +11,7 @@ import kr.ac.knu.festival.presentation.canvas.dto.request.CanvasPostitCreateRequ
 import kr.ac.knu.festival.presentation.canvas.dto.response.CanvasPostitCreateResponse;
 import org.springframework.http.ResponseEntity;
 
-@Tag(name = "Canvas Command", description = "보드 생성 (슈퍼 관리자) / 포스트잇 생성 (사용자) / 포스트잇 삭제 (슈퍼 관리자)")
+@Tag(name = "롤링페이퍼 Command", description = "보드 생성 (슈퍼 관리자) / 포스트잇 생성 (사용자) / 포스트잇 삭제 (슈퍼 관리자)")
 public interface CanvasCommandControllerDocs {
 
     @Operation(summary = "포스트잇 생성", description = "boardId·colorId·메시지·좌표(0~100 상대좌표, 중심점)를 입력해 롤링페이퍼 보드에 포스트잇을 추가합니다.")
