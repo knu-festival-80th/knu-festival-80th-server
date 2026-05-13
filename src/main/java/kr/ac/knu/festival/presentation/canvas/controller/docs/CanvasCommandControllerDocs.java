@@ -25,7 +25,7 @@ public interface CanvasCommandControllerDocs {
             CanvasPostitCreateRequest request
     );
 
-    @Operation(summary = "보드 생성 (슈퍼 관리자)", description = "특정 문항에 보드를 추가합니다. boardVariant는 1 또는 2로 지정합니다.")
+    @Operation(summary = "보드 생성 (슈퍼 관리자)", description = "특정 문항에 보드를 추가합니다.")
     @ApiResponses({
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "201", description = "생성 성공"),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "403", description = "슈퍼 관리자 권한 필요"),
