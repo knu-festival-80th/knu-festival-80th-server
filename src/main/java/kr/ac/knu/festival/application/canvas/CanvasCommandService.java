@@ -36,7 +36,7 @@ public class CanvasCommandService {
     private final CanvasPostitRepository canvasPostitRepository;
 
     public CanvasPostitCreateResponse createPostit(CanvasPostitCreateRequest request) {
-        CanvasBoard board = canvasBoardRepository.findById(request.boardId())
+        CanvasBoard board = canvasBoardRepository.findByIdForUpdate(request.boardId())
                 .orElseThrow(() -> new BusinessException(BusinessErrorCode.CANVAS_BOARD_NOT_FOUND));
 
         if (canvasPostitRepository.countByBoard(board) >= board.getMaxNoteCount()) {
