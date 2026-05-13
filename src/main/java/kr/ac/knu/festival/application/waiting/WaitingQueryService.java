@@ -7,6 +7,7 @@ import kr.ac.knu.festival.domain.waiting.entity.WaitingStatus;
 import kr.ac.knu.festival.domain.waiting.repository.WaitingRepository;
 import kr.ac.knu.festival.global.exception.BusinessErrorCode;
 import kr.ac.knu.festival.global.exception.BusinessException;
+import kr.ac.knu.festival.infra.security.PhoneLookupHasher;
 import kr.ac.knu.festival.infra.security.PhoneNumberEncryptor;
 import kr.ac.knu.festival.presentation.waiting.dto.response.MyWaitingResponse;
 import kr.ac.knu.festival.presentation.waiting.dto.response.WaitingResponse;
@@ -28,6 +29,7 @@ public class WaitingQueryService {
     private final BoothRepository boothRepository;
     private final WaitingRepository waitingRepository;
     private final PhoneNumberEncryptor phoneNumberEncryptor;
+    private final PhoneLookupHasher phoneLookupHasher;
 
     public WaitingStatusResponse getBoothStatus(Long boothId) {
         Booth booth = boothRepository.findById(boothId)
@@ -57,6 +59,25 @@ public class WaitingQueryService {
                 : waitingRepository.findAllByBoothIdAndStatusInOrderBySortOrderAsc(boothId, List.of(status));
         return waitings.stream()
                 .map(w -> WaitingResponse.fromEntity(w, maskPhone(w.getPhoneNumber())))
+                .toList();
+    }
+
+    public List<MyWaitingResponse> getMyWaitings(String name, String phoneNumber) {
+        String normalizedPhone = phoneNumber.replaceAll("\\D", "");
+        String lookupHash = phoneLookupHasher.hash(normalizedPhone);
+
+        List<Waiting> waitings = waitingRepository.findAllActiveByPhoneLookupHash(lookupHash, ACTIVE_STATUSES);
+        if (waitings.isEmpty()) {
+            throw new BusinessException(BusinessErrorCode.WAITING_NOT_FOUND);
+        }
+
+        boolean nameMatches = waitings.stream().anyMatch(w -> w.getName().equals(name));
+        if (!nameMatches) {
+            throw new BusinessException(BusinessErrorCode.PHONE_VERIFICATION_FAILED);
+        }
+
+        return waitings.stream()
+                .map(w -> MyWaitingResponse.of(w, countAheadOf(w), countAheadOf(w) * MINUTES_PER_TEAM))
                 .toList();
     }
 

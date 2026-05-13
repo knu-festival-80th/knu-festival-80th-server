@@ -1,0 +1,11 @@
+# 로컬 실행 전용 기본값이다.
+# 공통 application.yml 충돌을 줄이기 위해 DB 기본값은 local 프로필에만 둔다.
+spring:
+  datasource:
+    url: ${DB_URL:jdbc:mysql://localhost:3306/knu_festival?useSSL=false&serverTimezone=Asia/Seoul&characterEncoding=UTF-8&allowPublicKeyRetrieval=true}
+    username: ${DB_USERNAME:festival}
+    password: ${DB_PASSWORD:festival}
+
+cors:
+  # 프론트 배포 도메인이 정해지면 CORS_ALLOWED_ORIGINS에 쉼표로 추가한다.
+  allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:3000}

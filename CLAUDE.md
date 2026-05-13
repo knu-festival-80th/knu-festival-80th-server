@@ -29,7 +29,7 @@ global/                 → 공통 컴포넌트 (auth, base, config, exception)
 ## Controller
 - Command/Query 컨트롤러 분리
 - Swagger 어노테이션은 `*Docs` 인터페이스에만 작성, 컨트롤러는 이를 구현
-- 일반 사용자 API: `/api/v1/{resource}`, 관리자 API: `/admin/v1/{resource}`
+- 일반 사용자 API: `/{resource}`, 관리자 API: `/admin/{resource}`
 - 모든 응답: `ResponseEntity<ApiResponse<T>>`
 - Path variable: kebab-case, 이름 명시 (`@PathVariable("notice-id")`)
 
