@@ -114,7 +114,7 @@ class MatchingRegistrationIntegrationTest {
     @Test
     void rejectRegistrationWhenServiceIsPaused() throws Exception {
         MatchingServiceState pausedState = MatchingServiceState.defaultOpen();
-        pausedState.changeStatus(MatchingOperationStatus.PAUSED, "일시중단", "Paused");
+        pausedState.changeStatus(MatchingOperationStatus.PAUSED);
         matchingServiceStateRepository.save(pausedState);
 
         MatchingCreateRequest request = new MatchingCreateRequest(

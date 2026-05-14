@@ -13,6 +13,8 @@ import kr.ac.knu.festival.presentation.matching.dto.response.MatchingRegisterRes
 import kr.ac.knu.festival.presentation.matching.dto.response.MatchingStatusResponse;
 import org.springframework.http.ResponseEntity;
 
+import java.time.LocalDate;
+
 @Tag(name = "매칭 Command", description = "두근두근 인스타팅 신청 + 관리자 매칭 실행 API")
 public interface MatchingCommandControllerDocs {
 
@@ -24,12 +26,30 @@ public interface MatchingCommandControllerDocs {
     })
     ResponseEntity<ApiResponse<MatchingRegisterResponse>> register(MatchingCreateRequest request);
 
-    @Operation(summary = "일괄 매칭 실행")
+    @Operation(summary = "[관리자] 일괄 매칭 실행 (대상 일자 자동 추정)")
     ResponseEntity<ApiResponse<MatchingJobResponse>> runMatchingJob(@Parameter(hidden = true) AdminInfo admin);
 
-    @Operation(summary = "매칭 서비스 상태 변경")
+    @Operation(summary = "[관리자] 특정 일자 일괄 매칭 실행")
+    ResponseEntity<ApiResponse<MatchingJobResponse>> runMatchingJobOnDay(
+            @Parameter(hidden = true) AdminInfo admin,
+            @Parameter(description = "축제 일자 (YYYY-MM-DD)") LocalDate festivalDay
+    );
+
+    @Operation(summary = "[관리자] 매칭 서비스 상태 변경")
     ResponseEntity<ApiResponse<MatchingStatusResponse>> updateStatus(
             @Parameter(hidden = true) AdminInfo admin,
             MatchingStatusUpdateRequest request
+    );
+
+    @Operation(summary = "[관리자] 신청자 삭제")
+    ResponseEntity<ApiResponse<MatchingStatusResponse>> deleteParticipant(
+            @Parameter(hidden = true) AdminInfo admin,
+            Long participantId
+    );
+
+    @Operation(summary = "[관리자] 신청자 매칭 상태 초기화 (PENDING)")
+    ResponseEntity<ApiResponse<MatchingStatusResponse>> resetParticipant(
+            @Parameter(hidden = true) AdminInfo admin,
+            Long participantId
     );
 }

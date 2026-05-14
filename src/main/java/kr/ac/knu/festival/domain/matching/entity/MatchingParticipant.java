@@ -96,4 +96,9 @@ public class MatchingParticipant extends BaseTimeEntity {
         this.matchedId = null;
         this.status = MatchingParticipantStatus.UNMATCHED;
     }
+
+    public void resetToPending() {
+        this.matchedId = null;
+        this.status = MatchingParticipantStatus.PENDING;
+    }
 }

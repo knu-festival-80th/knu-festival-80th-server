@@ -10,8 +10,11 @@ import kr.ac.knu.festival.domain.matching.repository.MatchingServiceStateReposit
 import kr.ac.knu.festival.global.exception.BusinessErrorCode;
 import kr.ac.knu.festival.global.exception.BusinessException;
 import kr.ac.knu.festival.infra.security.PhoneLookupHasher;
+import kr.ac.knu.festival.infra.security.PhoneNumberEncryptor;
 import kr.ac.knu.festival.presentation.matching.dto.request.MatchingAuthRequest;
 import kr.ac.knu.festival.presentation.matching.dto.response.MatchingApplicantsCountResponse;
+import kr.ac.knu.festival.presentation.matching.dto.response.MatchingParticipantAdminResponse;
+import kr.ac.knu.festival.presentation.matching.dto.response.MatchingParticipantsAdminResponse;
 import kr.ac.knu.festival.presentation.matching.dto.response.MatchingResultResponse;
 import kr.ac.knu.festival.presentation.matching.dto.response.MatchingStatusResponse;
 import kr.ac.knu.festival.presentation.matching.dto.response.UnmatchedParticipantResponse;
@@ -33,6 +36,7 @@ public class MatchingQueryService {
     private final MatchingParticipantRepository matchingParticipantRepository;
     private final MatchingServiceStateRepository matchingServiceStateRepository;
     private final PhoneLookupHasher phoneLookupHasher;
+    private final PhoneNumberEncryptor phoneNumberEncryptor;
     private final MatchingScheduleProperties matchingScheduleProperties;
     private final MatchingRealtimeCache matchingRealtimeCache;
     private final MatchingRateLimiter matchingRateLimiter;
@@ -74,12 +78,11 @@ public class MatchingQueryService {
             MatchingOperationStatus status = MatchingOperationStatus.valueOf(valueOf(cachedStatus, "status"));
             return MatchingStatusResponse.ofCached(
                     status,
-                    valueOf(cachedStatus, "messageKo"),
-                    valueOf(cachedStatus, "messageEn"),
                     status == MatchingOperationStatus.OPEN && matchingScheduleProperties.isRegistrationOpen(),
                     matchingScheduleProperties.isResultOpen(),
                     valueOf(cachedStatus, "registrationDeadline"),
                     valueOf(cachedStatus, "resultOpenAt"),
+                    matchingScheduleProperties.festivalDays(),
                     longValueOf(cachedCounts, "pending"),
                     longValueOf(cachedCounts, "matched"),
                     longValueOf(cachedCounts, "unmatched"),
@@ -100,6 +103,45 @@ public class MatchingQueryService {
         long female = matchingParticipantRepository.countByFestivalDayAndStatusAndGender(
                 day, MatchingParticipantStatus.PENDING, MatchingGender.FEMALE);
         return new MatchingApplicantsCountResponse(day, male, female, male + female);
+    }
+
+    public MatchingParticipantsAdminResponse listParticipantsForAdmin(
+            LocalDate festivalDay,
+            MatchingParticipantStatus status,
+            MatchingGender gender,
+            String search
+    ) {
+        LocalDate targetDay = festivalDay != null ? festivalDay : currentDayForCounts();
+        if (targetDay == null) {
+            targetDay = matchingScheduleProperties.festivalDays().isEmpty()
+                    ? null
+                    : matchingScheduleProperties.festivalDays().get(matchingScheduleProperties.festivalDays().size() - 1);
+        }
+        if (targetDay == null) {
+            return MatchingParticipantsAdminResponse.of(null, List.of());
+        }
+        String trimmedSearch = (search == null || search.isBlank()) ? null : search.trim().toLowerCase();
+        List<MatchingParticipantAdminResponse> rows = matchingParticipantRepository
+                .searchForAdmin(targetDay, status, gender, trimmedSearch)
+                .stream()
+                .map(p -> MatchingParticipantAdminResponse.fromEntity(p, maskedPhone(p.getPhoneEncrypted())))
+                .toList();
+        return MatchingParticipantsAdminResponse.of(targetDay, rows);
+    }
+
+    private String maskedPhone(String encryptedPhone) {
+        if (encryptedPhone == null) {
+            return "";
+        }
+        String decrypted = phoneNumberEncryptor.decrypt(encryptedPhone);
+        if (decrypted == null) {
+            return "";
+        }
+        String digits = decrypted.replaceAll("\\D", "");
+        if (digits.length() < 4) {
+            return "***-****-****";
+        }
+        return "***-****-" + digits.substring(digits.length() - 4);
     }
 
     public UnmatchedParticipantsResponse getUnmatchedParticipants() {
@@ -129,6 +171,7 @@ public class MatchingQueryService {
                 matchingScheduleProperties.isResultOpen(),
                 matchingScheduleProperties.upcomingRegistrationDeadlineIso(),
                 matchingScheduleProperties.upcomingResultOpenIso(),
+                matchingScheduleProperties.festivalDays(),
                 pending,
                 matched,
                 unmatched,

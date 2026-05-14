@@ -32,24 +32,14 @@ public class MatchingServiceState extends BaseTimeEntity {
     @Column(nullable = false, length = 20)
     private MatchingOperationStatus status;
 
-    @Column(name = "message_ko", length = 255)
-    private String messageKo;
-
-    @Column(name = "message_en", length = 255)
-    private String messageEn;
-
     public static MatchingServiceState defaultOpen() {
         return MatchingServiceState.builder()
                 .id(SINGLETON_ID)
                 .status(MatchingOperationStatus.OPEN)
-                .messageKo("매칭 신청이 가능합니다.")
-                .messageEn("Matching is open.")
                 .build();
     }
 
-    public void changeStatus(MatchingOperationStatus status, String messageKo, String messageEn) {
+    public void changeStatus(MatchingOperationStatus status) {
         this.status = status;
-        this.messageKo = messageKo;
-        this.messageEn = messageEn;
     }
 }
