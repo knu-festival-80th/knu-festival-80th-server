@@ -9,8 +9,7 @@ public record MatchingResultResponse(
         boolean resultOpen,
         String pickedInstagramId,
         String instagramProfileUrl,
-        String messageKo,
-        String messageEn
+        String resultOpenAt
 ) {
     public static MatchingResultResponse hidden(MatchingParticipant participant, String resultOpenAt) {
         return new MatchingResultResponse(
@@ -19,8 +18,7 @@ public record MatchingResultResponse(
                 false,
                 null,
                 null,
-                "매칭 결과는 " + resultOpenAt + "에 공개됩니다.",
-                "Matching results open at " + resultOpenAt + "."
+                resultOpenAt
         );
     }
 
@@ -32,8 +30,7 @@ public record MatchingResultResponse(
                 true,
                 pickedId,
                 pickedId == null ? null : "https://instagram.com/" + pickedId,
-                pickedId == null ? "매칭이 성사되지 않았습니다." : "당신이 뽑은 상대가 공개되었습니다.",
-                pickedId == null ? "No partner was matched." : "Your picked partner is open."
+                null
         );
     }
 }

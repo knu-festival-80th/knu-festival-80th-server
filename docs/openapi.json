@@ -618,13 +618,78 @@
                 }
             }
         },
-        "/admin/matching-jobs": {
+        "/admin/matchings/participants/{participant-id}/reset": {
             "post": {
                 "tags": [
                     "\ub9e4\uce6d Command"
                 ],
-                "summary": "\uc77c\uad04 \ub9e4\uce6d \uc2e4\ud589",
+                "summary": "[\uad00\ub9ac\uc790] \uc2e0\uccad\uc790 \ub9e4\uce6d \uc0c1\ud0dc \ucd08\uae30\ud654 (PENDING)",
+                "operationId": "resetParticipant",
+                "parameters": [
+                    {
+                        "name": "participant-id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiResponseMatchingStatusResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/matchings/jobs": {
+            "post": {
+                "tags": [
+                    "\ub9e4\uce6d Command"
+                ],
+                "summary": "[\uad00\ub9ac\uc790] \uc77c\uad04 \ub9e4\uce6d \uc2e4\ud589 (\ub300\uc0c1 \uc77c\uc790 \uc790\ub3d9 \ucd94\uc815)",
                 "operationId": "runMatchingJob",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiResponseMatchingJobResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/matchings/jobs/{festival-day}": {
+            "post": {
+                "tags": [
+                    "\ub9e4\uce6d Command"
+                ],
+                "summary": "[\uad00\ub9ac\uc790] \ud2b9\uc815 \uc77c\uc790 \uc77c\uad04 \ub9e4\uce6d \uc2e4\ud589",
+                "operationId": "runMatchingJobOnDay",
+                "parameters": [
+                    {
+                        "name": "festival-day",
+                        "in": "path",
+                        "description": "\ucd95\uc81c \uc77c\uc790 (YYYY-MM-DD)",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "date"
+                        }
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -980,7 +1045,7 @@
                 "tags": [
                     "\ub9e4\uce6d Command"
                 ],
-                "summary": "\ub9e4\uce6d \uc11c\ube44\uc2a4 \uc0c1\ud0dc \ubcc0\uacbd",
+                "summary": "[\uad00\ub9ac\uc790] \ub9e4\uce6d \uc11c\ube44\uc2a4 \uc0c1\ud0dc \ubcc0\uacbd",
                 "operationId": "updateStatus",
                 "requestBody": {
                     "content": {
@@ -1464,6 +1529,75 @@
                 }
             }
         },
+        "/admin/matchings/participants": {
+            "get": {
+                "tags": [
+                    "\ub9e4\uce6d Query"
+                ],
+                "summary": "[\uad00\ub9ac\uc790] \uc2e0\uccad\uc790 \ubaa9\ub85d \uc870\ud68c (\ud544\ud130\ub9c1)",
+                "operationId": "listParticipantsForAdmin",
+                "parameters": [
+                    {
+                        "name": "festivalDay",
+                        "in": "query",
+                        "description": "\ucd95\uc81c \uc77c\uc790 (YYYY-MM-DD). \ubbf8\uc9c0\uc815 \uc2dc \ud604\uc7ac \ucd95\uc81c\uc77c/\ucd5c\uadfc \uc77c\uc790 \uae30\uc900",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "format": "date"
+                        }
+                    },
+                    {
+                        "name": "status",
+                        "in": "query",
+                        "description": "\ucc38\uac00\uc790 \uc0c1\ud0dc",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "PENDING",
+                                "MATCHED",
+                                "UNMATCHED"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "gender",
+                        "in": "query",
+                        "description": "\uc131\ubcc4",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "MALE",
+                                "FEMALE"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "search",
+                        "in": "query",
+                        "description": "instagramId \ubd80\ubd84 \uac80\uc0c9",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiResponseMatchingParticipantsAdminResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/admin/booths/{booth-id}/waitings": {
             "get": {
                 "tags": [
@@ -1504,6 +1638,38 @@
                             "*/*": {
                                 "schema": {
                                     "$ref": "#/components/schemas/ApiResponseListWaitingResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/matchings/participants/{participant-id}": {
+            "delete": {
+                "tags": [
+                    "\ub9e4\uce6d Command"
+                ],
+                "summary": "[\uad00\ub9ac\uc790] \uc2e0\uccad\uc790 \uc0ad\uc81c",
+                "operationId": "deleteParticipant",
+                "parameters": [
+                    {
+                        "name": "participant-id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiResponseMatchingStatusResponse"
                                 }
                             }
                         }
@@ -1843,10 +2009,7 @@
                     "instagramProfileUrl": {
                         "type": "string"
                     },
-                    "messageKo": {
-                        "type": "string"
-                    },
-                    "messageEn": {
+                    "resultOpenAt": {
                         "type": "string"
                     }
                 }
@@ -2107,6 +2270,71 @@
                     }
                 }
             },
+            "ApiResponseMatchingStatusResponse": {
+                "type": "object",
+                "properties": {
+                    "success": {
+                        "type": "boolean"
+                    },
+                    "data": {
+                        "$ref": "#/components/schemas/MatchingStatusResponse"
+                    },
+                    "error": {
+                        "$ref": "#/components/schemas/ErrorResponse"
+                    }
+                }
+            },
+            "MatchingStatusResponse": {
+                "type": "object",
+                "properties": {
+                    "status": {
+                        "type": "string",
+                        "enum": [
+                            "OPEN",
+                            "PAUSED"
+                        ]
+                    },
+                    "registrationOpen": {
+                        "type": "boolean"
+                    },
+                    "resultOpen": {
+                        "type": "boolean"
+                    },
+                    "registrationDeadline": {
+                        "type": "string"
+                    },
+                    "resultOpenAt": {
+                        "type": "string"
+                    },
+                    "festivalDays": {
+                        "type": "array",
+                        "items": {
+                            "type": "string",
+                            "format": "date"
+                        }
+                    },
+                    "pendingCount": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "matchedCount": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "unmatchedCount": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "malePendingCount": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "femalePendingCount": {
+                        "type": "integer",
+                        "format": "int64"
+                    }
+                }
+            },
             "ApiResponseMatchingJobResponse": {
                 "type": "object",
                 "properties": {
@@ -2257,85 +2485,11 @@
                             "OPEN",
                             "PAUSED"
                         ]
-                    },
-                    "messageKo": {
-                        "type": "string",
-                        "maxLength": 255,
-                        "minLength": 0
-                    },
-                    "messageEn": {
-                        "type": "string",
-                        "maxLength": 255,
-                        "minLength": 0
                     }
                 },
                 "required": [
                     "status"
                 ]
-            },
-            "ApiResponseMatchingStatusResponse": {
-                "type": "object",
-                "properties": {
-                    "success": {
-                        "type": "boolean"
-                    },
-                    "data": {
-                        "$ref": "#/components/schemas/MatchingStatusResponse"
-                    },
-                    "error": {
-                        "$ref": "#/components/schemas/ErrorResponse"
-                    }
-                }
-            },
-            "MatchingStatusResponse": {
-                "type": "object",
-                "properties": {
-                    "status": {
-                        "type": "string",
-                        "enum": [
-                            "OPEN",
-                            "PAUSED"
-                        ]
-                    },
-                    "messageKo": {
-                        "type": "string"
-                    },
-                    "messageEn": {
-                        "type": "string"
-                    },
-                    "registrationOpen": {
-                        "type": "boolean"
-                    },
-                    "resultOpen": {
-                        "type": "boolean"
-                    },
-                    "registrationDeadline": {
-                        "type": "string"
-                    },
-                    "resultOpenAt": {
-                        "type": "string"
-                    },
-                    "pendingCount": {
-                        "type": "integer",
-                        "format": "int64"
-                    },
-                    "matchedCount": {
-                        "type": "integer",
-                        "format": "int64"
-                    },
-                    "unmatchedCount": {
-                        "type": "integer",
-                        "format": "int64"
-                    },
-                    "malePendingCount": {
-                        "type": "integer",
-                        "format": "int64"
-                    },
-                    "femalePendingCount": {
-                        "type": "integer",
-                        "format": "int64"
-                    }
-                }
             },
             "WaitingToggleRequest": {
                 "type": "object",
@@ -2410,12 +2564,6 @@
                         "type": "boolean"
                     },
                     "resultOpenAt": {
-                        "type": "string"
-                    },
-                    "messageKo": {
-                        "type": "string"
-                    },
-                    "messageEn": {
                         "type": "string"
                     },
                     "participants": {
@@ -2769,6 +2917,80 @@
                     },
                     "yRatio": {
                         "type": "number"
+                    }
+                }
+            },
+            "ApiResponseMatchingParticipantsAdminResponse": {
+                "type": "object",
+                "properties": {
+                    "success": {
+                        "type": "boolean"
+                    },
+                    "data": {
+                        "$ref": "#/components/schemas/MatchingParticipantsAdminResponse"
+                    },
+                    "error": {
+                        "$ref": "#/components/schemas/ErrorResponse"
+                    }
+                }
+            },
+            "MatchingParticipantAdminResponse": {
+                "type": "object",
+                "properties": {
+                    "participantId": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "instagramId": {
+                        "type": "string"
+                    },
+                    "gender": {
+                        "type": "string",
+                        "enum": [
+                            "MALE",
+                            "FEMALE"
+                        ]
+                    },
+                    "status": {
+                        "type": "string",
+                        "enum": [
+                            "PENDING",
+                            "MATCHED",
+                            "UNMATCHED"
+                        ]
+                    },
+                    "matchedInstagramId": {
+                        "type": "string"
+                    },
+                    "festivalDay": {
+                        "type": "string",
+                        "format": "date"
+                    },
+                    "maskedPhone": {
+                        "type": "string"
+                    },
+                    "createdAt": {
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                }
+            },
+            "MatchingParticipantsAdminResponse": {
+                "type": "object",
+                "properties": {
+                    "festivalDay": {
+                        "type": "string",
+                        "format": "date"
+                    },
+                    "totalCount": {
+                        "type": "integer",
+                        "format": "int32"
+                    },
+                    "participants": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/MatchingParticipantAdminResponse"
+                        }
                     }
                 }
             },

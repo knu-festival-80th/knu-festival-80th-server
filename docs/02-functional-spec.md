@@ -1,8 +1,8 @@
 # 기능 명세서 (FS: Functional Specification)
 
 > **프로젝트**: 2026 경북대학교 80주년 대동제 웹앱 서비스 (백엔드)  
-> **버전**: v1.13
-> **최종 수정일**: 2026-05-13  
+> **버전**: v1.15
+> **최종 수정일**: 2026-05-14  
 > **목적**: 백엔드가 제공해야 할 API와 비즈니스 로직을 기능 단위로 정의한다.
 
 ---
@@ -26,6 +26,8 @@
 | v1.11.1 | 2026-05-13 | BR-AUTH-03 표기 정정 — 옛 `/api/**` 잔존 표현 → `/admin/**` 외 (root-prefix 컨벤션) | - |
 | v1.12 | 2026-05-13 | 3.8절 BR-RP-09 추가 — Gemini AI 비동기 내용 검열 규칙 신설 | milk-stone |
 | v1.13 | 2026-05-13 | 3.8절 포스트잇 검열 상태 도입 — PENDING/APPROVED/REJECTED 흐름 반영, 생성 응답에 moderationStatus 추가, BR-RP-09 갱신 | milk-stone |
+| v1.14 | 2026-05-14 | 3.9절 인스타팅 관리자 API 확장 — 신청자 목록/삭제/리셋 추가, 매칭 잡 경로 `/admin/matching-jobs` → `/admin/matchings/jobs(/{day})`로 통일 | - |
+| v1.15 | 2026-05-14 | 3.9절 인스타팅 응답에서 `messageKo`/`messageEn` 제거 — 프론트가 사용하지 않으므로 entity·request·status/result/unmatched response·service에서 일괄 삭제. status entity의 `message_ko`/`message_en` 컬럼도 제거 | - |
 
 ---
 
@@ -356,8 +358,12 @@
 | GET | `/matchings/status` | 매칭 서비스 상태 조회 | 불필요 |
 | GET | `/matchings/applicants/count` | 현재 신청자 수 (성별 분리) | 불필요 |
 | GET | `/matchings/unmatched` | 미매칭 공개 목록 조회 | 불필요 |
-| POST | `/admin/matching-jobs` | 일괄 매칭 실행 (Time Drop) | 슈퍼 관리자 |
+| POST | `/admin/matchings/jobs` | 일괄 매칭 실행 (대상 일자 자동 추정) | 슈퍼 관리자 |
+| POST | `/admin/matchings/jobs/{festival-day}` | 특정 일자 일괄 매칭 실행 | 슈퍼 관리자 |
 | PATCH | `/admin/matchings/status` | 매칭 상태 변경 (일시중단/재개) | 슈퍼 관리자 |
+| GET | `/admin/matchings/participants` | 신청자 목록 조회 (festivalDay/status/gender/search 필터) | 슈퍼 관리자 |
+| DELETE | `/admin/matchings/participants/{participant-id}` | 신청자 삭제 | 슈퍼 관리자 |
+| POST | `/admin/matchings/participants/{participant-id}/reset` | 신청자 매칭 상태 초기화 (PENDING) | 슈퍼 관리자 |
 
 **매칭 신청 요청**
 ```
@@ -384,8 +390,7 @@
   "resultOpen": true,
   "pickedInstagramId": "other_id",
   "instagramProfileUrl": "https://instagram.com/other_id",
-  "messageKo": "당신이 뽑은 상대가 공개되었습니다.",
-  "messageEn": "Your picked partner is open."
+  "resultOpenAt": null
 }
 ```
 
