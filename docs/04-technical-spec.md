@@ -1,8 +1,8 @@
 # 기술/개발 명세서 (TS)
 
 > **프로젝트**: 2026 경북대학교 80주년 대동제 웹앱 서비스 (백엔드)  
-> **버전**: v1.8
-> **최종 수정일**: 2026-05-13  
+> **버전**: v1.9
+> **최종 수정일**: 2026-05-14  
 > **목적**: Verification 기준 문서 — "구현이 명세를 충족하는가?"
 
 ---
@@ -21,6 +21,7 @@
 | v1.6.1 | 2026-05-13 | SessionAuthFilter 다이어그램 표기 정정 — 옛 `/api/**` → `/admin/**` 외 (root-prefix 컨벤션) | - |
 | v1.7 | 2026-05-13 | 7절 TS-GEMINI-01 추가 — Gemini AI 포스트잇 내용 검열 연동 | milk-stone |
 | v1.8 | 2026-05-13 | 3.8절 canvas_postit 스키마에 moderation_status 컬럼 추가 | milk-stone |
+| v1.9 | 2026-05-14 | 3.9절 matching_participant 유니크 제약 변경 — `(instagram_id, festival_day)` 복합 → `instagram_id` 단독 + `phone_lookup_hash` 단독 글로벌 유니크 | - |
 
 ---
 
@@ -310,13 +311,14 @@ CREATE TABLE matching_participant (
     status                  VARCHAR(20) NOT NULL DEFAULT 'PENDING',
     created_at              DATETIME NOT NULL,
     updated_at              DATETIME NOT NULL,
-    UNIQUE KEY uk_matching_participant_id_day (instagram_id, festival_day),
+    UNIQUE KEY uk_matching_instagram_id (instagram_id),
+    UNIQUE KEY uk_matching_phone_lookup_hash (phone_lookup_hash),
     INDEX idx_matching_day_status_gender (festival_day, status, gender)
 );
 -- status: PENDING, MATCHED, UNMATCHED
 -- phone_lookup_hash: HmacSHA256(전화번호) — 결과 조회 시 일치 검증용
 -- phone_encrypted: AES/GCM 암호문 — 운영자 안내/표시용
--- 일별 운영(11–21 신청 / 22–익11 결과)이라 같은 instagram_id 가 매일 새 행으로 다시 들어올 수 있다.
+-- instagram_id, phone_lookup_hash 각각 글로벌 유니크 — 동일 ID 또는 동일 전화번호로 재신청 불가
 ```
 
 ### 3.10 feed (피드)

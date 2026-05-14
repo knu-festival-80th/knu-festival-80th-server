@@ -51,6 +51,7 @@ public enum BusinessErrorCode implements ErrorCode {
     CANVAS_BOARD_FULL(HttpStatus.CONFLICT, "CP007", "보드가 가득 찼습니다. 다른 보드를 이용해주세요."),
     POSTIT_POSITION_CONFLICT(HttpStatus.CONFLICT, "CP008", "해당 위치에 이미 포스트잇이 있습니다."),
     MATCHING_DUPLICATE_REGISTRATION(HttpStatus.CONFLICT, "M003", "이미 매칭 신청이 완료된 인스타그램 ID입니다."),
+    MATCHING_DUPLICATE_PHONE(HttpStatus.CONFLICT, "M004", "이미 매칭 신청에 사용된 전화번호입니다."),
 
     /*
      * 500 INTERNAL_SERVER_ERROR

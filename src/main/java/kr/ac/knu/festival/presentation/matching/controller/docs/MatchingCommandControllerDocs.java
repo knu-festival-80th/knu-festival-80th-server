@@ -22,7 +22,7 @@ public interface MatchingCommandControllerDocs {
     @ApiResponses({
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "201", description = "신청 성공"),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "403", description = "매칭 신청 중단"),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "409", description = "중복 신청")
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "409", description = "중복 신청 (인스타그램 ID 또는 전화번호 중복)")
     })
     ResponseEntity<ApiResponse<MatchingRegisterResponse>> register(MatchingCreateRequest request);
 

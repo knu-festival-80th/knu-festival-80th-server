@@ -17,6 +17,10 @@ public interface MatchingParticipantRepository extends JpaRepository<MatchingPar
 
     boolean existsByInstagramIdAndFestivalDay(String instagramId, LocalDate festivalDay);
 
+    boolean existsByInstagramId(String instagramId);
+
+    boolean existsByPhoneLookupHash(String phoneLookupHash);
+
     Optional<MatchingParticipant> findByInstagramIdAndFestivalDay(String instagramId, LocalDate festivalDay);
 
     // 자동 스케줄러와 관리자 수동 실행이 겹쳐도 같은 참가자를 두 번 매칭하지 않도록 행 락을 잡는다.
