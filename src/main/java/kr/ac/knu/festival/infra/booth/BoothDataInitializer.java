@@ -1,14 +1,17 @@
 package kr.ac.knu.festival.infra.booth;
 
+import jakarta.persistence.EntityManager;
 import kr.ac.knu.festival.domain.booth.entity.Booth;
 import kr.ac.knu.festival.domain.booth.repository.BoothRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class BoothDataInitializer implements CommandLineRunner {
@@ -70,16 +73,26 @@ public class BoothDataInitializer implements CommandLineRunner {
     );
 
     private final BoothRepository boothRepository;
+    private final EntityManager entityManager;
 
     @Override
     @Transactional
     public void run(String... args) {
-        if (boothRepository.count() > 0) return;
+        long count = boothRepository.count();
+        if (count == BOOTHS.size()) return;
+
+        if (count > 0) {
+            log.info("Clearing existing booth data. currentCount={}, expectedCount={}", count, BOOTHS.size());
+            entityManager.createNativeQuery("DELETE FROM waiting").executeUpdate();
+            entityManager.createNativeQuery("DELETE FROM booth").executeUpdate();
+            entityManager.createNativeQuery("ALTER TABLE booth AUTO_INCREMENT = 1").executeUpdate();
+        }
 
         for (BoothSeed seed : BOOTHS) {
             boothRepository.save(
                     Booth.createBooth(seed.name(), null, null, null, null, seed.department(), null)
             );
         }
+        log.info("Booth seed data initialized. count={}", BOOTHS.size());
     }
 }
