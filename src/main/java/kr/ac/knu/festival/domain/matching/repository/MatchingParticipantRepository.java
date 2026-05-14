@@ -42,4 +42,19 @@ public interface MatchingParticipantRepository extends JpaRepository<MatchingPar
             MatchingParticipantStatus status,
             MatchingGender gender
     );
+
+    @Query("""
+            SELECT p FROM MatchingParticipant p
+            WHERE p.festivalDay = :festivalDay
+              AND (:status IS NULL OR p.status = :status)
+              AND (:gender IS NULL OR p.gender = :gender)
+              AND (:search IS NULL OR LOWER(p.instagramId) LIKE LOWER(CONCAT('%', :search, '%')))
+            ORDER BY p.createdAt DESC
+            """)
+    List<MatchingParticipant> searchForAdmin(
+            @Param("festivalDay") LocalDate festivalDay,
+            @Param("status") MatchingParticipantStatus status,
+            @Param("gender") MatchingGender gender,
+            @Param("search") String search
+    );
 }

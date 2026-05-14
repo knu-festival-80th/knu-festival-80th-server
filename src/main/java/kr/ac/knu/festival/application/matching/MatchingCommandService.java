@@ -70,8 +70,32 @@ public class MatchingCommandService {
     public MatchingJobResponse runMatchingJob() {
         LocalDate targetDay = matchingScheduleProperties.dayPendingMatching()
                 .or(matchingScheduleProperties::currentResultDay)
+                .or(matchingScheduleProperties::currentRegistrationDay)
                 .orElseThrow(() -> new BusinessException(BusinessErrorCode.MATCHING_REGISTRATION_CLOSED));
         return runMatchingJobFor(targetDay);
+    }
+
+    public MatchingJobResponse runMatchingJobOn(LocalDate festivalDay) {
+        if (!matchingScheduleProperties.festivalDays().contains(festivalDay)) {
+            throw new BusinessException(BusinessErrorCode.INVALID_INPUT_VALUE);
+        }
+        return runMatchingJobFor(festivalDay);
+    }
+
+    public MatchingStatusResponse deleteParticipant(Long participantId) {
+        MatchingParticipant participant = matchingParticipantRepository.findById(participantId)
+                .orElseThrow(() -> new BusinessException(BusinessErrorCode.RESOURCE_NOT_FOUND));
+        LocalDate day = participant.getFestivalDay();
+        matchingParticipantRepository.delete(participant);
+        return refreshRealtimeStatus(getOrCreateState(), day);
+    }
+
+    public MatchingStatusResponse resetParticipant(Long participantId) {
+        MatchingParticipant participant = matchingParticipantRepository.findById(participantId)
+                .orElseThrow(() -> new BusinessException(BusinessErrorCode.RESOURCE_NOT_FOUND));
+        participant.resetToPending();
+        matchingRealtimeCache.cacheParticipantResult(participant);
+        return refreshRealtimeStatus(getOrCreateState(), participant.getFestivalDay());
     }
 
     public MatchingJobResponse runMatchingJobFor(LocalDate festivalDay) {
@@ -100,11 +124,7 @@ public class MatchingCommandService {
 
     public MatchingStatusResponse updateStatus(MatchingStatusUpdateRequest request) {
         MatchingServiceState state = getOrCreateState();
-        state.changeStatus(
-                request.status(),
-                defaultMessageKo(request.status(), request.messageKo()),
-                defaultMessageEn(request.status(), request.messageEn())
-        );
+        state.changeStatus(request.status());
         LocalDate day = matchingScheduleProperties.currentRegistrationDay()
                 .or(matchingScheduleProperties::currentResultDay)
                 .orElse(null);
@@ -120,20 +140,6 @@ public class MatchingCommandService {
         return phoneNumber == null ? null : phoneNumber.replaceAll("\\D", "");
     }
 
-    private String defaultMessageKo(MatchingOperationStatus status, String message) {
-        if (message != null && !message.isBlank()) {
-            return message;
-        }
-        return status == MatchingOperationStatus.OPEN ? "매칭 신청이 가능합니다." : "매칭 신청이 일시중단되었습니다.";
-    }
-
-    private String defaultMessageEn(MatchingOperationStatus status, String message) {
-        if (message != null && !message.isBlank()) {
-            return message;
-        }
-        return status == MatchingOperationStatus.OPEN ? "Matching is open." : "Matching is paused.";
-    }
-
     private MatchingStatusResponse refreshRealtimeStatus(MatchingServiceState state, LocalDate day) {
         long pending = day == null ? 0 : matchingParticipantRepository.countByFestivalDayAndStatus(day, MatchingParticipantStatus.PENDING);
         long matched = day == null ? 0 : matchingParticipantRepository.countByFestivalDayAndStatus(day, MatchingParticipantStatus.MATCHED);
@@ -147,6 +153,7 @@ public class MatchingCommandService {
                 matchingScheduleProperties.isResultOpen(),
                 matchingScheduleProperties.upcomingRegistrationDeadlineIso(),
                 matchingScheduleProperties.upcomingResultOpenIso(),
+                matchingScheduleProperties.festivalDays(),
                 pending,
                 matched,
                 unmatched,

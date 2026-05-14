@@ -36,8 +36,6 @@ public class MatchingRealtimeCache {
         try {
             redisTemplate.opsForHash().putAll(STATUS_KEY, Map.of(
                     "status", state.getStatus().name(),
-                    "messageKo", state.getMessageKo(),
-                    "messageEn", state.getMessageEn(),
                     "registrationDeadline", schedule.upcomingRegistrationDeadlineIso(),
                     "resultOpenAt", schedule.upcomingResultOpenIso(),
                     "registrationOpen", Boolean.toString(schedule.isRegistrationOpen()),
