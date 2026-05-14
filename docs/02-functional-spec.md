@@ -1,7 +1,7 @@
 # 기능 명세서 (FS: Functional Specification)
 
 > **프로젝트**: 2026 경북대학교 80주년 대동제 웹앱 서비스 (백엔드)  
-> **버전**: v1.15
+> **버전**: v1.16
 > **최종 수정일**: 2026-05-14  
 > **목적**: 백엔드가 제공해야 할 API와 비즈니스 로직을 기능 단위로 정의한다.
 
@@ -28,6 +28,7 @@
 | v1.13 | 2026-05-13 | 3.8절 포스트잇 검열 상태 도입 — PENDING/APPROVED/REJECTED 흐름 반영, 생성 응답에 moderationStatus 추가, BR-RP-09 갱신 | milk-stone |
 | v1.14 | 2026-05-14 | 3.9절 인스타팅 관리자 API 확장 — 신청자 목록/삭제/리셋 추가, 매칭 잡 경로 `/admin/matching-jobs` → `/admin/matchings/jobs(/{day})`로 통일 | - |
 | v1.15 | 2026-05-14 | 3.9절 인스타팅 응답에서 `messageKo`/`messageEn` 제거 — 프론트가 사용하지 않으므로 entity·request·status/result/unmatched response·service에서 일괄 삭제. status entity의 `message_ko`/`message_en` 컬럼도 제거 | - |
+| v1.16 | 2026-05-14 | 3.9절 인스타팅 중복 방지 강화 — instagram_id·phone_lookup_hash 각각 글로벌 유니크 제약 추가, 에러코드 M004 신설 | - |
 
 ---
 
@@ -405,7 +406,7 @@
 ```
 
 **비즈니스 규칙**
-- BR-MATCH-01: `(instagram_id, festival_day)` 복합 유니크 → 같은 날 1회만 참여, 다음 날 재참여 가능
+- BR-MATCH-01: `instagram_id` 글로벌 유니크 + `phone_lookup_hash` 글로벌 유니크 → 동일 인스타 ID 또는 동일 전화번호로 재신청 불가 (일자 무관)
 - BR-MATCH-02: 전화번호는 `phone_lookup_hash`(HmacSHA256)와 `phone_encrypted`(AES-GCM) 두 컬럼으로 분리 저장. 결과 조회는 해시 비교
 - BR-MATCH-03: 매칭 결과 인증은 POST body (instagramId + phoneNumber) — URL 노출 방지
 - BR-MATCH-04: 결과 조회 brute-force 방지를 위해 IP 단위 Rate Limiting 적용 (5회 실패 → 10분 차단)

@@ -45,16 +45,20 @@ public class MatchingCommandService {
         }
 
         String instagramId = MatchingParticipant.normalizeInstagramId(request.instagramId());
-        if (matchingParticipantRepository.existsByInstagramIdAndFestivalDay(instagramId, festivalDay)) {
+        if (matchingParticipantRepository.existsByInstagramId(instagramId)) {
             throw new BusinessException(BusinessErrorCode.MATCHING_DUPLICATE_REGISTRATION);
         }
 
         String normalizedPhone = normalizePhone(request.phoneNumber());
+        String lookupHash = phoneLookupHasher.hash(normalizedPhone);
+        if (matchingParticipantRepository.existsByPhoneLookupHash(lookupHash)) {
+            throw new BusinessException(BusinessErrorCode.MATCHING_DUPLICATE_PHONE);
+        }
         MatchingParticipant participant = MatchingParticipant.create(
                 instagramId,
                 festivalDay,
                 request.gender(),
-                phoneLookupHasher.hash(normalizedPhone),
+                lookupHash,
                 phoneNumberEncryptor.encrypt(normalizedPhone)
         );
         MatchingParticipant saved = matchingParticipantRepository.save(participant);
