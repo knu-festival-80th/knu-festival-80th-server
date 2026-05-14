@@ -197,7 +197,7 @@
                         }
                     },
                     "409": {
-                        "description": "\uc911\ubcf5 \uc2e0\uccad",
+                        "description": "\uc911\ubcf5 \uc2e0\uccad (\uc778\uc2a4\ud0c0\uadf8\ub7a8 ID \ub610\ub294 \uc804\ud654\ubc88\ud638 \uc911\ubcf5)",
                         "content": {
                             "*/*": {
                                 "schema": {

@@ -21,11 +21,12 @@ public class CanvasDataInitializer implements CommandLineRunner {
     private record QuestionSeed(String content, String description, int boardVariant) {}
 
     private static final List<QuestionSeed> QUESTIONS = List.of(
-            new QuestionSeed("오늘의 기분을 작성해보세요", "지금 축제를 즐기는 마음을 남겨요", 1),
-            new QuestionSeed("가장 맛있었던 주막 음식은?", "가장 맛있었던 메뉴를 공유해요", 2),
-            new QuestionSeed("가장 재밌었던 공연은?", "기억에 남는 무대를 기록해요", 3),
-            new QuestionSeed("오늘 가장 기억에 남는 순간은?", "가장 기억에 남는 장면을 남겨요", 4),
-            new QuestionSeed("경북대학교 80주년에 남기고 싶은 말", "경북대학교 80주년 축하 메시지를 남겨요", 5)
+            new QuestionSeed("오늘의 기분", "오늘 가장 즐거웠던 순간, 기분을 남기는 공간", 1),
+            new QuestionSeed("80주년 축하 메시지", "경북대 80주년, 축하의 한마디를 남겨주세요", 2),
+            new QuestionSeed("축제 공연 후기", "축제를 빛내준 아티스트에게 응원의 한마디를 남겨주세요", 3),
+            new QuestionSeed("주막/부스 후기", "방문한 부스, 주막, 먹거리 등 체험에 대한 후기를 남겨주세요", 4),
+            new QuestionSeed("함께 온 사람에게", "오늘 축제를 함께한 너에게 전하고 싶은 말", 5),
+            new QuestionSeed("대동제 피드백", "내년에는 대동제가 이렇게 바뀌었으면 좋겠어요!", 6)
     );
 
     private final CanvasBoardQuestionRepository questionRepository;
