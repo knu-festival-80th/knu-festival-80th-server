@@ -45,6 +45,12 @@ public interface MatchingParticipantRepository extends JpaRepository<MatchingPar
             MatchingGender gender
     );
 
+    /**
+     * 그 날 신청 누적 (status 무관) 카운트. 결과창 동안에도 PENDING→MATCHED/UNMATCHED 전환에 영향받지 않고
+     * 신청자 수를 유지한다. 다음 신청창이 열리는 다음날 11시에 currentDayForCounts 가 새 날짜로 전환되면 자연스럽게 0.
+     */
+    long countByFestivalDayAndGender(LocalDate festivalDay, MatchingGender gender);
+
     // 단일 GROUP BY 쿼리로 PENDING/MATCHED/UNMATCHED + 성별 PENDING 카운트를 한 번에 집계한다.
     @Query("""
             SELECT p.status, p.gender, COUNT(p)

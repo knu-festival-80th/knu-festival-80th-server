@@ -1,7 +1,7 @@
 # 기능 명세서 (FS: Functional Specification)
 
 > **프로젝트**: 2026 경북대학교 80주년 대동제 웹앱 서비스 (백엔드)  
-> **버전**: v1.18
+> **버전**: v1.19
 > **최종 수정일**: 2026-05-15  
 > **목적**: 백엔드가 제공해야 할 API와 비즈니스 로직을 기능 단위로 정의한다.
 
@@ -31,6 +31,7 @@
 | v1.16 | 2026-05-14 | 3.9절 인스타팅 중복 방지 강화 — instagram_id·phone_lookup_hash 각각 글로벌 유니크 제약 추가, 에러코드 M004 신설 | - |
 | v1.17 | 2026-05-15 | BR-AUTH-02 경로 표기·인증 엔드포인트 표기를 /admin/auth → /auth 로 정정. BR-RP-03 문항 시드 수 5→6, boardVariant 1~5→1~6 정정. | lsmin3388 |
 | v1.18 | 2026-05-15 | BR-BOOTH-04 "메뉴 목록 포함" → "메뉴판 이미지 단일 노출(menuBoardImageUrl)" 정정. 미구현 도메인(performance/notice/review/photo/feed) v2 deferred 명시. | lsmin3388 |
+| v1.19 | 2026-05-15 | BR-MATCH-10 의미 변경 — 신청자 카운트를 "PENDING 기준" → "그 날 신청 누적(status 무관)"으로 전환, 결과창 동안에도 카운트 유지. BR-MATCH-13 신설 — `status` 응답에 `registrationOpenAt`(다음 신청창 오픈 ISO) 필드 추가. | lsmin3388 |
 
 ---
 
@@ -407,6 +408,24 @@
 }
 ```
 
+**status 응답 예시**
+```
+{
+  "status": "OPEN",
+  "registrationOpen": false,
+  "resultOpen": true,
+  "registrationDeadline": "2026-05-21T21:00:00+09:00",
+  "resultOpenAt": "2026-05-20T22:00:00+09:00",
+  "registrationOpenAt": "2026-05-21T11:00:00+09:00",
+  "festivalDays": ["2026-05-20", "2026-05-21", "2026-05-22"],
+  "pendingCount": 0,
+  "matchedCount": 8,
+  "unmatchedCount": 3,
+  "malePendingCount": 6,
+  "femalePendingCount": 5
+}
+```
+
 **비즈니스 규칙**
 - BR-MATCH-01: `(instagram_id, festival_day)` + `(phone_lookup_hash, festival_day)` 복합 유니크 → 같은 날 동일 인스타 ID 또는 동일 전화번호로 중복 신청 불가, 다음 날 재참여 가능
 - BR-MATCH-02: 전화번호는 `phone_lookup_hash`(HmacSHA256)와 `phone_encrypted`(AES-GCM) 두 컬럼으로 분리 저장. 결과 조회는 해시 비교
@@ -417,7 +436,8 @@
 - BR-MATCH-07: `pickedInstagramId` 는 "내가 뽑은 상대" 의미. 양방향 짝 보장 없음(상대는 다른 사람 뽑음). 결과창 동안 본인 매칭 결과만 비공개로 조회
 - BR-MATCH-08: 결과창 외 시각(11:00 이후, 21:00 직전)에는 결과·미매칭 목록이 모두 hidden 응답
 - BR-MATCH-09: 매칭 실행은 PENDING 만 대상으로 멱등. 같은 트랜잭션 안에서 `PESSIMISTIC_WRITE` 락으로 직렬화
-- BR-MATCH-10: 신청자 카운트는 그날 PENDING 기준 성별 분리. 결과창 동안에는 해당 결과 일자 기준 표시
+- BR-MATCH-10: `applicants/count` 와 `status` 의 `malePendingCount`/`femalePendingCount` 는 "그 날 신청 누적(status 무관) 성별 카운트". 매칭 잡으로 PENDING → MATCHED/UNMATCHED 가 전환된 이후에도 결과창 동안 카운트가 유지되며, 다음 신청창 오픈(다음 11시)에 `currentDayForCounts` 가 새 날짜로 전환되어 자동 0 으로 초기화된다. `status` 응답의 `pendingCount`/`matchedCount`/`unmatchedCount` 는 별도로 상태별 카운트 (참고용)
+- BR-MATCH-13: `status` 응답의 `registrationOpenAt` 은 "지금부터 가장 가까운 미래의 신청창 오픈 시각" ISO. festival 종료 후엔 null
 - BR-MATCH-11: 매칭 신청 취소 기능은 제공하지 않는다 (UI 게이트로 "신청 후 취소 불가" 안내)
 - BR-MATCH-12: 관리자 PATCH `/admin/matchings/status` 로만 PAUSED 진입 가능 (자동 PAUSED 룰 없음). PAUSED 동안 신청 차단
 

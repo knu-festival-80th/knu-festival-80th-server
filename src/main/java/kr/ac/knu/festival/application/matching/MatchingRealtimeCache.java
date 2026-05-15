@@ -38,13 +38,16 @@ public class MatchingRealtimeCache {
             return;
         }
         try {
-            redisTemplate.opsForHash().putAll(STATUS_KEY, Map.of(
-                    "status", state.getStatus().name(),
-                    "registrationDeadline", schedule.upcomingRegistrationDeadlineIso(),
-                    "resultOpenAt", schedule.upcomingResultOpenIso(),
-                    "registrationOpen", Boolean.toString(schedule.isRegistrationOpen()),
-                    "resultOpen", Boolean.toString(schedule.isResultOpen())
-            ));
+            // Map.of 는 null value 를 허용하지 않으므로 등록 오픈 시각이 없는 케이스(festival 종료)를 분기 처리.
+            String registrationOpenAt = schedule.upcomingRegistrationOpenIso();
+            Map<String, String> statusHash = new java.util.HashMap<>();
+            statusHash.put("status", state.getStatus().name());
+            statusHash.put("registrationDeadline", schedule.upcomingRegistrationDeadlineIso());
+            statusHash.put("resultOpenAt", schedule.upcomingResultOpenIso());
+            statusHash.put("registrationOpen", Boolean.toString(schedule.isRegistrationOpen()));
+            statusHash.put("resultOpen", Boolean.toString(schedule.isResultOpen()));
+            statusHash.put("registrationOpenAt", registrationOpenAt == null ? "" : registrationOpenAt);
+            redisTemplate.opsForHash().putAll(STATUS_KEY, statusHash);
             redisTemplate.expire(STATUS_KEY, STATUS_TTL);
             redisTemplate.opsForHash().putAll(PARTICIPANT_COUNT_KEY, Map.of(
                     "pending", Long.toString(pendingCount),
