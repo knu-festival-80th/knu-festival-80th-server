@@ -67,6 +67,9 @@ logs/
 ### Docker ###
 docker-compose.override.yml
 
+### Uploads (runtime-generated) ###
+uploads/
+
 ### Package managers ###
 node_modules/
 
