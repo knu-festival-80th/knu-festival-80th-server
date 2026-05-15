@@ -341,6 +341,7 @@ public class WaitingCommandService {
     private void incrementWaitingCountAfterCommit(Long boothId) {
         afterCommit(() -> {
             boothRankingRedisRepository.incrementWaitingCount(boothId);
+            boothRankingRedisRepository.incrementTotalWaitingCount(boothId);
             boothRankingStreamService.markDirty();
         });
     }
