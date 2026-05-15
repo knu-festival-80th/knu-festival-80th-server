@@ -1,6 +1,7 @@
 package kr.ac.knu.festival.application.booth;
 
 import kr.ac.knu.festival.domain.booth.entity.Booth;
+import kr.ac.knu.festival.domain.booth.entity.MapLocationType;
 import kr.ac.knu.festival.domain.booth.repository.BoothRepository;
 import kr.ac.knu.festival.domain.waiting.entity.WaitingStatus;
 import kr.ac.knu.festival.domain.waiting.repository.WaitingRepository;
@@ -31,8 +32,17 @@ public class BoothRankingService {
     private final ImageUrlResolver imageUrlResolver;
 
     public List<BoothListResponse> getBooths(String sortValue) {
+        return getBooths(sortValue, null);
+    }
+
+    public List<BoothListResponse> getBooths(String sortValue, MapLocationType typeFilter) {
         BoothRankingSort sort = BoothRankingSort.from(sortValue);
         List<BoothRankingRow> rows = loadRows();
+        if (typeFilter != null) {
+            rows = rows.stream()
+                    .filter(row -> typeFilter == row.booth().getMapLocationType())
+                    .toList();
+        }
         return sortRows(rows, sort).stream()
                 .map(row -> BoothListResponse.fromEntity(
                         row.booth(),

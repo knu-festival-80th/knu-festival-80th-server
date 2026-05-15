@@ -112,7 +112,7 @@ public class BoothDataInitializer implements CommandLineRunner {
                 if (menuImageUrl != null) imageCount++;
             }
             boothRepository.save(
-                    Booth.createBooth(seed.name(), null, null, menuImageUrl, null, seed.department(), null)
+                    Booth.createBooth(seed.name(), null, menuImageUrl, null, seed.department(), null)
             );
         }
         log.info("Booth seed data initialized. boothCount={}, menuImageCount={}", BOOTHS.size(), imageCount);

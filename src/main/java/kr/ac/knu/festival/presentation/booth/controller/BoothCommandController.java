@@ -5,6 +5,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import kr.ac.knu.festival.application.booth.BoothCommandService;
 import kr.ac.knu.festival.application.booth.BoothQueryService;
+import kr.ac.knu.festival.application.booth.MapLocationInitService;
 import kr.ac.knu.festival.global.auth.AdminInfo;
 import kr.ac.knu.festival.global.auth.CurrentAdmin;
 import kr.ac.knu.festival.global.response.ApiResponse;
@@ -30,6 +31,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequiredArgsConstructor
@@ -38,6 +40,7 @@ public class BoothCommandController implements BoothCommandControllerDocs {
 
     private final BoothCommandService boothCommandService;
     private final BoothQueryService boothQueryService;
+    private final MapLocationInitService mapLocationInitService;
     private final AnonymousIdCookieManager anonymousIdCookieManager;
 
     @Override
@@ -91,7 +94,20 @@ public class BoothCommandController implements BoothCommandControllerDocs {
             @CurrentAdmin AdminInfo admin,
             @RequestParam(value = "sort", required = false, defaultValue = "likes") String sort
     ) {
-        return ResponseEntity.ok(ApiResponse.success(boothQueryService.getBooths(sort)));
+        List<BoothListResponse> booths = boothQueryService.getAllBooths(sort);
+        booths = booths.stream()
+                .sorted(java.util.Comparator.comparingLong(BoothListResponse::boothId))
+                .toList();
+        return ResponseEntity.ok(ApiResponse.success(booths));
+    }
+
+    @PostMapping("/admin/map-locations/initialize")
+    public ResponseEntity<ApiResponse<Map<String, Integer>>> initializeMapLocations(
+            @CurrentAdmin AdminInfo admin
+    ) {
+        admin.requireSuperAdmin();
+        int count = mapLocationInitService.initializeMapLocations();
+        return ResponseEntity.ok(ApiResponse.success(Map.of("created", count)));
     }
 
     @Override

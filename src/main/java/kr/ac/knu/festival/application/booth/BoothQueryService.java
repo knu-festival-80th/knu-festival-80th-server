@@ -1,6 +1,7 @@
 package kr.ac.knu.festival.application.booth;
 
 import kr.ac.knu.festival.domain.booth.entity.Booth;
+import kr.ac.knu.festival.domain.booth.entity.MapLocationType;
 import kr.ac.knu.festival.domain.booth.repository.BoothRepository;
 import kr.ac.knu.festival.domain.waiting.entity.WaitingStatus;
 import kr.ac.knu.festival.domain.waiting.repository.WaitingRepository;
@@ -31,6 +32,10 @@ public class BoothQueryService {
     private final BoothRankingRedisRepository boothRankingRedisRepository;
 
     public List<BoothListResponse> getBooths(String sort) {
+        return boothRankingService.getBooths(sort, MapLocationType.TAVERN);
+    }
+
+    public List<BoothListResponse> getAllBooths(String sort) {
         return boothRankingService.getBooths(sort);
     }
 
@@ -49,7 +54,8 @@ public class BoothQueryService {
     }
 
     private BoothMapResponse toBoothMapResponse(BoothMapProjection p) {
-        return new BoothMapResponse(p.id(), p.name(), p.xRatio(), p.yRatio());
+        return new BoothMapResponse(p.id(), p.name(), p.xRatio(), p.yRatio(),
+                p.type() != null ? p.type().name() : null);
     }
 
 }

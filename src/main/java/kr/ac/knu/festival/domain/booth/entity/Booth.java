@@ -2,10 +2,13 @@ package kr.ac.knu.festival.domain.booth.entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Index;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import kr.ac.knu.festival.global.base.BaseTimeEntity;
 import lombok.AccessLevel;
@@ -39,11 +42,9 @@ public class Booth extends BaseTimeEntity {
     @Column(nullable = false, length = 100)
     private String name;
 
-    @Column(name = "x_ratio", precision = 8, scale = 7)
-    private BigDecimal xRatio;
-
-    @Column(name = "y_ratio", precision = 8, scale = 7)
-    private BigDecimal yRatio;
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "map_location_id")
+    private MapLocation mapLocation;
 
     @Column(length = 100)
     private String department;
@@ -71,8 +72,7 @@ public class Booth extends BaseTimeEntity {
 
     public static Booth createBooth(
             String name,
-            BigDecimal xRatio,
-            BigDecimal yRatio,
+            MapLocation mapLocation,
             String menuBoardImageUrl,
             String encodedAdminPassword,
             String department,
@@ -80,8 +80,7 @@ public class Booth extends BaseTimeEntity {
     ) {
         return Booth.builder()
                 .name(name)
-                .xRatio(xRatio)
-                .yRatio(yRatio)
+                .mapLocation(mapLocation)
                 .menuBoardImageUrl(menuBoardImageUrl)
                 .likeCount(0)
                 .waitingOpen(false)
@@ -93,18 +92,30 @@ public class Booth extends BaseTimeEntity {
 
     public void updateBooth(
             String name,
-            BigDecimal xRatio,
-            BigDecimal yRatio,
             String menuBoardImageUrl,
             String department,
             String location
     ) {
         if (name != null && !name.isBlank()) this.name = name;
-        if (xRatio != null) this.xRatio = xRatio;
-        if (yRatio != null) this.yRatio = yRatio;
         if (menuBoardImageUrl != null) this.menuBoardImageUrl = menuBoardImageUrl;
         if (department != null) this.department = department;
         if (location != null) this.location = location;
+    }
+
+    public BigDecimal getXRatio() {
+        return mapLocation != null ? mapLocation.getXRatio() : null;
+    }
+
+    public BigDecimal getYRatio() {
+        return mapLocation != null ? mapLocation.getYRatio() : null;
+    }
+
+    public MapLocationType getMapLocationType() {
+        return mapLocation != null ? mapLocation.getType() : null;
+    }
+
+    public void assignMapLocation(MapLocation mapLocation) {
+        this.mapLocation = mapLocation;
     }
 
     public void increaseLike() {
