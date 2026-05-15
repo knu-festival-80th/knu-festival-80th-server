@@ -704,6 +704,36 @@
                 }
             }
         },
+        "/admin/map-locations/initialize": {
+            "post": {
+                "tags": [
+                    "\ubd80\uc2a4 Command"
+                ],
+                "operationId": "initializeMapLocations",
+                "parameters": [
+                    {
+                        "name": "admin",
+                        "in": "query",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/components/schemas/AdminInfo"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiResponseMapStringInteger"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/admin/canvas/boards": {
             "post": {
                 "tags": [
@@ -1813,6 +1843,9 @@
                     },
                     "location": {
                         "type": "string"
+                    },
+                    "type": {
+                        "type": "string"
                     }
                 }
             },
@@ -2365,6 +2398,24 @@
                     }
                 }
             },
+            "ApiResponseMapStringInteger": {
+                "type": "object",
+                "properties": {
+                    "success": {
+                        "type": "boolean"
+                    },
+                    "data": {
+                        "type": "object",
+                        "additionalProperties": {
+                            "type": "integer",
+                            "format": "int32"
+                        }
+                    },
+                    "error": {
+                        "$ref": "#/components/schemas/ErrorResponse"
+                    }
+                }
+            },
             "CanvasBoardCreateRequest": {
                 "type": "object",
                 "properties": {
@@ -2791,6 +2842,9 @@
                     },
                     "location": {
                         "type": "string"
+                    },
+                    "type": {
+                        "type": "string"
                     }
                 }
             },
@@ -2842,6 +2896,9 @@
                         "type": "string"
                     },
                     "location": {
+                        "type": "string"
+                    },
+                    "type": {
                         "type": "string"
                     }
                 }
@@ -2921,6 +2978,9 @@
                     },
                     "yRatio": {
                         "type": "number"
+                    },
+                    "type": {
+                        "type": "string"
                     }
                 }
             },
