@@ -87,7 +87,7 @@ public class BoothDataInitializer implements CommandLineRunner {
     @Transactional
     public void run(String... args) {
         long count = boothRepository.count();
-        if (count == BOOTHS.size()) return;
+        if (count == BOOTHS.size() && !hasMissingMenuImages()) return;
 
         if (count > 0) {
             log.info("Clearing existing booth data. currentCount={}, expectedCount={}", count, BOOTHS.size());
@@ -116,6 +116,13 @@ public class BoothDataInitializer implements CommandLineRunner {
             );
         }
         log.info("Booth seed data initialized. boothCount={}, menuImageCount={}", BOOTHS.size(), imageCount);
+    }
+
+    private boolean hasMissingMenuImages() {
+        Path imagesDir = Path.of(appProperties.getUpload().getBaseDir(), "images");
+        return BOOTHS.stream()
+                .filter(s -> s.menuImage() != null)
+                .anyMatch(s -> !Files.exists(imagesDir.resolve("booth-menu-" + s.menuImage())));
     }
 
     private String copyMenuImage(String resourceName, Path target) {
