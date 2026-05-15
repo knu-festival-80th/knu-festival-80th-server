@@ -1,7 +1,7 @@
 # 기능 명세서 (FS: Functional Specification)
 
 > **프로젝트**: 2026 경북대학교 80주년 대동제 웹앱 서비스 (백엔드)  
-> **버전**: v1.17
+> **버전**: v1.18
 > **최종 수정일**: 2026-05-15  
 > **목적**: 백엔드가 제공해야 할 API와 비즈니스 로직을 기능 단위로 정의한다.
 
@@ -30,6 +30,7 @@
 | v1.15 | 2026-05-14 | 3.9절 인스타팅 응답에서 `messageKo`/`messageEn` 제거 — 프론트가 사용하지 않으므로 entity·request·status/result/unmatched response·service에서 일괄 삭제. status entity의 `message_ko`/`message_en` 컬럼도 제거 | - |
 | v1.16 | 2026-05-14 | 3.9절 인스타팅 중복 방지 강화 — instagram_id·phone_lookup_hash 각각 글로벌 유니크 제약 추가, 에러코드 M004 신설 | - |
 | v1.17 | 2026-05-15 | BR-AUTH-02 경로 표기·인증 엔드포인트 표기를 /admin/auth → /auth 로 정정. BR-RP-03 문항 시드 수 5→6, boardVariant 1~5→1~6 정정. | lsmin3388 |
+| v1.18 | 2026-05-15 | BR-BOOTH-04 "메뉴 목록 포함" → "메뉴판 이미지 단일 노출(menuBoardImageUrl)" 정정. 미구현 도메인(performance/notice/review/photo/feed) v2 deferred 명시. | lsmin3388 |
 
 ---
 
@@ -102,7 +103,7 @@
 - BR-BOOTH-01: 부스 목록 조회 시 좋아요 수 기준 내림차순 정렬 (기본), 대기 적은 순 정렬 옵션 제공
 - BR-BOOTH-02: 좋아요는 부스당 1회 제한 (세션 토큰 기반 서버 검증 + 프론트 LocalStorage 병행)
 - BR-BOOTH-03: 좋아요 수 집계는 Redis 캐시를 통해 실시간 반영
-- BR-BOOTH-04: 부스 상세 조회는 메뉴 목록, 현재 대기팀 수, 좋아요 수를 포함
+- BR-BOOTH-04: 부스 상세 조회는 메뉴판 이미지(menuBoardImageUrl) 한 장, 현재 대기팀 수, 좋아요 수를 포함 (메뉴 도메인 별도 구현은 v2 deferred — 현재 라운드 미포함)
 - BR-BOOTH-05: 부스 삭제 시 대기 중인 팀이 있으면 삭제 불가 (400 응답)
 
 ---
@@ -543,3 +544,19 @@
 | 중복 리소스 | 409 Conflict |
 | 요청 과다 (Rate Limit) | 429 Too Many Requests |
 | 서버 오류 | 500 Internal Server Error |
+
+---
+
+## 6. 미구현 도메인 (v2 deferred)
+
+다음 도메인은 명세에 정의되어 있으나 1회 차 운영(2026-05-20~22)에서는 구현하지 않는다. 향후 라운드에서 재개한다.
+
+| 도메인 | spec 섹션 | 결정 사유 |
+|---|---|---|
+| performance | 3.4 FS-HOM-03 | 운영 공연 일정이 적어 정적 자료(공지)로 대체 |
+| notice | 3.5 FS-HOM-04 | SNS·SMS 채널로 우회 |
+| review | 3.7 FS-USR-01-REVIEW | 어뷰즈 관리·인력 부족, photo feed 좋아요로 일부 대체 |
+| photo (포토부스) | 3.10 FS-USR-05-PHOTO | 프론트엔드 단독 처리, 백엔드 업로드 API 만 활용 |
+| feed (호반우스타그램) | 3.11 FS-USR-05-FEED | 모니터링·콘텐츠 정책 미정, v2 로 연기 |
+
+구현된 도메인: festival, booth(+ranking), menu(이미지 단일), waiting(+sms), canvas(+moderation), matching, auth(세션).

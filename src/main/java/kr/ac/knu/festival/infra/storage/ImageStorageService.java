@@ -88,6 +88,14 @@ public class ImageStorageService {
         return imagesUrlPrefix + "/" + filename;
     }
 
+    /**
+     * 업로드 이미지가 저장되는 디렉토리 경로.
+     * Cleanup 스케줄러 등 외부 컴포넌트에서 디렉토리 순회용으로 사용한다.
+     */
+    public Path getImagesDir() {
+        return imagesDir;
+    }
+
     private String resolveExtension(String originalFilename, String contentType) {
         String ext = null;
         if (originalFilename != null) {

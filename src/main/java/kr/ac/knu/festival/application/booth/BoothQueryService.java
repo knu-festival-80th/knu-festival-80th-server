@@ -10,6 +10,7 @@ import kr.ac.knu.festival.infra.storage.ImageUrlResolver;
 import kr.ac.knu.festival.infra.redis.BoothRankingRedisRepository;
 import kr.ac.knu.festival.presentation.booth.dto.response.BoothDetailResponse;
 import kr.ac.knu.festival.presentation.booth.dto.response.BoothListResponse;
+import kr.ac.knu.festival.presentation.booth.dto.response.BoothMapProjection;
 import kr.ac.knu.festival.presentation.booth.dto.response.BoothMapResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -42,9 +43,13 @@ public class BoothQueryService {
     }
 
     public List<BoothMapResponse> getBoothsForMap() {
-        return boothRepository.findAll().stream()
-                .map(BoothMapResponse::fromEntity)
+        return boothRepository.findAllProjectedBy().stream()
+                .map(this::toBoothMapResponse)
                 .toList();
+    }
+
+    private BoothMapResponse toBoothMapResponse(BoothMapProjection p) {
+        return new BoothMapResponse(p.getId(), p.getName(), p.getXRatio(), p.getYRatio());
     }
 
 }

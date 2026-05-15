@@ -1,5 +1,7 @@
 package kr.ac.knu.festival.application.canvas;
 
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.MeterRegistry;
 import kr.ac.knu.festival.domain.canvas.event.PostitCreatedEvent;
 import kr.ac.knu.festival.global.exception.BusinessErrorCode;
 import kr.ac.knu.festival.global.exception.BusinessException;
@@ -17,17 +19,22 @@ import java.util.concurrent.RejectedExecutionException;
 @Component
 public class CanvasModerationEventListener {
 
+    private static final String METRIC_DECISION = "festival.canvas.moderation.decision";
+
     private final GeminiModerationClient geminiModerationClient;
     private final CanvasCommandService canvasCommandService;
     private final ThreadPoolTaskExecutor geminiExecutor;
+    private final MeterRegistry meterRegistry;
 
     public CanvasModerationEventListener(
             GeminiModerationClient geminiModerationClient,
             CanvasCommandService canvasCommandService,
-            @Qualifier("geminiExecutor") ThreadPoolTaskExecutor geminiExecutor) {
+            @Qualifier("geminiExecutor") ThreadPoolTaskExecutor geminiExecutor,
+            MeterRegistry meterRegistry) {
         this.geminiModerationClient = geminiModerationClient;
         this.canvasCommandService = canvasCommandService;
         this.geminiExecutor = geminiExecutor;
+        this.meterRegistry = meterRegistry;
     }
 
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
@@ -62,6 +69,10 @@ public class CanvasModerationEventListener {
     }
 
     private void applyDecision(Long postitId, boolean approve) {
+        Counter.builder(METRIC_DECISION)
+                .tag("verdict", approve ? "APPROVE" : "REJECT")
+                .register(meterRegistry)
+                .increment();
         try {
             if (approve) {
                 canvasCommandService.approvePostit(postitId);

@@ -1,5 +1,8 @@
 package kr.ac.knu.festival.application.waiting;
 
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.MeterRegistry;
+import jakarta.annotation.PostConstruct;
 import kr.ac.knu.festival.global.exception.BusinessErrorCode;
 import kr.ac.knu.festival.global.exception.BusinessException;
 import lombok.RequiredArgsConstructor;
@@ -30,7 +33,16 @@ public class WaitingRateLimiter {
     private static final String KEY_PREFIX = "waiting:ratelimit:";
 
     private final ObjectProvider<StringRedisTemplate> redisTemplateProvider;
+    private final MeterRegistry meterRegistry;
     private final Map<String, LocalAttempt> localAttempts = new ConcurrentHashMap<>();
+
+    private Counter rateLimitedCounter;
+
+    @PostConstruct
+    void initMetrics() {
+        this.rateLimitedCounter = Counter.builder("festival.waiting.rate_limited")
+                .register(meterRegistry);
+    }
 
     public void recordRegistration(String clientIp) {
         if (clientIp == null || clientIp.isBlank()) {
@@ -38,6 +50,7 @@ public class WaitingRateLimiter {
         }
         long count = incrementAndGet(clientIp);
         if (count > MAX_REGISTRATIONS) {
+            rateLimitedCounter.increment();
             throw new BusinessException(BusinessErrorCode.WAITING_RATE_LIMITED);
         }
     }
