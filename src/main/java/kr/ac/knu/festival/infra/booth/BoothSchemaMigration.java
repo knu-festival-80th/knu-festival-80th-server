@@ -6,6 +6,8 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 
+import java.sql.SQLException;
+
 @Slf4j
 @Component
 @RequiredArgsConstructor
@@ -13,6 +15,8 @@ public class BoothSchemaMigration implements CommandLineRunner {
 
     private static final String TOTAL_WAITING_COUNT_COLUMN = "total_waiting_count";
     private static final String TOTAL_WAITING_COUNT_INDEX = "idx_booth_total_waiting_count";
+    private static final int MYSQL_DUPLICATE_COLUMN_ERROR_CODE = 1060;
+    private static final int MYSQL_DUPLICATE_KEY_ERROR_CODE = 1061;
 
     private final JdbcTemplate jdbcTemplate;
 
@@ -34,7 +38,13 @@ public class BoothSchemaMigration implements CommandLineRunner {
                 log.info("Added booth.{} column", TOTAL_WAITING_COUNT_COLUMN);
             }
         } catch (Exception e) {
-            log.debug("Skipping booth {} column migration: {}", TOTAL_WAITING_COUNT_COLUMN, e.getMessage());
+            if (isMysqlError(e, MYSQL_DUPLICATE_COLUMN_ERROR_CODE)) {
+                log.info("Booth column already exists, skipping migration: {}", TOTAL_WAITING_COUNT_COLUMN);
+                return;
+            }
+            log.error("Failed to migrate booth column: {}", TOTAL_WAITING_COUNT_COLUMN, e);
+            throw new IllegalStateException(
+                    "Failed to migrate booth column: " + TOTAL_WAITING_COUNT_COLUMN, e);
         }
     }
 
@@ -50,7 +60,24 @@ public class BoothSchemaMigration implements CommandLineRunner {
                 log.info("Added booth index: {}", TOTAL_WAITING_COUNT_INDEX);
             }
         } catch (Exception e) {
-            log.debug("Skipping booth {} index migration: {}", TOTAL_WAITING_COUNT_INDEX, e.getMessage());
+            if (isMysqlError(e, MYSQL_DUPLICATE_KEY_ERROR_CODE)) {
+                log.info("Booth index already exists, skipping migration: {}", TOTAL_WAITING_COUNT_INDEX);
+                return;
+            }
+            log.error("Failed to migrate booth index: {}", TOTAL_WAITING_COUNT_INDEX, e);
+            throw new IllegalStateException(
+                    "Failed to migrate booth index: " + TOTAL_WAITING_COUNT_INDEX, e);
         }
+    }
+
+    private boolean isMysqlError(Throwable throwable, int errorCode) {
+        Throwable current = throwable;
+        while (current != null) {
+            if (current instanceof SQLException sqlException && sqlException.getErrorCode() == errorCode) {
+                return true;
+            }
+            current = current.getCause();
+        }
+        return false;
     }
 }
