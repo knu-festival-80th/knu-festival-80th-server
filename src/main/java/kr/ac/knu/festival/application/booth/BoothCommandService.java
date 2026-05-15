@@ -1,7 +1,10 @@
 package kr.ac.knu.festival.application.booth;
 
 import kr.ac.knu.festival.domain.booth.entity.Booth;
+import kr.ac.knu.festival.domain.booth.entity.MapLocation;
+import kr.ac.knu.festival.domain.booth.entity.MapLocationType;
 import kr.ac.knu.festival.domain.booth.repository.BoothRepository;
+import kr.ac.knu.festival.domain.booth.repository.MapLocationRepository;
 import kr.ac.knu.festival.domain.waiting.entity.WaitingStatus;
 import kr.ac.knu.festival.domain.waiting.repository.WaitingRepository;
 import kr.ac.knu.festival.global.auth.AdminSessionRegistry;
@@ -32,6 +35,7 @@ public class BoothCommandService {
     private static final List<WaitingStatus> ACTIVE_STATUSES = List.of(WaitingStatus.WAITING, WaitingStatus.CALLED);
 
     private final BoothRepository boothRepository;
+    private final MapLocationRepository mapLocationRepository;
     private final WaitingRepository waitingRepository;
     private final PasswordEncoder passwordEncoder;
     private final ImageUrlResolver imageUrlResolver;
@@ -40,10 +44,14 @@ public class BoothCommandService {
     private final AdminSessionRegistry adminSessionRegistry;
 
     public BoothResponse createBooth(BoothCreateRequest request) {
+        MapLocation mapLocation = null;
+        if (request.xRatio() != null || request.yRatio() != null) {
+            mapLocation = mapLocationRepository.save(
+                    MapLocation.of(request.xRatio(), request.yRatio(), MapLocationType.BOOTH));
+        }
         Booth booth = Booth.createBooth(
                 request.name(),
-                request.xRatio(),
-                request.yRatio(),
+                mapLocation,
                 request.menuBoardImageUrl(),
                 passwordEncoder.encode(request.adminPassword()),
                 request.department(),
@@ -63,12 +71,20 @@ public class BoothCommandService {
                 .orElseThrow(() -> new BusinessException(BusinessErrorCode.BOOTH_NOT_FOUND));
         booth.updateBooth(
                 request.name(),
-                request.xRatio(),
-                request.yRatio(),
                 request.menuBoardImageUrl(),
                 request.department(),
                 request.location()
         );
+        if (request.xRatio() != null || request.yRatio() != null) {
+            MapLocation ml = booth.getMapLocation();
+            if (ml != null) {
+                ml.updateCoordinates(request.xRatio(), request.yRatio());
+            } else {
+                MapLocationType type = boothId <= 38 ? MapLocationType.TAVERN : MapLocationType.BOOTH;
+                ml = mapLocationRepository.save(MapLocation.of(request.xRatio(), request.yRatio(), type));
+                booth.assignMapLocation(ml);
+            }
+        }
         return BoothResponse.fromEntity(booth, imageUrlResolver);
     }
 
