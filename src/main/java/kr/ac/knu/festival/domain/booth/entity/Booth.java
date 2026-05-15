@@ -110,8 +110,11 @@ public class Booth extends BaseTimeEntity {
         return mapLocation != null ? mapLocation.getYRatio() : null;
     }
 
+    private static final long TAVERN_MAX_ID = 38;
+
     public MapLocationType getMapLocationType() {
-        return mapLocation != null ? mapLocation.getType() : null;
+        if (mapLocation != null) return mapLocation.getType();
+        return id != null && id <= TAVERN_MAX_ID ? MapLocationType.TAVERN : MapLocationType.BOOTH;
     }
 
     public void assignMapLocation(MapLocation mapLocation) {
