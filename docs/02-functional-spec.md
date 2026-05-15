@@ -406,7 +406,7 @@
 ```
 
 **비즈니스 규칙**
-- BR-MATCH-01: `instagram_id` 글로벌 유니크 + `phone_lookup_hash` 글로벌 유니크 → 동일 인스타 ID 또는 동일 전화번호로 재신청 불가 (일자 무관)
+- BR-MATCH-01: `(instagram_id, festival_day)` + `(phone_lookup_hash, festival_day)` 복합 유니크 → 같은 날 동일 인스타 ID 또는 동일 전화번호로 중복 신청 불가, 다음 날 재참여 가능
 - BR-MATCH-02: 전화번호는 `phone_lookup_hash`(HmacSHA256)와 `phone_encrypted`(AES-GCM) 두 컬럼으로 분리 저장. 결과 조회는 해시 비교
 - BR-MATCH-03: 매칭 결과 인증은 POST body (instagramId + phoneNumber) — URL 노출 방지
 - BR-MATCH-04: 결과 조회 brute-force 방지를 위해 IP 단위 Rate Limiting 적용 (5회 실패 → 10분 차단)

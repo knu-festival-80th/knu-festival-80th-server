@@ -17,9 +17,7 @@ public interface MatchingParticipantRepository extends JpaRepository<MatchingPar
 
     boolean existsByInstagramIdAndFestivalDay(String instagramId, LocalDate festivalDay);
 
-    boolean existsByInstagramId(String instagramId);
-
-    boolean existsByPhoneLookupHash(String phoneLookupHash);
+    boolean existsByPhoneLookupHashAndFestivalDay(String phoneLookupHash, LocalDate festivalDay);
 
     Optional<MatchingParticipant> findByInstagramIdAndFestivalDay(String instagramId, LocalDate festivalDay);
 
