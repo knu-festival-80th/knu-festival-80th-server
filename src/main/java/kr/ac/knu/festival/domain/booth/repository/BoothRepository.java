@@ -44,4 +44,8 @@ public interface BoothRepository extends JpaRepository<Booth, Long> {
     @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Query("UPDATE Booth b SET b.likeCount = :likeCount WHERE b.id = :id")
     int updateLikeCount(@Param("id") Long id, @Param("likeCount") int likeCount);
+
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Query("UPDATE Booth b SET b.totalWaitingCount = :totalWaitingCount WHERE b.id = :id")
+    int updateTotalWaitingCount(@Param("id") Long id, @Param("totalWaitingCount") int totalWaitingCount);
 }
