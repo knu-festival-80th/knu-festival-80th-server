@@ -148,6 +148,22 @@ public class MatchingScheduleProperties {
         return atKst(targetDayForUpcoming(), resultOpenTime);
     }
 
+    /**
+     * 지금부터 가장 가까운 "다음 신청창 오픈 시각" ISO. festival 종료 후엔 null.
+     * - 신청창 진행 중: 다음 festivalDay 의 11시 (오늘은 이미 11시 지남)
+     * - 결과창 진행 중: 결과창 종료 시각 = 오늘 11시 또는 다음 festivalDay 11시
+     * - 그 외: 가장 가까운 미래의 11시
+     */
+    public String upcomingRegistrationOpenIso() {
+        LocalDateTime now = nowDateTime();
+        return festivalDays.stream()
+                .map(d -> LocalDateTime.of(d, registrationOpenTime))
+                .filter(dt -> dt.isAfter(now))
+                .findFirst()
+                .map(dt -> dt.atZone(KOREA_ZONE).toOffsetDateTime().toString())
+                .orElse(null);
+    }
+
     private LocalDate targetDayForUpcoming() {
         return currentRegistrationDay()
                 .or(this::nextFestivalDay)

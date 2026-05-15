@@ -76,12 +76,14 @@ public class MatchingQueryService {
         if (!cachedStatus.isEmpty()) {
             Map<Object, Object> cachedCounts = matchingRealtimeCache.getParticipantCounts();
             MatchingOperationStatus status = MatchingOperationStatus.valueOf(valueOf(cachedStatus, "status"));
+            String registrationOpenAt = nullIfBlank(valueOf(cachedStatus, "registrationOpenAt"));
             return MatchingStatusResponse.ofCached(
                     status,
                     status == MatchingOperationStatus.OPEN && matchingScheduleProperties.isRegistrationOpen(),
                     matchingScheduleProperties.isResultOpen(),
                     valueOf(cachedStatus, "registrationDeadline"),
                     valueOf(cachedStatus, "resultOpenAt"),
+                    registrationOpenAt,
                     matchingScheduleProperties.festivalDays(),
                     longValueOf(cachedCounts, "pending"),
                     longValueOf(cachedCounts, "matched"),
@@ -99,6 +101,7 @@ public class MatchingQueryService {
             return MatchingApplicantsCountResponse.empty();
         }
         // 캐시 hit 시 Redis 의 malePending/femalePending 을 그대로 반환. miss 면 DB 조회.
+        // (값 의미: status 무관 그 날 신청 누적. 매칭 잡 이후 결과창 동안에도 유지되고 다음 11시에 자동 0.)
         Map<Object, Object> cachedCounts = matchingRealtimeCache.getParticipantCounts();
         if (!cachedCounts.isEmpty()
                 && cachedCounts.containsKey("malePending")
@@ -107,10 +110,8 @@ public class MatchingQueryService {
             long female = longValueOf(cachedCounts, "femalePending");
             return new MatchingApplicantsCountResponse(day, male, female, male + female);
         }
-        long male = matchingParticipantRepository.countByFestivalDayAndStatusAndGender(
-                day, MatchingParticipantStatus.PENDING, MatchingGender.MALE);
-        long female = matchingParticipantRepository.countByFestivalDayAndStatusAndGender(
-                day, MatchingParticipantStatus.PENDING, MatchingGender.FEMALE);
+        long male = matchingParticipantRepository.countByFestivalDayAndGender(day, MatchingGender.MALE);
+        long female = matchingParticipantRepository.countByFestivalDayAndGender(day, MatchingGender.FEMALE);
         return new MatchingApplicantsCountResponse(day, male, female, male + female);
     }
 
@@ -172,14 +173,16 @@ public class MatchingQueryService {
         long pending = day == null ? 0 : matchingParticipantRepository.countByFestivalDayAndStatus(day, MatchingParticipantStatus.PENDING);
         long matched = day == null ? 0 : matchingParticipantRepository.countByFestivalDayAndStatus(day, MatchingParticipantStatus.MATCHED);
         long unmatched = day == null ? 0 : matchingParticipantRepository.countByFestivalDayAndStatus(day, MatchingParticipantStatus.UNMATCHED);
-        long malePending = day == null ? 0 : matchingParticipantRepository.countByFestivalDayAndStatusAndGender(day, MatchingParticipantStatus.PENDING, MatchingGender.MALE);
-        long femalePending = day == null ? 0 : matchingParticipantRepository.countByFestivalDayAndStatusAndGender(day, MatchingParticipantStatus.PENDING, MatchingGender.FEMALE);
+        // male/femalePending: 그 날 신청 누적 (status 무관). 결과창 동안에도 매칭 잡 영향 없이 유지.
+        long malePending = day == null ? 0 : matchingParticipantRepository.countByFestivalDayAndGender(day, MatchingGender.MALE);
+        long femalePending = day == null ? 0 : matchingParticipantRepository.countByFestivalDayAndGender(day, MatchingGender.FEMALE);
         return MatchingStatusResponse.of(
                 state,
                 state.getStatus() == MatchingOperationStatus.OPEN && matchingScheduleProperties.isRegistrationOpen(),
                 matchingScheduleProperties.isResultOpen(),
                 matchingScheduleProperties.upcomingRegistrationDeadlineIso(),
                 matchingScheduleProperties.upcomingResultOpenIso(),
+                matchingScheduleProperties.upcomingRegistrationOpenIso(),
                 matchingScheduleProperties.festivalDays(),
                 pending,
                 matched,
@@ -211,5 +214,9 @@ public class MatchingQueryService {
             return 0L;
         }
         return Long.parseLong(value);
+    }
+
+    private String nullIfBlank(String value) {
+        return value == null || value.isBlank() ? null : value;
     }
 }

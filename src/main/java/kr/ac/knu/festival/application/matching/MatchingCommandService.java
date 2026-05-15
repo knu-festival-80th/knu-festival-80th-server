@@ -156,8 +156,10 @@ public class MatchingCommandService {
         long pending = totalForStatus(counts, MatchingParticipantStatus.PENDING);
         long matched = totalForStatus(counts, MatchingParticipantStatus.MATCHED);
         long unmatched = totalForStatus(counts, MatchingParticipantStatus.UNMATCHED);
-        long malePending = countFor(counts, MatchingParticipantStatus.PENDING, MatchingGender.MALE);
-        long femalePending = countFor(counts, MatchingParticipantStatus.PENDING, MatchingGender.FEMALE);
+        // male/female: 그 날 신청 누적 (status 무관). 매칭 잡 후에도 결과창 동안 0 으로 떨어지지 않고
+        // 다음 신청창 오픈(다음 11시)에 day 가 새 날짜로 전환되어야만 자동 0 으로 리셋된다.
+        long male = totalForGender(counts, MatchingGender.MALE);
+        long female = totalForGender(counts, MatchingGender.FEMALE);
 
         MatchingStatusResponse response = MatchingStatusResponse.of(
                 state,
@@ -165,14 +167,15 @@ public class MatchingCommandService {
                 matchingScheduleProperties.isResultOpen(),
                 matchingScheduleProperties.upcomingRegistrationDeadlineIso(),
                 matchingScheduleProperties.upcomingResultOpenIso(),
+                matchingScheduleProperties.upcomingRegistrationOpenIso(),
                 matchingScheduleProperties.festivalDays(),
                 pending,
                 matched,
                 unmatched,
-                malePending,
-                femalePending
+                male,
+                female
         );
-        matchingRealtimeCache.cacheStatus(state, matchingScheduleProperties, pending, matched, unmatched, malePending, femalePending);
+        matchingRealtimeCache.cacheStatus(state, matchingScheduleProperties, pending, matched, unmatched, male, female);
         return response;
     }
 
@@ -204,5 +207,14 @@ public class MatchingCommandService {
             return 0L;
         }
         return byGender.getOrDefault(gender, 0L);
+    }
+
+    // 그 날 신청 누적(상태 무관) 성별 카운트. 매칭 잡 이후에도 결과창 동안 유지된다.
+    private long totalForGender(Map<MatchingParticipantStatus, Map<MatchingGender, Long>> counts, MatchingGender gender) {
+        long sum = 0L;
+        for (Map<MatchingGender, Long> byGender : counts.values()) {
+            sum += byGender.getOrDefault(gender, 0L);
+        }
+        return sum;
     }
 }
