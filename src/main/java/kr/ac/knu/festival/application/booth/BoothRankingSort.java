@@ -2,6 +2,7 @@ package kr.ac.knu.festival.application.booth;
 
 public enum BoothRankingSort {
     LIKES("likes"),
+    POPULAR("popular"),
     WAITING_ASC("waiting-asc"),
     NAME_ASC("name-asc");
 

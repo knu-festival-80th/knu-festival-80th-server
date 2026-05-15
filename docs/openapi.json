@@ -1400,13 +1400,13 @@
                     "\ubd80\uc2a4 Query"
                 ],
                 "summary": "\ubd80\uc2a4 \ubaa9\ub85d \uc870\ud68c",
-                "description": "\uc88b\uc544\uc694/\ub300\uae30 \uc801\uc740 \uc21c/\uc774\ub984\uc21c\uc73c\ub85c \uc815\ub82c\ub41c \ubd80\uc2a4 \ubaa9\ub85d\uc744 \uc870\ud68c\ud569\ub2c8\ub2e4.",
+                "description": "\uc778\uae30\uc21c(\ub204\uc801 \ub300\uae30 \ub4f1\ub85d \uc218 \ub9ce\uc740 \uc21c), \ub300\uae30 \uc801\uc740 \uc21c, \uc774\ub984\uc21c\uc73c\ub85c \uc815\ub82c\ub41c \ubd80\uc2a4 \ubaa9\ub85d\uc744 \uc870\ud68c\ud569\ub2c8\ub2e4.",
                 "operationId": "getBooths",
                 "parameters": [
                     {
                         "name": "sort",
                         "in": "query",
-                        "description": "\uc815\ub82c \uae30\uc900: likes(\uae30\ubcf8) / waiting-asc / name-asc",
+                        "description": "\uc815\ub82c \uae30\uc900: popular(\ub204\uc801 \ub300\uae30 \ub4f1\ub85d \uc218 DESC) / waiting-asc / name-asc",
                         "required": false,
                         "schema": {
                             "type": "string",
@@ -1509,13 +1509,13 @@
                     "\ubd80\uc2a4 Query"
                 ],
                 "summary": "\ubd80\uc2a4 \ub7ad\ud0b9 SSE \uad6c\ub3c5",
-                "description": "\uc88b\uc544\uc694\uc21c \ub610\ub294 \ub300\uae30 \uc801\uc740 \uc21c \ub7ad\ud0b9 \ubcc0\uacbd\uc744 Server-Sent Events\ub85c \uad6c\ub3c5\ud569\ub2c8\ub2e4.",
+                "description": "\uc778\uae30\uc21c(\ub204\uc801 \ub300\uae30 \ub4f1\ub85d \uc218 \ub9ce\uc740 \uc21c), \ub300\uae30 \uc801\uc740 \uc21c, \uc774\ub984\uc21c \ub7ad\ud0b9 \ubcc0\uacbd\uc744 Server-Sent Events\ub85c \uad6c\ub3c5\ud569\ub2c8\ub2e4.",
                 "operationId": "streamBoothRankings",
                 "parameters": [
                     {
                         "name": "sort",
                         "in": "query",
-                        "description": "\uad6c\ub3c5 \ub7ad\ud0b9 \uae30\uc900: likes(\uae30\ubcf8) / waiting-asc",
+                        "description": "\uad6c\ub3c5 \ub7ad\ud0b9 \uae30\uc900: popular(\ub204\uc801 \ub300\uae30 \ub4f1\ub85d \uc218 DESC) / waiting-asc / name-asc",
                         "required": false,
                         "schema": {
                             "type": "string",
@@ -1829,6 +1829,10 @@
                         "type": "number"
                     },
                     "likeCount": {
+                        "type": "integer",
+                        "format": "int32"
+                    },
+                    "totalWaitingCount": {
                         "type": "integer",
                         "format": "int32"
                     },
@@ -2827,6 +2831,10 @@
                         "type": "integer",
                         "format": "int32"
                     },
+                    "totalWaitingCount": {
+                        "type": "integer",
+                        "format": "int32"
+                    },
                     "menuBoardImageUrl": {
                         "type": "string"
                     },
@@ -2879,6 +2887,10 @@
                         "type": "number"
                     },
                     "likeCount": {
+                        "type": "integer",
+                        "format": "int32"
+                    },
+                    "totalWaitingCount": {
                         "type": "integer",
                         "format": "int32"
                     },

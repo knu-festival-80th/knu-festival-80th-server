@@ -28,7 +28,8 @@ import java.time.LocalDateTime;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Table(name = "booth", indexes = {
-        @Index(name = "idx_booth_like_count", columnList = "like_count")
+        @Index(name = "idx_booth_like_count", columnList = "like_count"),
+        @Index(name = "idx_booth_total_waiting_count", columnList = "total_waiting_count")
 })
 @SQLDelete(sql = "UPDATE booth SET deleted_at = CURRENT_TIMESTAMP WHERE booth_id = ?")
 @SQLRestriction("deleted_at IS NULL")
@@ -58,6 +59,9 @@ public class Booth extends BaseTimeEntity {
     @Column(name = "like_count", nullable = false)
     private int likeCount;
 
+    @Column(name = "total_waiting_count", nullable = false, columnDefinition = "INT DEFAULT 0")
+    private int totalWaitingCount;
+
     @Column(name = "menu_board_image_url", length = 500)
     private String menuBoardImageUrl;
 
@@ -83,6 +87,7 @@ public class Booth extends BaseTimeEntity {
                 .mapLocation(mapLocation)
                 .menuBoardImageUrl(menuBoardImageUrl)
                 .likeCount(0)
+                .totalWaitingCount(0)
                 .waitingOpen(false)
                 .adminPassword(encodedAdminPassword)
                 .department(department)

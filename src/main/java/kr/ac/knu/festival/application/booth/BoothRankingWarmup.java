@@ -32,16 +32,24 @@ public class BoothRankingWarmup {
     public void warmup() {
         List<Booth> booths = boothRepository.findAll();
         Map<Long, Integer> likeCounts = new HashMap<>();
+        Map<Long, Integer> totalWaitingCounts = new HashMap<>();
         Map<Long, Long> waitingCounts = new HashMap<>();
         for (Booth booth : booths) {
             likeCounts.put(booth.getId(), booth.getLikeCount());
+            totalWaitingCounts.put(booth.getId(), booth.getTotalWaitingCount());
             waitingCounts.put(booth.getId(), 0L);
         }
         for (Object[] row : waitingRepository.countActiveByBooth(ACTIVE_STATUSES)) {
             waitingCounts.put((Long) row[0], (Long) row[1]);
         }
+        for (Object[] row : waitingRepository.countTotalByBooth()) {
+            Long boothId = (Long) row[0];
+            int countedTotal = Math.toIntExact((Long) row[1]);
+            totalWaitingCounts.merge(boothId, countedTotal, Math::max);
+        }
         boothRankingRedisRepository.setLikes(likeCounts);
         boothRankingRedisRepository.setWaitingCounts(waitingCounts);
+        boothRankingRedisRepository.setTotalWaitingCounts(totalWaitingCounts);
         log.info("Booth ranking Redis warm-up completed. boothCount={}", booths.size());
     }
 }

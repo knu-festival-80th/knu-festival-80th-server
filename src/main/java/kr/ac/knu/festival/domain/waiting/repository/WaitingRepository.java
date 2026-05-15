@@ -46,6 +46,12 @@ public interface WaitingRepository extends JpaRepository<Waiting, Long> {
 
     @Query("""
             SELECT w.booth.id, COUNT(w) FROM Waiting w
+            GROUP BY w.booth.id
+            """)
+    List<Object[]> countTotalByBooth();
+
+    @Query("""
+            SELECT w.booth.id, COUNT(w) FROM Waiting w
             WHERE w.status = kr.ac.knu.festival.domain.waiting.entity.WaitingStatus.CALLED
               AND w.calledAt < :threshold
             GROUP BY w.booth.id

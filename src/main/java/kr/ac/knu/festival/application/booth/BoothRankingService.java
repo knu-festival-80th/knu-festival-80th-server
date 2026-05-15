@@ -48,6 +48,7 @@ public class BoothRankingService {
                         row.booth(),
                         row.currentWaitingTeams(),
                         row.likeCount(),
+                        row.totalWaitingCount(),
                         imageUrlResolver))
                 .toList();
     }
@@ -61,6 +62,7 @@ public class BoothRankingService {
                             row.booth().getId(),
                             index + 1,
                             row.likeCount(),
+                            row.totalWaitingCount(),
                             row.currentWaitingTeams()
                     );
                 })
@@ -73,6 +75,7 @@ public class BoothRankingService {
         List<Long> boothIds = booths.stream().map(Booth::getId).toList();
         Map<Long, Integer> redisLikeCounts = boothRankingRedisRepository.getLikeCounts(boothIds);
         Map<Long, Integer> redisWaitingCounts = boothRankingRedisRepository.getWaitingCounts(boothIds);
+        Map<Long, Integer> redisTotalWaitingCounts = boothRankingRedisRepository.getTotalWaitingCounts(boothIds);
         Map<Long, Long> dbWaitingCounts = redisWaitingCounts.size() == boothIds.size()
                 ? Map.of()
                 : loadActiveCountMap();
@@ -81,6 +84,7 @@ public class BoothRankingService {
                 .map(booth -> new BoothRankingRow(
                         booth,
                         redisLikeCounts.getOrDefault(booth.getId(), booth.getLikeCount()),
+                        redisTotalWaitingCounts.getOrDefault(booth.getId(), booth.getTotalWaitingCount()),
                         redisWaitingCounts.containsKey(booth.getId())
                                 ? redisWaitingCounts.get(booth.getId())
                                 : dbWaitingCounts.getOrDefault(booth.getId(), 0L)
@@ -100,6 +104,9 @@ public class BoothRankingService {
                     .thenComparing(Comparator.comparingInt(BoothRankingRow::likeCount).reversed())
                     .thenComparing(row -> row.booth().getName());
             case NAME_ASC -> Comparator.comparing(row -> row.booth().getName());
+            case POPULAR -> Comparator.comparingInt(BoothRankingRow::totalWaitingCount).reversed()
+                    .thenComparingLong(BoothRankingRow::currentWaitingTeams)
+                    .thenComparing(row -> row.booth().getName());
             case LIKES -> Comparator.comparingInt(BoothRankingRow::likeCount).reversed()
                     .thenComparingLong(BoothRankingRow::currentWaitingTeams)
                     .thenComparing(row -> row.booth().getName());
@@ -117,6 +124,7 @@ public class BoothRankingService {
     private record BoothRankingRow(
             Booth booth,
             int likeCount,
+            int totalWaitingCount,
             long currentWaitingTeams
     ) {
     }
