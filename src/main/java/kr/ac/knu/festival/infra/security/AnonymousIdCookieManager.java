@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Value;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.time.Duration;
 import java.util.HexFormat;
 import java.util.UUID;
@@ -20,6 +21,18 @@ public class AnonymousIdCookieManager {
 
     private static final String COOKIE_NAME = "ANON_ID";
     private static final Duration COOKIE_MAX_AGE = Duration.ofDays(14);
+
+    /**
+     * SHA-256 MessageDigest 는 thread-safe 하지 않으므로 매 호출 인스턴스화 대신 ThreadLocal 로 캐싱한다.
+     * 사용 직전 반드시 {@link MessageDigest#reset()} 을 호출해 이전 상태를 비운다.
+     */
+    private static final ThreadLocal<MessageDigest> SHA256 = ThreadLocal.withInitial(() -> {
+        try {
+            return MessageDigest.getInstance("SHA-256");
+        } catch (NoSuchAlgorithmException e) {
+            throw new IllegalStateException("SHA-256 algorithm not available", e);
+        }
+    });
 
     @Value("${cookie.secure:true}")
     private boolean cookieSecure;
@@ -63,9 +76,10 @@ public class AnonymousIdCookieManager {
 
     private String hash(String value) {
         try {
-            byte[] digest = MessageDigest.getInstance("SHA-256")
-                    .digest(value.getBytes(StandardCharsets.UTF_8));
-            return HexFormat.of().formatHex(digest);
+            MessageDigest digest = SHA256.get();
+            digest.reset();
+            byte[] hashed = digest.digest(value.getBytes(StandardCharsets.UTF_8));
+            return HexFormat.of().formatHex(hashed);
         } catch (Exception e) {
             throw new IllegalStateException("Failed to hash anonymous id", e);
         }

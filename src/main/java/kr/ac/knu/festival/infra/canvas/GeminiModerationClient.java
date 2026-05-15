@@ -1,10 +1,14 @@
 package kr.ac.knu.festival.infra.canvas;
 
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.MeterRegistry;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
+import org.springframework.web.client.HttpServerErrorException;
+import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestClient;
 
 import java.util.List;
@@ -16,14 +20,31 @@ public class GeminiModerationClient {
     private static final String BASE_URL = "https://generativelanguage.googleapis.com";
     private static final String PATH = "/v1beta/models/{model}:generateContent";
 
+    /** connect 5s — TCP/TLS 연결까지 허용 시간. */
+    private static final int CONNECT_TIMEOUT_MS = 5_000;
+    /** read 10s — Gemini 응답 수신까지 허용 시간. */
+    private static final int READ_TIMEOUT_MS = 10_000;
+
+    /** 재시도 횟수: 첫 시도 + 1회 재시도 = 총 2회 attempt. */
+    private static final int MAX_ATTEMPTS = 2;
+    /** 재시도 backoff: 300ms. */
+    private static final long RETRY_BACKOFF_MS = 300L;
+
+    private static final String METRIC_FAIL_OPEN = "festival.canvas.moderation.fail_open";
+
     private final GeminiProperties properties;
     private final RestClient restClient;
+    private final MeterRegistry meterRegistry;
 
-    public GeminiModerationClient(GeminiProperties properties, RestClient.Builder restClientBuilder) {
+    public GeminiModerationClient(
+            GeminiProperties properties,
+            RestClient.Builder restClientBuilder,
+            MeterRegistry meterRegistry) {
         this.properties = properties;
+        this.meterRegistry = meterRegistry;
         SimpleClientHttpRequestFactory requestFactory = new SimpleClientHttpRequestFactory();
-        requestFactory.setConnectTimeout(3_000);
-        requestFactory.setReadTimeout(5_000);
+        requestFactory.setConnectTimeout(CONNECT_TIMEOUT_MS);
+        requestFactory.setReadTimeout(READ_TIMEOUT_MS);
         this.restClient = restClientBuilder
                 .baseUrl(BASE_URL)
                 .requestFactory(requestFactory)
@@ -31,7 +52,13 @@ public class GeminiModerationClient {
     }
 
     /**
-     * @return true = 적절 (게시 유지), false = 부적절 (삭제)
+     * Gemini 검열 결과 판정.
+     *
+     * <p>응답 텍스트가 trim 후 대소문자 무시 "REJECT"와 완전 일치할 때만 부적절(false)로 본다.
+     * "PROJECT", "REJECTED", "REJECTION" 등 부분 일치는 모두 적절(true)로 처리한다.
+     * 응답 구조 변형/네트워크 오류/NPE/IOOBE 등 모든 예외는 fail-open(true)으로 흡수한다.
+     *
+     * @return true = 적절(게시 유지), false = 부적절(거부)
      */
     public boolean isAppropriate(String message) {
         if (!StringUtils.hasText(properties.apiKey())) {
@@ -45,30 +72,111 @@ public class GeminiModerationClient {
                 new GenerationConfig(0.1, 10)
         );
 
-        try {
-            GeminiResponse response = restClient.post()
-                    .uri(PATH + "?key={key}", properties.model(), properties.apiKey())
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .body(request)
-                    .retrieve()
-                    .body(GeminiResponse.class);
+        for (int attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
+            try {
+                GeminiResponse response = restClient.post()
+                        .uri(PATH + "?key={key}", properties.model(), properties.apiKey())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .body(request)
+                        .retrieve()
+                        .body(GeminiResponse.class);
 
-            if (response == null
-                    || response.candidates() == null
-                    || response.candidates().isEmpty()) {
-                log.warn("Gemini 응답이 비어있음 — 검열 통과 처리");
+                String text = extractText(response);
+                if (text == null) {
+                    log.warn("[gemini-fail-open] reason=empty-or-null-response attempt={}", attempt);
+                    incrementFailOpen("PARSE_ERROR");
+                    return true;
+                }
+
+                String normalized = text.trim();
+                log.debug("Gemini 검열 결과: {} attempt={}", normalized, attempt);
+                // 정확히 "REJECT" (대소문자 무시) 일 때만 거부. 부분 일치 차단.
+                return !normalized.equalsIgnoreCase("REJECT");
+
+            } catch (HttpServerErrorException ex) {
+                if (attempt == 0) {
+                    log.debug("[gemini-retry] reason=SERVER_ERROR status={} attempt={}",
+                            ex.getStatusCode(), attempt);
+                    if (!sleepBackoff()) {
+                        break;
+                    }
+                    continue;
+                }
+                log.warn("[gemini-fail-open] retry exhausted: {} attempt={}", ex.toString(), attempt);
+                incrementFailOpen("SERVER_ERROR");
+                return true;
+            } catch (ResourceAccessException ex) {
+                if (attempt == 0) {
+                    log.debug("[gemini-retry] reason=TIMEOUT attempt={}", attempt);
+                    if (!sleepBackoff()) {
+                        break;
+                    }
+                    continue;
+                }
+                log.warn("[gemini-fail-open] retry exhausted: {} attempt={}", ex.toString(), attempt);
+                incrementFailOpen("TIMEOUT");
+                return true;
+            } catch (Exception ex) {
+                log.warn("[gemini-fail-open] non-retryable: {}", ex.toString());
+                incrementFailOpen("OTHER");
                 return true;
             }
+        }
+        incrementFailOpen("OTHER");
+        return true;
+    }
 
-            String text = response.candidates().getFirst()
-                    .content().parts().getFirst().text()
-                    .trim().toUpperCase();
-            log.debug("Gemini 검열 결과: {}", text);
-            return !text.contains("REJECT");
-
-        } catch (Exception e) {
-            log.warn("Gemini API 호출 실패 — 검열 통과 처리: {}", e.getMessage());
+    /**
+     * 재시도 backoff sleep. 인터럽트 발생 시 false 반환하여 즉시 fail-open 으로 전환한다.
+     */
+    private boolean sleepBackoff() {
+        try {
+            Thread.sleep(RETRY_BACKOFF_MS);
             return true;
+        } catch (InterruptedException ie) {
+            Thread.currentThread().interrupt();
+            return false;
+        }
+    }
+
+    private void incrementFailOpen(String reason) {
+        Counter.builder(METRIC_FAIL_OPEN)
+                .tag("reason", reason)
+                .register(meterRegistry)
+                .increment();
+    }
+
+    /**
+     * Gemini 응답 트리에서 첫 번째 텍스트를 안전하게 추출.
+     * 응답 스키마 변경/누락 대비 NPE·IndexOutOfBoundsException 흡수.
+     *
+     * @return 텍스트 또는 null
+     */
+    private String extractText(GeminiResponse response) {
+        try {
+            if (response == null) {
+                return null;
+            }
+            List<Candidate> candidates = response.candidates();
+            if (candidates == null || candidates.isEmpty()) {
+                return null;
+            }
+            Candidate first = candidates.get(0);
+            if (first == null || first.content() == null) {
+                return null;
+            }
+            List<Part> parts = first.content().parts();
+            if (parts == null || parts.isEmpty()) {
+                return null;
+            }
+            Part part = parts.get(0);
+            if (part == null) {
+                return null;
+            }
+            return part.text();
+        } catch (NullPointerException | IndexOutOfBoundsException e) {
+            log.warn("[gemini-fail-open] reason=schema-mismatch detail={}", e.getMessage());
+            return null;
         }
     }
 

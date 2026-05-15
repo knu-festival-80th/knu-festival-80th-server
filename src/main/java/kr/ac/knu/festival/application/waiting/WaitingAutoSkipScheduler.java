@@ -13,7 +13,9 @@ import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Slf4j
 @Component
@@ -37,21 +39,35 @@ public class WaitingAutoSkipScheduler {
             return;
         }
 
-        var expiredCountByBooth = waitingRepository.countExpiredCallsByBooth(threshold);
-        int skipped = waitingRepository.skipExpiredCalls(threshold);
+        List<Long> expiredIds = expiredWaitings.stream().map(Waiting::getId).toList();
+        // UPDATE 가 status='CALLED' 인 행만 갱신하도록 강제해 ENTER 와 race 가 발생해도 잘못 SKIPPED 처리되지 않는다.
+        int skipped = waitingRepository.skipExpiredCalls(expiredIds);
+
+        // 실제 SKIPPED 로 전이된 행만 SMS·카운터 감소 대상에 포함시킨다.
+        List<Waiting> actuallySkipped = (skipped == expiredWaitings.size())
+                ? expiredWaitings
+                : waitingRepository.findSkippedByIds(expiredIds);
+
+        Map<Long, Long> decrementByBooth = new HashMap<>();
+        for (Waiting waiting : actuallySkipped) {
+            Long boothId = waiting.getBooth().getId();
+            decrementByBooth.merge(boothId, 1L, Long::sum);
+        }
 
         afterCommit(() -> {
-            for (Waiting waiting : expiredWaitings) {
+            for (Waiting waiting : actuallySkipped) {
                 String message = "[%s] %d번 대기가 시간 초과로 취소되었습니다."
                         .formatted(waiting.getBooth().getName(), waiting.getWaitingNumber());
+                // SmsStatusUpdater 가 별도 트랜잭션에서 row 를 조회하려면 본 commit 이 끝난 뒤여야 한다.
                 waitingCommandService.sendSmsAsync(waiting.getId(), waiting.getPhoneNumber(), message);
             }
-            for (Object[] row : expiredCountByBooth) {
-                boothRankingRedisRepository.decrementWaitingCount((Long) row[0], (Long) row[1]);
+            decrementByBooth.forEach(boothRankingRedisRepository::decrementWaitingCount);
+            if (!actuallySkipped.isEmpty()) {
+                boothRankingStreamService.markDirty();
             }
-            boothRankingStreamService.markDirty();
         });
-        log.info("Auto-skipped {} expired waitings (threshold={})", skipped, threshold);
+        log.info("Auto-skipped {} expired waitings (threshold={}, candidates={})",
+                skipped, threshold, expiredWaitings.size());
     }
 
     private void afterCommit(Runnable runnable) {

@@ -1,5 +1,6 @@
 package kr.ac.knu.festival.presentation.waiting.controller;
 
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import kr.ac.knu.festival.application.waiting.WaitingCommandService;
 import kr.ac.knu.festival.domain.waiting.entity.Waiting;
@@ -40,10 +41,19 @@ public class WaitingCommandController implements WaitingCommandControllerDocs {
     @PostMapping("/booths/{booth-id}/waitings")
     public ResponseEntity<ApiResponse<WaitingRegisterResponse>> registerWaiting(
             @PathVariable("booth-id") Long boothId,
-            @RequestBody @Valid WaitingCreateRequest request
+            @RequestBody @Valid WaitingCreateRequest request,
+            HttpServletRequest httpRequest
     ) {
-        WaitingRegisterResponse result = waitingCommandService.registerWaiting(boothId, request);
+        WaitingRegisterResponse result = waitingCommandService.registerWaiting(boothId, request, clientIp(httpRequest));
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(result));
+    }
+
+    private String clientIp(HttpServletRequest request) {
+        String forwardedFor = request.getHeader("X-Forwarded-For");
+        if (forwardedFor != null && !forwardedFor.isBlank()) {
+            return forwardedFor.split(",")[0].trim();
+        }
+        return request.getRemoteAddr();
     }
 
     @Override

@@ -40,6 +40,8 @@ public class CanvasCommandService {
     private final ApplicationEventPublisher eventPublisher;
 
     public CanvasPostitCreateResponse createPostit(CanvasPostitCreateRequest request) {
+        String sanitized = sanitizeMessage(request.message());
+
         CanvasBoard board = canvasBoardRepository.findByIdForUpdate(request.boardId())
                 .orElseThrow(() -> new BusinessException(BusinessErrorCode.CANVAS_BOARD_NOT_FOUND));
 
@@ -57,10 +59,28 @@ public class CanvasCommandService {
         List<CanvasPostit> existingPostits = canvasPostitRepository.findAllByBoardAndModerationStatusNotOrderByIdAsc(board, ModerationStatus.REJECTED);
         validateNoCollision(x, y, meta, existingPostits);
 
-        CanvasPostit postit = CanvasPostit.createCanvasPostit(board, request.colorId(), request.message(), x, y);
+        CanvasPostit postit = CanvasPostit.createCanvasPostit(board, request.colorId(), sanitized, x, y);
         canvasPostitRepository.save(postit);
         eventPublisher.publishEvent(new PostitCreatedEvent(postit.getId(), postit.getMessage()));
         return CanvasPostitCreateResponse.fromEntity(postit);
+    }
+
+    /**
+     * 메시지 sanitize: null 가드 → trim → HTML 특수문자 escape.
+     * trim 후 빈 문자열이면 INVALID_INPUT_VALUE 예외.
+     */
+    private String sanitizeMessage(String message) {
+        if (message == null) {
+            throw new BusinessException(BusinessErrorCode.INVALID_INPUT_VALUE);
+        }
+        String trimmed = message.trim();
+        if (trimmed.isEmpty()) {
+            throw new BusinessException(BusinessErrorCode.INVALID_INPUT_VALUE);
+        }
+        return trimmed
+                .replace("&", "&amp;")
+                .replace("<", "&lt;")
+                .replace(">", "&gt;");
     }
 
     public Long createBoard(Long questionId, int maxNoteCount) {

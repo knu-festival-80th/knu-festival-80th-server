@@ -99,6 +99,17 @@ public interface WaitingRepository extends JpaRepository<Waiting, Long> {
             """)
     List<Waiting> findExpiredCalls(@Param("threshold") LocalDateTime threshold);
 
+    /**
+     * AutoSkip UPDATE 이후 실제 SKIPPED 로 전이된 행만 다시 조회해
+     * SMS 발송 대상에서 race-loser (ENTERED 등) 를 제외하기 위한 보조 메서드.
+     */
+    @Query("""
+            SELECT w FROM Waiting w JOIN FETCH w.booth
+            WHERE w.id IN :ids
+              AND w.status = kr.ac.knu.festival.domain.waiting.entity.WaitingStatus.SKIPPED
+            """)
+    List<Waiting> findSkippedByIds(@Param("ids") List<Long> ids);
+
     @Query("SELECT COALESCE(MAX(w.waitingNumber), 0) FROM Waiting w WHERE w.booth.id = :boothId")
     int findMaxWaitingNumberByBoothId(@Param("boothId") Long boothId);
 
@@ -107,15 +118,18 @@ public interface WaitingRepository extends JpaRepository<Waiting, Long> {
 
     /**
      * M4: 10분 미방문 대기를 단일 UPDATE 로 일괄 SKIP.
+     * 다른 트랜잭션이 ENTER 처리하면서 status 를 변경했다면 affected rows 가 0 이 되어
+     * @Version 우회 race 를 방지한다.
      */
     @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Query("""
             UPDATE Waiting w
-            SET w.status = kr.ac.knu.festival.domain.waiting.entity.WaitingStatus.SKIPPED
-            WHERE w.status = kr.ac.knu.festival.domain.waiting.entity.WaitingStatus.CALLED
-              AND w.calledAt < :threshold
+            SET w.status = kr.ac.knu.festival.domain.waiting.entity.WaitingStatus.SKIPPED,
+                w.version = w.version + 1
+            WHERE w.id IN :ids
+              AND w.status = kr.ac.knu.festival.domain.waiting.entity.WaitingStatus.CALLED
             """)
-    int skipExpiredCalls(@Param("threshold") LocalDateTime threshold);
+    int skipExpiredCalls(@Param("ids") List<Long> ids);
 
     /**
      * 중간 삽입 시 sort_order 일괄 시프트.

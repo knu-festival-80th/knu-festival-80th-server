@@ -45,12 +45,21 @@ public interface MatchingParticipantRepository extends JpaRepository<MatchingPar
             MatchingGender gender
     );
 
+    // 단일 GROUP BY 쿼리로 PENDING/MATCHED/UNMATCHED + 성별 PENDING 카운트를 한 번에 집계한다.
+    @Query("""
+            SELECT p.status, p.gender, COUNT(p)
+            FROM MatchingParticipant p
+            WHERE p.festivalDay = :day
+            GROUP BY p.status, p.gender
+            """)
+    List<Object[]> countByDayGroupByStatusGender(@Param("day") LocalDate day);
+
     @Query("""
             SELECT p FROM MatchingParticipant p
             WHERE p.festivalDay = :festivalDay
               AND (:status IS NULL OR p.status = :status)
               AND (:gender IS NULL OR p.gender = :gender)
-              AND (:search IS NULL OR LOWER(p.instagramId) LIKE LOWER(CONCAT('%', :search, '%')))
+              AND (:search IS NULL OR p.instagramId LIKE CONCAT(:search, '%'))
             ORDER BY p.createdAt DESC
             """)
     List<MatchingParticipant> searchForAdmin(

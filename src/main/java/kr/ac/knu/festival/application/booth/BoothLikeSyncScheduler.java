@@ -21,11 +21,11 @@ public class BoothLikeSyncScheduler {
     @Scheduled(fixedDelay = 10_000L)
     @Transactional
     public void syncLikeCounts() {
-        Map<Long, Integer> likeCounts = boothRankingRedisRepository.getAllLikeCounts();
-        if (likeCounts.isEmpty()) {
+        Map<Long, Integer> dirty = boothRankingRedisRepository.drainDirtyLikeCounts();
+        if (dirty.isEmpty()) {
             return;
         }
-        likeCounts.forEach(boothRepository::updateLikeCount);
-        log.debug("Synced booth like counts from Redis. boothCount={}", likeCounts.size());
+        dirty.forEach(boothRepository::updateLikeCount);
+        log.debug("Synced booth like counts from Redis dirty set. boothCount={}", dirty.size());
     }
 }

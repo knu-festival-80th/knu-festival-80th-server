@@ -31,7 +31,13 @@ public class AuthController implements AuthControllerDocs {
             HttpServletRequest httpRequest
     ) {
         LoginResponse result = authService.login(request);
+        // session fixation 방어: 기존 세션이 있으면 무효화 후 새 세션 발급해 세션 ID 교체
+        HttpSession oldSession = httpRequest.getSession(false);
+        if (oldSession != null) {
+            oldSession.invalidate();
+        }
         HttpSession session = httpRequest.getSession(true);
+        httpRequest.changeSessionId();
         session.setAttribute(SessionAuthFilter.SESSION_ADMIN_KEY,
                 new AdminInfo(result.role(), result.boothId()));
         return ResponseEntity.ok(ApiResponse.success(result));

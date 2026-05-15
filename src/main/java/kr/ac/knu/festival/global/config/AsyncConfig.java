@@ -18,7 +18,8 @@ public class AsyncConfig {
         executor.setMaxPoolSize(8);
         executor.setQueueCapacity(100);
         executor.setKeepAliveSeconds(60);
-        executor.setRejectedExecutionHandler(new ThreadPoolExecutor.AbortPolicy());
+        // 04-TS v1.10: 큐 포화 시 호출 스레드에서 실행해 모더레이션 누락을 막는다.
+        executor.setRejectedExecutionHandler(new ThreadPoolExecutor.CallerRunsPolicy());
         executor.setThreadNamePrefix("gemini-");
         executor.setWaitForTasksToCompleteOnShutdown(true);
         executor.setAwaitTerminationSeconds(30);

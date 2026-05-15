@@ -49,9 +49,9 @@ services:
       DB_PASSWORD: ${MYSQL_PASSWORD:-festival}
       DDL_AUTO: ${DDL_AUTO:-update}
       JPA_SHOW_SQL: ${JPA_SHOW_SQL:-false}
-      PHONE_ENCRYPTION_KEY: ${PHONE_ENCRYPTION_KEY:-dev-only-encryption-key-please-change-in-prod}
-      PHONE_LOOKUP_HASH_KEY: ${PHONE_LOOKUP_HASH_KEY:-dev-only-lookup-hash-key-please-change-in-prod}
-      ADMIN_MASTER_PASSWORD: ${ADMIN_MASTER_PASSWORD:-festival-admin-2026}
+      PHONE_ENCRYPTION_KEY: ${PHONE_ENCRYPTION_KEY:?PHONE_ENCRYPTION_KEY required}
+      PHONE_LOOKUP_HASH_KEY: ${PHONE_LOOKUP_HASH_KEY:?PHONE_LOOKUP_HASH_KEY required}
+      ADMIN_MASTER_PASSWORD: ${ADMIN_MASTER_PASSWORD:?ADMIN_MASTER_PASSWORD required}
       REDIS_HOST: redis
       REDIS_PORT: 6379
       CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-http://localhost:3000}

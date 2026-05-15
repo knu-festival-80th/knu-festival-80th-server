@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import kr.ac.knu.festival.global.auth.AdminInfo;
 import kr.ac.knu.festival.global.response.ApiResponse;
 import kr.ac.knu.festival.presentation.waiting.dto.request.WaitingCreateRequest;
@@ -22,7 +23,11 @@ public interface WaitingCommandControllerDocs {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "403", description = "대기 접수 중단"),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "409", description = "동일 부스 동일 전화번호 중복")
     })
-    ResponseEntity<ApiResponse<WaitingRegisterResponse>> registerWaiting(Long boothId, WaitingCreateRequest request);
+    ResponseEntity<ApiResponse<WaitingRegisterResponse>> registerWaiting(
+            Long boothId,
+            WaitingCreateRequest request,
+            @Parameter(hidden = true) HttpServletRequest httpRequest
+    );
 
     @Operation(summary = "본인 대기 취소", description = "전화번호 뒤 4자리로 본인 확인 후 취소")
     ResponseEntity<ApiResponse<Void>> cancelWaitingByOwner(Long waitingId, String phoneLast4);

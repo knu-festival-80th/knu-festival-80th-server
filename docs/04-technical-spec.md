@@ -1,8 +1,8 @@
 # 기술/개발 명세서 (TS)
 
 > **프로젝트**: 2026 경북대학교 80주년 대동제 웹앱 서비스 (백엔드)  
-> **버전**: v1.9
-> **최종 수정일**: 2026-05-14  
+> **버전**: v1.11
+> **최종 수정일**: 2026-05-15  
 > **목적**: Verification 기준 문서 — "구현이 명세를 충족하는가?"
 
 ---
@@ -22,6 +22,8 @@
 | v1.7 | 2026-05-13 | 7절 TS-GEMINI-01 추가 — Gemini AI 포스트잇 내용 검열 연동 | milk-stone |
 | v1.8 | 2026-05-13 | 3.8절 canvas_postit 스키마에 moderation_status 컬럼 추가 | milk-stone |
 | v1.9 | 2026-05-14 | 3.9절 matching_participant 유니크 제약 변경 — `(instagram_id, festival_day)` 복합 → `instagram_id` 단독 + `phone_lookup_hash` 단독 글로벌 유니크 | - |
+| v1.10 | 2026-05-15 | 1절 기술 스택 stale 정정(JWT→세션, STOMP 제거 명시, 알리고→솔라피, AWS S3→로컬 디스크 + 볼륨). 7절 Gemini executor 스펙을 코드 값(core 4/max 8/queue 100)으로 정정. 8절 자동 SKIP 5분→10분. 9절 .env.example 을 코드 기준으로 재정렬. TS-S3-01 → TS-STORAGE-01. v1.9 단독 글로벌 유니크 → v1.10 일별 복합 유니크로 복원 명시(코드 일치). | lsmin3388 |
+| v1.11 | 2026-05-15 | 7절 AES key 회전 절차 단락 신설. local docker-compose.yml dev-only 디폴트 제거 메모. | lsmin3388 |
 
 ---
 
@@ -35,11 +37,10 @@
 | ORM | Spring Data JPA + Hibernate 6 | - |
 | DB | MySQL | 8.0+ |
 | Cache | Redis (Lettuce) | 7.0+ |
-| WebSocket | Spring WebSocket + STOMP | - |
-| 인증 | Spring Security + JWT | - |
+| 인증 | Spring Security + 세션(HttpSession) | - |
 | API 문서 | SpringDoc OpenAPI (Swagger UI) | 2.x |
-| 파일 저장 | AWS S3 (또는 호환 스토리지) | - |
-| SMS | 외부 SMS API (알리고 등) | - |
+| 파일 저장 | 로컬 디스크 + 볼륨 마운트 (단일 인스턴스 전제, S3 마이그레이션 future) | - |
+| SMS | Solapi 알림톡 API | - |
 | 배포 | Docker + GitHub Actions | - |
 | 모니터링 | Spring Actuator + Slack Webhook | - |
 
@@ -264,7 +265,7 @@ CREATE TABLE canvas_board_question (
     created_at                DATETIME NOT NULL,
     updated_at                DATETIME NOT NULL
 );
--- board_variant: 보드 디자인 식별자 (1~5, 문항별 고유 디자인)
+-- board_variant: 보드 디자인 식별자 (1~6, 문항별 고유 디자인)
 -- 서버 시작 시 5개 고정값으로 시드 생성 (어드민 수정 불가)
 
 CREATE TABLE canvas_board (
@@ -424,15 +425,28 @@ SessionAuthFilter (HttpSession 확인)
 - 엔드포인트: `POST https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent`
 - 판정 결과에 따라 상태 전환: `APPROVE` → `APPROVED`, `REJECT` → `REJECTED`. API 오류 시 `APPROVED`로 처리 (fail-open)
 - 설정 키: `gemini.api-key`, `gemini.model` (기본 `gemini-2.0-flash`), `gemini.moderation-prompt`
-- 스레드풀: core 2 / max 4 / queue 200 (`geminiExecutor`)
+- 스레드풀: core 4 / max 8 / queue 100 (`geminiExecutor`). RejectedExecutionHandler: AbortPolicy → CallerRunsPolicy (Phase 2)에서 정렬 예정
 
-### TS-S3-01: 파일 업로드
+### TS-STORAGE-01: 파일 업로드 (로컬 디스크 + 볼륨)
 
-- 이미지 업로드 경로: `{domain}/{yyyy-MM-dd}/{uuid}.{ext}`
-- 허용 확장자: jpg, png, webp
-- 최대 파일 크기: 10MB
-- 업로드 후 CDN URL 반환
-- 피드에 연결되지 않은 임시 파일: 24시간 후 정리
+- 이미지 저장 경로: `${UPLOAD_BASE_DIR}/images/{yyyy-MM-dd}/{uuid}.{ext}` (현재는 `images/{uuid}.{ext}` 로 단순화되어 있고, 향후 일자별 폴더링 도입)
+- 허용 확장자: jpg, png, webp, gif
+- 최대 파일 크기: 10MB (`spring.servlet.multipart.max-file-size`)
+- 업로드 후 `${PUBLIC_BASE_URL}/uploads/images/...` URL 반환
+- 단일 인스턴스 전제 (수평 확장 시 EFS/NFS 공유 볼륨 또는 S3 마이그레이션 필요)
+- 멀티파트 파일 헤더의 Content-Type 외에 magic byte 검증으로 가짜 이미지 차단
+- 임시 파일 정리(BR-PHOTO-03) 24h cleanup 은 별도 스케줄러로 미구현 — 운영 중 디스크 사용량 모니터링 필요
+
+### TS-CRYPTO-01: AES/HMAC 키 회전 절차
+
+`PHONE_ENCRYPTION_KEY`(AES/GCM) 와 `PHONE_LOOKUP_HASH_KEY`(HmacSHA256) 의 회전 절차.
+
+- **상시 점검**: 두 키가 prod `.env` 에 32B 이상 랜덤 문자열로 주입되어 있는지 확인. 로컬 docker-compose.yml 의 dev-only 디폴트는 prod 에서 사용 금지.
+- **노출 의심 시**:
+  1. 신규 키 생성 (32B 이상). 운영자가 직접 `.env` 업데이트.
+  2. `phone_lookup_hash` 가 바뀌므로 기존 매칭/대기 테이블의 lookup 일치 실패 → 운영 기간 중에는 사용자 영향 큼. 가능하면 축제 종료 후 회전.
+  3. `phone_encrypted` 평문 복호화 후 신규 키로 재암호화 — 별도 마이그레이션 스크립트 필요. 현재 미작성, 위급 시 수동.
+- **로그**: 회전 시점은 운영 로그/노트에만 기록 (코드 변경 불필요).
 
 ---
 
@@ -455,7 +469,7 @@ SessionAuthFilter (HttpSession 확인)
 
 ### 대기열 자동 SKIP 처리
 
-- 호출(CALLED) 후 5분 경과 시 자동으로 SKIPPED 상태 전환
+- 호출(CALLED) 후 10분 경과 시 자동으로 SKIPPED 상태 전환
 - 구현 방식: 스케줄러 주기 실행 또는 관리자 수동 처리
 
 ---
@@ -466,36 +480,49 @@ SessionAuthFilter (HttpSession 확인)
 
 ```
 # Database
-DB_URL=jdbc:mysql://localhost:3306/knu_festival
+DB_URL=
 DB_USERNAME=
 DB_PASSWORD=
 DDL_AUTO=update
+JPA_SHOW_SQL=false
 
-# JWT
-JWT_SECRET=
-JWT_ACCESS_TOKEN_EXPIRATION=3600000
-JWT_REFRESH_TOKEN_EXPIRATION=604800000
-
-# AWS S3
-S3_BUCKET=
-AWS_REGION=ap-northeast-2
-AWS_ACCESS_KEY=
-AWS_SECRET_KEY=
-
-# CDN
-CDN_BASE_URL=
-
-# SMS
-SMS_API_KEY=
-SMS_SENDER_NUMBER=
+# Server
+SERVER_PORT=8080
 
 # Redis
 REDIS_HOST=localhost
 REDIS_PORT=6379
 
-# CORS
+# CORS (쉼표 구분, 와일드카드 금지)
 CORS_ALLOWED_ORIGINS=http://localhost:3000
+
+# 세션 쿠키
+SESSION_COOKIE_SAME_SITE=lax
+SESSION_COOKIE_SECURE=false
+
+# Admin 마스터 비밀번호 (필수)
+ADMIN_MASTER_PASSWORD=
+
+# 전화번호 암호화 (필수, 32B 이상 권장)
+PHONE_ENCRYPTION_KEY=
+PHONE_LOOKUP_HASH_KEY=
+
+# Solapi SMS
+SOLAPI_API_KEY=
+SOLAPI_API_SECRET=
+SOLAPI_SENDER_NUMBER=
+
+# Gemini AI
+GEMINI_API_KEY=
+GEMINI_MODEL=gemini-2.0-flash
+GEMINI_MODERATION_PROMPT=
+
+# 업로드 (로컬 디스크)
+UPLOAD_BASE_DIR=./uploads
+PUBLIC_BASE_URL=http://localhost:8080
 
 # Profile
 SPRING_PROFILES_ACTIVE=local
 ```
+
+> **참고 (v1.11~)**: `docker-compose.yml` 의 `PHONE_ENCRYPTION_KEY` / `PHONE_LOOKUP_HASH_KEY` / `ADMIN_MASTER_PASSWORD` 디폴트는 v1.11 부터 제거됨. `.env` 또는 컨테이너 환경 변수로 강제 주입 필요.

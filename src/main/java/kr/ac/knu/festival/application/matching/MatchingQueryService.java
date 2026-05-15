@@ -98,6 +98,15 @@ public class MatchingQueryService {
         if (day == null) {
             return MatchingApplicantsCountResponse.empty();
         }
+        // 캐시 hit 시 Redis 의 malePending/femalePending 을 그대로 반환. miss 면 DB 조회.
+        Map<Object, Object> cachedCounts = matchingRealtimeCache.getParticipantCounts();
+        if (!cachedCounts.isEmpty()
+                && cachedCounts.containsKey("malePending")
+                && cachedCounts.containsKey("femalePending")) {
+            long male = longValueOf(cachedCounts, "malePending");
+            long female = longValueOf(cachedCounts, "femalePending");
+            return new MatchingApplicantsCountResponse(day, male, female, male + female);
+        }
         long male = matchingParticipantRepository.countByFestivalDayAndStatusAndGender(
                 day, MatchingParticipantStatus.PENDING, MatchingGender.MALE);
         long female = matchingParticipantRepository.countByFestivalDayAndStatusAndGender(

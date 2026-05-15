@@ -26,6 +26,8 @@ public class AesPhoneNumberEncryptor implements PhoneNumberEncryptor {
 
     private final String secretKey;
     private SecretKeySpec keySpec;
+    // SecureRandom 은 thread-safe 하므로 매 encrypt 마다 새로 생성하지 않고 재사용한다.
+    private final SecureRandom secureRandom = new SecureRandom();
 
     public AesPhoneNumberEncryptor(@Value("${phone.encryption-key:${PHONE_ENCRYPTION_KEY:}}") String secretKey) {
         this.secretKey = secretKey;
@@ -52,7 +54,7 @@ public class AesPhoneNumberEncryptor implements PhoneNumberEncryptor {
         }
         try {
             byte[] iv = new byte[IV_LENGTH_BYTES];
-            new SecureRandom().nextBytes(iv);
+            secureRandom.nextBytes(iv);
 
             Cipher cipher = Cipher.getInstance(TRANSFORMATION);
             cipher.init(Cipher.ENCRYPT_MODE, keySpec, new GCMParameterSpec(GCM_TAG_LENGTH_BITS, iv));
