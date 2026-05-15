@@ -16,14 +16,19 @@ public class GeminiModerationClient {
     private static final String BASE_URL = "https://generativelanguage.googleapis.com";
     private static final String PATH = "/v1beta/models/{model}:generateContent";
 
+    /** connect 5s — TCP/TLS 연결까지 허용 시간. */
+    private static final int CONNECT_TIMEOUT_MS = 5_000;
+    /** read 10s — Gemini 응답 수신까지 허용 시간. */
+    private static final int READ_TIMEOUT_MS = 10_000;
+
     private final GeminiProperties properties;
     private final RestClient restClient;
 
     public GeminiModerationClient(GeminiProperties properties, RestClient.Builder restClientBuilder) {
         this.properties = properties;
         SimpleClientHttpRequestFactory requestFactory = new SimpleClientHttpRequestFactory();
-        requestFactory.setConnectTimeout(3_000);
-        requestFactory.setReadTimeout(5_000);
+        requestFactory.setConnectTimeout(CONNECT_TIMEOUT_MS);
+        requestFactory.setReadTimeout(READ_TIMEOUT_MS);
         this.restClient = restClientBuilder
                 .baseUrl(BASE_URL)
                 .requestFactory(requestFactory)
@@ -31,7 +36,13 @@ public class GeminiModerationClient {
     }
 
     /**
-     * @return true = 적절 (게시 유지), false = 부적절 (삭제)
+     * Gemini 검열 결과 판정.
+     *
+     * <p>응답 텍스트가 trim 후 대소문자 무시 "REJECT"와 완전 일치할 때만 부적절(false)로 본다.
+     * "PROJECT", "REJECTED", "REJECTION" 등 부분 일치는 모두 적절(true)로 처리한다.
+     * 응답 구조 변형/네트워크 오류/NPE/IOOBE 등 모든 예외는 fail-open(true)으로 흡수한다.
+     *
+     * @return true = 적절(게시 유지), false = 부적절(거부)
      */
     public boolean isAppropriate(String message) {
         if (!StringUtils.hasText(properties.apiKey())) {
@@ -53,22 +64,54 @@ public class GeminiModerationClient {
                     .retrieve()
                     .body(GeminiResponse.class);
 
-            if (response == null
-                    || response.candidates() == null
-                    || response.candidates().isEmpty()) {
-                log.warn("Gemini 응답이 비어있음 — 검열 통과 처리");
+            String text = extractText(response);
+            if (text == null) {
+                log.warn("[gemini-fail-open] reason=empty-or-null-response");
                 return true;
             }
 
-            String text = response.candidates().getFirst()
-                    .content().parts().getFirst().text()
-                    .trim().toUpperCase();
-            log.debug("Gemini 검열 결과: {}", text);
-            return !text.contains("REJECT");
+            String normalized = text.trim();
+            log.debug("Gemini 검열 결과: {}", normalized);
+            // 정확히 "REJECT" (대소문자 무시) 일 때만 거부. 부분 일치 차단.
+            return !normalized.equalsIgnoreCase("REJECT");
 
         } catch (Exception e) {
-            log.warn("Gemini API 호출 실패 — 검열 통과 처리: {}", e.getMessage());
+            log.warn("[gemini-fail-open] reason={} message={}", e.getClass().getSimpleName(), e.getMessage());
             return true;
+        }
+    }
+
+    /**
+     * Gemini 응답 트리에서 첫 번째 텍스트를 안전하게 추출.
+     * 응답 스키마 변경/누락 대비 NPE·IndexOutOfBoundsException 흡수.
+     *
+     * @return 텍스트 또는 null
+     */
+    private String extractText(GeminiResponse response) {
+        try {
+            if (response == null) {
+                return null;
+            }
+            List<Candidate> candidates = response.candidates();
+            if (candidates == null || candidates.isEmpty()) {
+                return null;
+            }
+            Candidate first = candidates.get(0);
+            if (first == null || first.content() == null) {
+                return null;
+            }
+            List<Part> parts = first.content().parts();
+            if (parts == null || parts.isEmpty()) {
+                return null;
+            }
+            Part part = parts.get(0);
+            if (part == null) {
+                return null;
+            }
+            return part.text();
+        } catch (NullPointerException | IndexOutOfBoundsException e) {
+            log.warn("[gemini-fail-open] reason=schema-mismatch detail={}", e.getMessage());
+            return null;
         }
     }
 

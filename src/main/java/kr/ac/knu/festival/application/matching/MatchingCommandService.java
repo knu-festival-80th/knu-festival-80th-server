@@ -21,7 +21,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.util.EnumMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 
 @Service
@@ -90,7 +92,9 @@ public class MatchingCommandService {
         MatchingParticipant participant = matchingParticipantRepository.findById(participantId)
                 .orElseThrow(() -> new BusinessException(BusinessErrorCode.RESOURCE_NOT_FOUND));
         LocalDate day = participant.getFestivalDay();
+        String instagramId = participant.getInstagramId();
         matchingParticipantRepository.delete(participant);
+        matchingRealtimeCache.evictParticipantResult(day, instagramId);
         return refreshRealtimeStatus(getOrCreateState(), day);
     }
 
@@ -98,6 +102,8 @@ public class MatchingCommandService {
         MatchingParticipant participant = matchingParticipantRepository.findById(participantId)
                 .orElseThrow(() -> new BusinessException(BusinessErrorCode.RESOURCE_NOT_FOUND));
         participant.resetToPending();
+        // PENDING 으로 되돌릴 때는 이전에 캐시된 MATCHED/UNMATCHED 결과를 비운 뒤 새 PENDING 상태로 덮어쓴다.
+        matchingRealtimeCache.evictParticipantResult(participant.getFestivalDay(), participant.getInstagramId());
         matchingRealtimeCache.cacheParticipantResult(participant);
         return refreshRealtimeStatus(getOrCreateState(), participant.getFestivalDay());
     }
@@ -145,11 +151,13 @@ public class MatchingCommandService {
     }
 
     private MatchingStatusResponse refreshRealtimeStatus(MatchingServiceState state, LocalDate day) {
-        long pending = day == null ? 0 : matchingParticipantRepository.countByFestivalDayAndStatus(day, MatchingParticipantStatus.PENDING);
-        long matched = day == null ? 0 : matchingParticipantRepository.countByFestivalDayAndStatus(day, MatchingParticipantStatus.MATCHED);
-        long unmatched = day == null ? 0 : matchingParticipantRepository.countByFestivalDayAndStatus(day, MatchingParticipantStatus.UNMATCHED);
-        long malePending = day == null ? 0 : matchingParticipantRepository.countByFestivalDayAndStatusAndGender(day, MatchingParticipantStatus.PENDING, MatchingGender.MALE);
-        long femalePending = day == null ? 0 : matchingParticipantRepository.countByFestivalDayAndStatusAndGender(day, MatchingParticipantStatus.PENDING, MatchingGender.FEMALE);
+        // (status, gender) → count 를 단일 GROUP BY 쿼리로 한 번에 조회한다.
+        Map<MatchingParticipantStatus, Map<MatchingGender, Long>> counts = aggregateCounts(day);
+        long pending = totalForStatus(counts, MatchingParticipantStatus.PENDING);
+        long matched = totalForStatus(counts, MatchingParticipantStatus.MATCHED);
+        long unmatched = totalForStatus(counts, MatchingParticipantStatus.UNMATCHED);
+        long malePending = countFor(counts, MatchingParticipantStatus.PENDING, MatchingGender.MALE);
+        long femalePending = countFor(counts, MatchingParticipantStatus.PENDING, MatchingGender.FEMALE);
 
         MatchingStatusResponse response = MatchingStatusResponse.of(
                 state,
@@ -166,5 +174,35 @@ public class MatchingCommandService {
         );
         matchingRealtimeCache.cacheStatus(state, matchingScheduleProperties, pending, matched, unmatched, malePending, femalePending);
         return response;
+    }
+
+    private Map<MatchingParticipantStatus, Map<MatchingGender, Long>> aggregateCounts(LocalDate day) {
+        Map<MatchingParticipantStatus, Map<MatchingGender, Long>> counts = new EnumMap<>(MatchingParticipantStatus.class);
+        if (day == null) {
+            return counts;
+        }
+        for (Object[] row : matchingParticipantRepository.countByDayGroupByStatusGender(day)) {
+            MatchingParticipantStatus status = (MatchingParticipantStatus) row[0];
+            MatchingGender gender = (MatchingGender) row[1];
+            long count = ((Number) row[2]).longValue();
+            counts.computeIfAbsent(status, s -> new EnumMap<>(MatchingGender.class)).put(gender, count);
+        }
+        return counts;
+    }
+
+    private long totalForStatus(Map<MatchingParticipantStatus, Map<MatchingGender, Long>> counts, MatchingParticipantStatus status) {
+        Map<MatchingGender, Long> byGender = counts.get(status);
+        if (byGender == null) {
+            return 0L;
+        }
+        return byGender.values().stream().mapToLong(Long::longValue).sum();
+    }
+
+    private long countFor(Map<MatchingParticipantStatus, Map<MatchingGender, Long>> counts, MatchingParticipantStatus status, MatchingGender gender) {
+        Map<MatchingGender, Long> byGender = counts.get(status);
+        if (byGender == null) {
+            return 0L;
+        }
+        return byGender.getOrDefault(gender, 0L);
     }
 }

@@ -1,8 +1,8 @@
 # 기능 명세서 (FS: Functional Specification)
 
 > **프로젝트**: 2026 경북대학교 80주년 대동제 웹앱 서비스 (백엔드)  
-> **버전**: v1.16
-> **최종 수정일**: 2026-05-14  
+> **버전**: v1.17
+> **최종 수정일**: 2026-05-15  
 > **목적**: 백엔드가 제공해야 할 API와 비즈니스 로직을 기능 단위로 정의한다.
 
 ---
@@ -29,6 +29,7 @@
 | v1.14 | 2026-05-14 | 3.9절 인스타팅 관리자 API 확장 — 신청자 목록/삭제/리셋 추가, 매칭 잡 경로 `/admin/matching-jobs` → `/admin/matchings/jobs(/{day})`로 통일 | - |
 | v1.15 | 2026-05-14 | 3.9절 인스타팅 응답에서 `messageKo`/`messageEn` 제거 — 프론트가 사용하지 않으므로 entity·request·status/result/unmatched response·service에서 일괄 삭제. status entity의 `message_ko`/`message_en` 컬럼도 제거 | - |
 | v1.16 | 2026-05-14 | 3.9절 인스타팅 중복 방지 강화 — instagram_id·phone_lookup_hash 각각 글로벌 유니크 제약 추가, 에러코드 M004 신설 | - |
+| v1.17 | 2026-05-15 | BR-AUTH-02 경로 표기·인증 엔드포인트 표기를 /admin/auth → /auth 로 정정. BR-RP-03 문항 시드 수 5→6, boardVariant 1~5→1~6 정정. | lsmin3388 |
 
 ---
 
@@ -277,8 +278,8 @@
 
 #### FS-USR-03: 포스트잇 보드
 
-> 방문자가 고정 문항 5개 중 하나를 선택하고, 해당 문항의 보드를 탐색하여 포스트잇을 붙이는 참여형 방명록 기능이다.  
-> 인증 불필요. 문항당 보드 20개가 서버 시작 시 사전 생성되며(총 100개), 사용자는 원하는 보드를 골라 포스트잇을 작성한다.
+> 방문자가 고정 문항 6개 중 하나를 선택하고, 해당 문항의 보드를 탐색하여 포스트잇을 붙이는 참여형 방명록 기능이다.  
+> 인증 불필요. 문항당 보드 20개가 서버 시작 시 사전 생성되며(총 120개), 사용자는 원하는 보드를 골라 포스트잇을 작성한다.
 
 **API 목록**
 
@@ -324,7 +325,7 @@
 **비즈니스 규칙**
 - BR-RP-01: 포스트잇 생성 시 인증 불필요 (공개 API)
 - BR-RP-02: 메시지 최대 60자, 초과 시 400 반환
-- BR-RP-03: 문항 5개는 서버 시작 시 고정값으로 시드 생성 (어드민 수정 불가)
+- BR-RP-03: 문항 6개는 서버 시작 시 고정값으로 시드 생성 (어드민 수정 불가). `boardVariant` 값은 1~6 (문항별 고유 디자인 식별자)
 - BR-RP-04: `colorId`는 1~6 (1:red, 2:yellow, 3:green, 4:blue, 5:purple, 6:pink)
 - BR-RP-05: 좌표 `x`, `y`는 보드 기준 0~100 상대좌표 (스티커 중심점). 보드 논리 크기 852×852px
 - BR-RP-06: 서버는 보드 경계, 중앙 프레임 금지 영역(320×320 + 26px 패딩), 기존 포스트잇 충돌(AABB, collisionScale=0.4)을 검증하고 위반 시 저장 거부
@@ -485,8 +486,8 @@
 
 | Method | Endpoint | 설명 | 인증 |
 |--------|----------|------|------|
-| POST | `/admin/auth/login` | 관리자 로그인 (boothId + password 또는 masterPassword) | 불필요 |
-| POST | `/admin/auth/logout` | 로그아웃 (세션 무효화) | 관리자 |
+| POST | `/auth/login` | 관리자 로그인 (boothId + password 또는 masterPassword) | 불필요 |
+| POST | `/auth/logout` | 로그아웃 (세션 무효화) | 관리자 |
 | PATCH | `/admin/booths/{booth-id}/password` | 부스 비밀번호 변경 | 슈퍼 관리자 |
 
 **비즈니스 규칙**
@@ -497,6 +498,7 @@
 - BR-AUTH-05: BOOTH_ADMIN은 자기 부스의 메뉴·대기열만 관리 가능 (소유권 검증)
 - BR-AUTH-06: 로그인 실패 시 Rate Limiting 적용 (brute force 방지, 후속 과제)
 - BR-AUTH-07: 로그아웃 시 세션 무효화
+- BR-AUTH-08: `/auth/login`·`/auth/logout` 은 인증 미적용 공개 엔드포인트(예외). 로그인 후 세션이 발급되며, `/admin/**` 진입 시부터 BR-AUTH-02 가 적용된다
 
 ---
 

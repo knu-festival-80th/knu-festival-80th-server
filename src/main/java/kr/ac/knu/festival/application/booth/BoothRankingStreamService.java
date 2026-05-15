@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.io.IOException;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -44,8 +45,13 @@ public class BoothRankingStreamService {
         if (!rankingDirty.getAndSet(false)) {
             return;
         }
-        for (BoothRankingSort sort : BoothRankingSort.values()) {
-            broadcast(sort);
+        // 구독자가 있는 sort 만 snapshot 을 만들어 전송한다.
+        for (Map.Entry<BoothRankingSort, ConcurrentHashMap<String, SseEmitter>> entry : emitters.entrySet()) {
+            ConcurrentHashMap<String, SseEmitter> sortEmitters = entry.getValue();
+            if (sortEmitters == null || sortEmitters.isEmpty()) {
+                continue;
+            }
+            broadcast(entry.getKey());
         }
     }
 

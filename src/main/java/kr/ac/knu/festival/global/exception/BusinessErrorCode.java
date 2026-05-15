@@ -52,6 +52,18 @@ public enum BusinessErrorCode implements ErrorCode {
     POSTIT_POSITION_CONFLICT(HttpStatus.CONFLICT, "CP008", "해당 위치에 이미 포스트잇이 있습니다."),
     MATCHING_DUPLICATE_REGISTRATION(HttpStatus.CONFLICT, "M003", "이미 매칭 신청이 완료된 인스타그램 ID입니다."),
     MATCHING_DUPLICATE_PHONE(HttpStatus.CONFLICT, "M004", "이미 매칭 신청에 사용된 전화번호입니다."),
+    WAITING_CONCURRENT_REGISTRATION(HttpStatus.CONFLICT, "W009", "동시 등록 요청을 처리할 수 없습니다. 잠시 후 다시 시도해주세요."),
+    DUPLICATE_RESOURCE(HttpStatus.CONFLICT, "C409", "이미 존재하는 리소스입니다."),
+
+    /*
+     * 413 PAYLOAD_TOO_LARGE
+     */
+    PAYLOAD_TOO_LARGE(HttpStatus.PAYLOAD_TOO_LARGE, "C413", "업로드 파일 크기가 허용 한도를 초과했습니다."),
+
+    /*
+     * 429 TOO_MANY_REQUESTS
+     */
+    WAITING_RATE_LIMITED(HttpStatus.TOO_MANY_REQUESTS, "W010", "잠시 후 다시 시도해주세요."),
 
     /*
      * 500 INTERNAL_SERVER_ERROR

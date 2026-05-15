@@ -7,6 +7,7 @@ import kr.ac.knu.festival.domain.waiting.entity.WaitingStatus;
 import kr.ac.knu.festival.domain.waiting.repository.WaitingRepository;
 import kr.ac.knu.festival.global.exception.BusinessErrorCode;
 import kr.ac.knu.festival.global.exception.BusinessException;
+import kr.ac.knu.festival.infra.redis.BoothRankingRedisRepository;
 import kr.ac.knu.festival.infra.security.PhoneLookupHasher;
 import kr.ac.knu.festival.infra.security.PhoneNumberEncryptor;
 import kr.ac.knu.festival.presentation.waiting.dto.response.MyWaitingResponse;
@@ -16,7 +17,13 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -30,11 +37,15 @@ public class WaitingQueryService {
     private final WaitingRepository waitingRepository;
     private final PhoneNumberEncryptor phoneNumberEncryptor;
     private final PhoneLookupHasher phoneLookupHasher;
+    private final BoothRankingRedisRepository boothRankingRedisRepository;
 
     public WaitingStatusResponse getBoothStatus(Long boothId) {
         Booth booth = boothRepository.findById(boothId)
                 .orElseThrow(() -> new BusinessException(BusinessErrorCode.BOOTH_NOT_FOUND));
-        long activeTeams = waitingRepository.countByBoothIdAndStatusIn(boothId, ACTIVE_STATUSES);
+
+        // NFR-PERF-03: ZSET (booth:waiting-count) score 우선 조회, miss/장애 시 DB 폴백.
+        long activeTeams = readWaitingCountFromCache(boothId)
+                .orElseGet(() -> waitingRepository.countByBoothIdAndStatusIn(boothId, ACTIVE_STATUSES));
         int estimatedWaitMinutes = (int) activeTeams * MINUTES_PER_TEAM;
         return WaitingStatusResponse.of(boothId, booth.isWaitingOpen(), activeTeams, estimatedWaitMinutes);
     }
@@ -76,9 +87,42 @@ public class WaitingQueryService {
             throw new BusinessException(BusinessErrorCode.PHONE_VERIFICATION_FAILED);
         }
 
-        return waitings.stream()
-                .map(w -> MyWaitingResponse.of(w, countAheadOf(w), countAheadOf(w) * MINUTES_PER_TEAM))
-                .toList();
+        // N+1 제거: 부스별 활성 대기열을 한 번에 fetch 한 뒤 메모리에서 ahead count 계산.
+        Set<Long> boothIds = new LinkedHashSet<>();
+        for (Waiting w : waitings) {
+            boothIds.add(w.getBooth().getId());
+        }
+        Map<Long, List<Long>> activeIdsByBooth = new HashMap<>(boothIds.size());
+        for (Long boothId : boothIds) {
+            List<Waiting> active = waitingRepository.findAllByBoothIdAndStatusInOrderBySortOrderAsc(
+                    boothId, ACTIVE_STATUSES);
+            List<Long> ids = new ArrayList<>(active.size());
+            for (Waiting w : active) {
+                ids.add(w.getId());
+            }
+            activeIdsByBooth.put(boothId, ids);
+        }
+
+        List<MyWaitingResponse> result = new ArrayList<>(waitings.size());
+        for (Waiting w : waitings) {
+            int ahead = computeAheadCount(w, activeIdsByBooth.get(w.getBooth().getId()));
+            result.add(MyWaitingResponse.of(w, ahead, ahead * MINUTES_PER_TEAM));
+        }
+        return result;
+    }
+
+    private int computeAheadCount(Waiting target, List<Long> orderedActiveIds) {
+        if (target.getStatus() != WaitingStatus.WAITING || orderedActiveIds == null) {
+            return 0;
+        }
+        int count = 0;
+        for (Long id : orderedActiveIds) {
+            if (id.equals(target.getId())) {
+                return count;
+            }
+            count++;
+        }
+        return count;
     }
 
     private int countAheadOf(Waiting target) {
@@ -95,6 +139,23 @@ public class WaitingQueryService {
             count++;
         }
         return count;
+    }
+
+    private java.util.Optional<Long> readWaitingCountFromCache(Long boothId) {
+        try {
+            Map<Long, Integer> counts = boothRankingRedisRepository.getWaitingCounts(Collections.singletonList(boothId));
+            Integer cached = counts.get(boothId);
+            if (cached == null) {
+                return java.util.Optional.empty();
+            }
+            // 음수 score 는 일관성이 깨진 상태라 캐시 미스로 간주하고 DB 로 폴백.
+            if (cached < 0) {
+                return java.util.Optional.empty();
+            }
+            return java.util.Optional.of((long) cached);
+        } catch (Exception ignored) {
+            return java.util.Optional.empty();
+        }
     }
 
     private String maskPhone(String encryptedPhone) {
