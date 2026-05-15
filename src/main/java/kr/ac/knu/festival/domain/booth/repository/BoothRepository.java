@@ -18,7 +18,11 @@ public interface BoothRepository extends JpaRepository<Booth, Long> {
 
     /**
      * 지도 응답 전용 경량 projection. id/name/xRatio/yRatio 만 SELECT 한다.
+     * Lombok @Getter 가 만든 getXRatio() 가 JavaBeans 규약상 "XRatio" property 로 해석되어
+     * 자동 PartTree projection 매핑이 깨지므로, JPQL constructor expression 으로 record 를 직접 생성한다.
      */
+    @Query("SELECT new kr.ac.knu.festival.presentation.booth.dto.response.BoothMapProjection(" +
+            "b.id, b.name, b.xRatio, b.yRatio) FROM Booth b")
     List<BoothMapProjection> findAllProjectedBy();
 
     /**

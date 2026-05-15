@@ -49,7 +49,7 @@ public class BoothQueryService {
     }
 
     private BoothMapResponse toBoothMapResponse(BoothMapProjection p) {
-        return new BoothMapResponse(p.getId(), p.getName(), p.getXRatio(), p.getYRatio());
+        return new BoothMapResponse(p.id(), p.name(), p.xRatio(), p.yRatio());
     }
 
 }
