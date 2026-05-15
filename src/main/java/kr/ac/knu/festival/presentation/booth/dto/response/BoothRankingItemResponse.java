@@ -4,6 +4,7 @@ public record BoothRankingItemResponse(
         Long boothId,
         int rank,
         int likeCount,
+        int totalWaitingCount,
         long currentWaitingTeams
 ) {
 }

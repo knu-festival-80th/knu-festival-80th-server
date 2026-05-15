@@ -11,6 +11,7 @@ public record BoothListResponse(
         BigDecimal xRatio,
         BigDecimal yRatio,
         int likeCount,
+        int totalWaitingCount,
         String menuBoardImageUrl,
         boolean waitingOpen,
         long currentWaitingTeams,
@@ -18,7 +19,7 @@ public record BoothListResponse(
         String location
 ) {
     public static BoothListResponse fromEntity(Booth booth, long currentWaitingTeams, ImageUrlResolver urls) {
-        return fromEntity(booth, currentWaitingTeams, booth.getLikeCount(), urls);
+        return fromEntity(booth, currentWaitingTeams, booth.getLikeCount(), booth.getTotalWaitingCount(), urls);
     }
 
     public static BoothListResponse fromEntity(
@@ -27,12 +28,23 @@ public record BoothListResponse(
             int likeCount,
             ImageUrlResolver urls
     ) {
+        return fromEntity(booth, currentWaitingTeams, likeCount, booth.getTotalWaitingCount(), urls);
+    }
+
+    public static BoothListResponse fromEntity(
+            Booth booth,
+            long currentWaitingTeams,
+            int likeCount,
+            int totalWaitingCount,
+            ImageUrlResolver urls
+    ) {
         return new BoothListResponse(
                 booth.getId(),
                 booth.getName(),
                 booth.getXRatio(),
                 booth.getYRatio(),
                 likeCount,
+                totalWaitingCount,
                 urls.toPublicUrl(booth.getMenuBoardImageUrl()),
                 booth.isWaitingOpen(),
                 currentWaitingTeams,

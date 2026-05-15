@@ -39,7 +39,8 @@ public class BoothQueryService {
                 .orElseThrow(() -> new BusinessException(BusinessErrorCode.BOOTH_NOT_FOUND));
         long activeWaiting = waitingRepository.countByBoothIdAndStatusIn(boothId, ACTIVE_STATUSES);
         int likeCount = boothRankingRedisRepository.getLikeCount(boothId, booth.getLikeCount());
-        return BoothDetailResponse.of(booth, activeWaiting, likeCount, imageUrlResolver);
+        int totalWaitingCount = boothRankingRedisRepository.getTotalWaitingCount(boothId, booth.getTotalWaitingCount());
+        return BoothDetailResponse.of(booth, activeWaiting, likeCount, totalWaitingCount, imageUrlResolver);
     }
 
     public List<BoothMapResponse> getBoothsForMap() {
