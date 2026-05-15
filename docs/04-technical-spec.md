@@ -311,14 +311,14 @@ CREATE TABLE matching_participant (
     status                  VARCHAR(20) NOT NULL DEFAULT 'PENDING',
     created_at              DATETIME NOT NULL,
     updated_at              DATETIME NOT NULL,
-    UNIQUE KEY uk_matching_instagram_id (instagram_id),
-    UNIQUE KEY uk_matching_phone_lookup_hash (phone_lookup_hash),
+    UNIQUE KEY uk_matching_instagram_day (instagram_id, festival_day),
+    UNIQUE KEY uk_matching_phone_day (phone_lookup_hash, festival_day),
     INDEX idx_matching_day_status_gender (festival_day, status, gender)
 );
 -- status: PENDING, MATCHED, UNMATCHED
 -- phone_lookup_hash: HmacSHA256(전화번호) — 결과 조회 시 일치 검증용
 -- phone_encrypted: AES/GCM 암호문 — 운영자 안내/표시용
--- instagram_id, phone_lookup_hash 각각 글로벌 유니크 — 동일 ID 또는 동일 전화번호로 재신청 불가
+-- (instagram_id, festival_day), (phone_lookup_hash, festival_day) 일별 복합 유니크 — 같은 날 중복 방지, 다음 날 재참여 가능
 ```
 
 ### 3.10 feed (피드)

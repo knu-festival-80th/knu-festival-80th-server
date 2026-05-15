@@ -28,12 +28,12 @@ import java.time.LocalDate;
         name = "matching_participant",
         uniqueConstraints = {
                 @UniqueConstraint(
-                        name = "uk_matching_instagram_id",
-                        columnNames = {"instagram_id"}
+                        name = "uk_matching_instagram_day",
+                        columnNames = {"instagram_id", "festival_day"}
                 ),
                 @UniqueConstraint(
-                        name = "uk_matching_phone_lookup_hash",
-                        columnNames = {"phone_lookup_hash"}
+                        name = "uk_matching_phone_day",
+                        columnNames = {"phone_lookup_hash", "festival_day"}
                 )
         },
         indexes = {
