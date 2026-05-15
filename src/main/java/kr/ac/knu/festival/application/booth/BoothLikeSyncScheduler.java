@@ -22,10 +22,16 @@ public class BoothLikeSyncScheduler {
     @Transactional
     public void syncLikeCounts() {
         Map<Long, Integer> dirty = boothRankingRedisRepository.drainDirtyLikeCounts();
-        if (dirty.isEmpty()) {
-            return;
+        if (!dirty.isEmpty()) {
+            dirty.forEach(boothRepository::updateLikeCount);
+            log.debug("Synced booth like counts from Redis dirty set. boothCount={}", dirty.size());
         }
-        dirty.forEach(boothRepository::updateLikeCount);
-        log.debug("Synced booth like counts from Redis dirty set. boothCount={}", dirty.size());
+
+        Map<Long, Integer> totalWaitingDirty = boothRankingRedisRepository.drainDirtyTotalWaitingCounts();
+        if (!totalWaitingDirty.isEmpty()) {
+            totalWaitingDirty.forEach(boothRepository::updateTotalWaitingCount);
+            log.debug("Synced booth total waiting counts from Redis dirty set. boothCount={}",
+                    totalWaitingDirty.size());
+        }
     }
 }
