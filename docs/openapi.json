@@ -2306,6 +2306,9 @@
                     "resultOpenAt": {
                         "type": "string"
                     },
+                    "registrationOpenAt": {
+                        "type": "string"
+                    },
                     "festivalDays": {
                         "type": "array",
                         "items": {
@@ -2372,6 +2375,7 @@
                     "maxNoteCount": {
                         "type": "integer",
                         "format": "int32",
+                        "maximum": 500,
                         "minimum": 1
                     }
                 },
