@@ -24,8 +24,10 @@ public class BoothRankingRedisRepository {
 
     private static final String BOOTH_LIKES_KEY = "booth:likes";
     private static final String BOOTH_WAITING_COUNT_KEY = "booth:waiting-count";
+    private static final String BOOTH_TOTAL_WAITING_COUNT_KEY = "booth:total-waiting-count";
     private static final String BOOTH_LIKED_KEY_PREFIX = "booth:liked:";
     private static final String BOOTH_LIKE_DIRTY_KEY = "booth:like:dirty";
+    private static final String BOOTH_TOTAL_WAITING_DIRTY_KEY = "booth:total-waiting:dirty";
 
     // KEYS[1] = liked set, KEYS[2] = likes zset, KEYS[3] = dirty set
     // ARGV[1] = userHash, ARGV[2] = boothId
@@ -103,6 +105,11 @@ public class BoothRankingRedisRepository {
         incrementScore(BOOTH_WAITING_COUNT_KEY, boothId, 1);
     }
 
+    public void incrementTotalWaitingCount(Long boothId) {
+        incrementScore(BOOTH_TOTAL_WAITING_COUNT_KEY, boothId, 1);
+        markTotalWaitingDirty(boothId);
+    }
+
     public void decrementWaitingCount(Long boothId) {
         incrementScore(BOOTH_WAITING_COUNT_KEY, boothId, -1);
         clampScoreAtZero(BOOTH_WAITING_COUNT_KEY, boothId);
@@ -126,6 +133,10 @@ public class BoothRankingRedisRepository {
         replaceScores(BOOTH_WAITING_COUNT_KEY, values);
     }
 
+    public void setTotalWaitingCounts(Map<Long, Integer> totalWaitingCounts) {
+        replaceScores(BOOTH_TOTAL_WAITING_COUNT_KEY, totalWaitingCounts);
+    }
+
     /**
      * 신규 부스 생성 시 ZSET에 0 점수로 등록하기 위한 단일 엔트리 헬퍼.
      */
@@ -137,6 +148,7 @@ public class BoothRankingRedisRepository {
             String member = boothId.toString();
             redisTemplate.opsForZSet().add(BOOTH_LIKES_KEY, member, 0);
             redisTemplate.opsForZSet().add(BOOTH_WAITING_COUNT_KEY, member, 0);
+            redisTemplate.opsForZSet().add(BOOTH_TOTAL_WAITING_COUNT_KEY, member, 0);
         } catch (Exception e) {
             log.warn("Redis registerBooth failed. boothId={}", boothId, e);
         }
@@ -153,8 +165,10 @@ public class BoothRankingRedisRepository {
             String member = boothId.toString();
             redisTemplate.opsForZSet().remove(BOOTH_LIKES_KEY, member);
             redisTemplate.opsForZSet().remove(BOOTH_WAITING_COUNT_KEY, member);
+            redisTemplate.opsForZSet().remove(BOOTH_TOTAL_WAITING_COUNT_KEY, member);
             redisTemplate.delete(likedKey(boothId));
             redisTemplate.opsForSet().remove(BOOTH_LIKE_DIRTY_KEY, member);
+            redisTemplate.opsForSet().remove(BOOTH_TOTAL_WAITING_DIRTY_KEY, member);
         } catch (Exception e) {
             log.warn("Redis evictBooth failed. boothId={}", boothId, e);
         }
@@ -166,6 +180,10 @@ public class BoothRankingRedisRepository {
 
     public Map<Long, Integer> getWaitingCounts(Collection<Long> boothIds) {
         return getScores(BOOTH_WAITING_COUNT_KEY, boothIds);
+    }
+
+    public Map<Long, Integer> getTotalWaitingCounts(Collection<Long> boothIds) {
+        return getScores(BOOTH_TOTAL_WAITING_COUNT_KEY, boothIds);
     }
 
     public Map<Long, Integer> getAllLikeCounts() {
@@ -229,6 +247,32 @@ public class BoothRankingRedisRepository {
         }
     }
 
+    public Map<Long, Integer> drainDirtyTotalWaitingCounts() {
+        try {
+            if (redisTemplate == null) {
+                return Collections.emptyMap();
+            }
+            Set<String> dirty = redisTemplate.opsForSet().members(BOOTH_TOTAL_WAITING_DIRTY_KEY);
+            if (dirty == null || dirty.isEmpty()) {
+                return Collections.emptyMap();
+            }
+            List<Long> boothIds = new ArrayList<>(dirty.size());
+            for (String value : dirty) {
+                try {
+                    boothIds.add(Long.valueOf(value));
+                } catch (NumberFormatException ignored) {
+                    // 잘못된 멤버는 정리 대상이 아니라 그대로 둔다.
+                }
+            }
+            Map<Long, Integer> scores = getScores(BOOTH_TOTAL_WAITING_COUNT_KEY, boothIds);
+            redisTemplate.opsForSet().remove(BOOTH_TOTAL_WAITING_DIRTY_KEY, dirty.toArray());
+            return scores;
+        } catch (Exception e) {
+            log.warn("Redis drainDirtyTotalWaitingCounts failed", e);
+            return Collections.emptyMap();
+        }
+    }
+
     /**
      * fallback 경로(DB 직접 가감)에서 호출. sync 가 옛 Redis 값으로 덮어쓰는 lost-update 를 막기 위해
      * 다음 sync 사이클에서 해당 boothId 를 스킵하도록 dirty 표시에서 제거한다.
@@ -257,6 +301,19 @@ public class BoothRankingRedisRepository {
         }
     }
 
+    public int getTotalWaitingCount(Long boothId, int fallback) {
+        try {
+            if (redisTemplate == null) {
+                return fallback;
+            }
+            Double score = redisTemplate.opsForZSet().score(BOOTH_TOTAL_WAITING_COUNT_KEY, boothId.toString());
+            return score == null ? fallback : score.intValue();
+        } catch (Exception e) {
+            log.warn("Redis getTotalWaitingCount failed. boothId={}", boothId, e);
+            return fallback;
+        }
+    }
+
     private void incrementScore(String key, Long boothId, long delta) {
         try {
             if (redisTemplate == null) {
@@ -265,6 +322,17 @@ public class BoothRankingRedisRepository {
             redisTemplate.opsForZSet().incrementScore(key, boothId.toString(), delta);
         } catch (Exception e) {
             log.warn("Redis incrementScore failed. key={}, boothId={}, delta={}", key, boothId, delta, e);
+        }
+    }
+
+    private void markTotalWaitingDirty(Long boothId) {
+        try {
+            if (redisTemplate == null) {
+                return;
+            }
+            redisTemplate.opsForSet().add(BOOTH_TOTAL_WAITING_DIRTY_KEY, boothId.toString());
+        } catch (Exception e) {
+            log.warn("Redis markTotalWaitingDirty failed. boothId={}", boothId, e);
         }
     }
 

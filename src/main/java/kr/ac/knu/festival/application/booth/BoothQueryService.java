@@ -44,7 +44,8 @@ public class BoothQueryService {
                 .orElseThrow(() -> new BusinessException(BusinessErrorCode.BOOTH_NOT_FOUND));
         long activeWaiting = waitingRepository.countByBoothIdAndStatusIn(boothId, ACTIVE_STATUSES);
         int likeCount = boothRankingRedisRepository.getLikeCount(boothId, booth.getLikeCount());
-        return BoothDetailResponse.of(booth, activeWaiting, likeCount, imageUrlResolver);
+        int totalWaitingCount = boothRankingRedisRepository.getTotalWaitingCount(boothId, booth.getTotalWaitingCount());
+        return BoothDetailResponse.of(booth, activeWaiting, likeCount, totalWaitingCount, imageUrlResolver);
     }
 
     public List<BoothMapResponse> getBoothsForMap() {
@@ -54,8 +55,10 @@ public class BoothQueryService {
     }
 
     private BoothMapResponse toBoothMapResponse(BoothMapProjection p) {
+        String color = p.color() != null ? p.color()
+                : p.type() != null ? p.type().getDefaultColor() : null;
         return new BoothMapResponse(p.id(), p.name(), p.xRatio(), p.yRatio(),
-                p.type() != null ? p.type().name() : null);
+                p.type() != null ? p.type().name() : null, color);
     }
 
 }

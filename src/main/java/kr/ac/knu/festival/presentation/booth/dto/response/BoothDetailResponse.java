@@ -11,19 +11,21 @@ public record BoothDetailResponse(
         BigDecimal xRatio,
         BigDecimal yRatio,
         int likeCount,
+        int totalWaitingCount,
         String menuBoardImageUrl,
         boolean waitingOpen,
         long currentWaitingTeams,
         String department,
         String location,
-        String type
+        String type,
+        String color
 ) {
     public static BoothDetailResponse of(
             Booth booth,
             long currentWaitingTeams,
             ImageUrlResolver urls
     ) {
-        return of(booth, currentWaitingTeams, booth.getLikeCount(), urls);
+        return of(booth, currentWaitingTeams, booth.getLikeCount(), booth.getTotalWaitingCount(), urls);
     }
 
     public static BoothDetailResponse of(
@@ -32,18 +34,30 @@ public record BoothDetailResponse(
             int likeCount,
             ImageUrlResolver urls
     ) {
+        return of(booth, currentWaitingTeams, likeCount, booth.getTotalWaitingCount(), urls);
+    }
+
+    public static BoothDetailResponse of(
+            Booth booth,
+            long currentWaitingTeams,
+            int likeCount,
+            int totalWaitingCount,
+            ImageUrlResolver urls
+    ) {
         return new BoothDetailResponse(
                 booth.getId(),
                 booth.getName(),
                 booth.getXRatio(),
                 booth.getYRatio(),
                 likeCount,
+                totalWaitingCount,
                 urls.toPublicUrl(booth.getMenuBoardImageUrl()),
                 booth.isWaitingOpen(),
                 currentWaitingTeams,
                 booth.getDepartment(),
                 booth.getLocation(),
-                booth.getMapLocationType() != null ? booth.getMapLocationType().name() : null
+                booth.getMapLocationType() != null ? booth.getMapLocationType().name() : null,
+                booth.getMapLocationColor()
         );
     }
 }

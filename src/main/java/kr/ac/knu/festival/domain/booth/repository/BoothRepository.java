@@ -17,7 +17,7 @@ public interface BoothRepository extends JpaRepository<Booth, Long> {
     List<Booth> findAllByOrderByLikeCountDescIdAsc();
 
     @Query("SELECT new kr.ac.knu.festival.presentation.booth.dto.response.BoothMapProjection(" +
-            "b.id, b.name, ml.xRatio, ml.yRatio, ml.type) FROM Booth b LEFT JOIN b.mapLocation ml")
+            "b.id, b.name, ml.xRatio, ml.yRatio, ml.type, ml.color) FROM Booth b LEFT JOIN b.mapLocation ml")
     List<BoothMapProjection> findAllProjectedBy();
 
     /**
@@ -39,4 +39,8 @@ public interface BoothRepository extends JpaRepository<Booth, Long> {
     @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Query("UPDATE Booth b SET b.likeCount = :likeCount WHERE b.id = :id")
     int updateLikeCount(@Param("id") Long id, @Param("likeCount") int likeCount);
+
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Query("UPDATE Booth b SET b.totalWaitingCount = :totalWaitingCount WHERE b.id = :id")
+    int updateTotalWaitingCount(@Param("id") Long id, @Param("totalWaitingCount") int totalWaitingCount);
 }

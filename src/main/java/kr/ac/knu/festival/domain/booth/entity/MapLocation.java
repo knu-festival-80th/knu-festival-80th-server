@@ -40,11 +40,19 @@ public class MapLocation extends BaseTimeEntity {
     @Column(name = "type", nullable = false, length = 10)
     private MapLocationType type;
 
+    @Column(name = "color", length = 20)
+    private String color;
+
+    public String getEffectiveColor() {
+        return color != null ? color : type.getDefaultColor();
+    }
+
     public static MapLocation of(BigDecimal xRatio, BigDecimal yRatio, MapLocationType type) {
         return MapLocation.builder()
                 .xRatio(xRatio)
                 .yRatio(yRatio)
                 .type(type)
+                .color(type.getDefaultColor())
                 .build();
     }
 

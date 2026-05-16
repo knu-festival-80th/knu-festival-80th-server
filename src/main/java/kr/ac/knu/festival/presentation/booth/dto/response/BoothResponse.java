@@ -11,28 +11,41 @@ public record BoothResponse(
         BigDecimal xRatio,
         BigDecimal yRatio,
         int likeCount,
+        int totalWaitingCount,
         String menuBoardImageUrl,
         boolean waitingOpen,
         String department,
         String location,
-        String type
+        String type,
+        String color
 ) {
     public static BoothResponse fromEntity(Booth booth, ImageUrlResolver urls) {
-        return fromEntity(booth, booth.getLikeCount(), urls);
+        return fromEntity(booth, booth.getLikeCount(), booth.getTotalWaitingCount(), urls);
     }
 
     public static BoothResponse fromEntity(Booth booth, int likeCount, ImageUrlResolver urls) {
+        return fromEntity(booth, likeCount, booth.getTotalWaitingCount(), urls);
+    }
+
+    public static BoothResponse fromEntity(
+            Booth booth,
+            int likeCount,
+            int totalWaitingCount,
+            ImageUrlResolver urls
+    ) {
         return new BoothResponse(
                 booth.getId(),
                 booth.getName(),
                 booth.getXRatio(),
                 booth.getYRatio(),
                 likeCount,
+                totalWaitingCount,
                 urls.toPublicUrl(booth.getMenuBoardImageUrl()),
                 booth.isWaitingOpen(),
                 booth.getDepartment(),
                 booth.getLocation(),
-                booth.getMapLocationType() != null ? booth.getMapLocationType().name() : null
+                booth.getMapLocationType() != null ? booth.getMapLocationType().name() : null,
+                booth.getMapLocationColor()
         );
     }
 }

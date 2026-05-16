@@ -9,7 +9,8 @@ public record BoothMapResponse(
         String name,
         BigDecimal xRatio,
         BigDecimal yRatio,
-        String type
+        String type,
+        String color
 ) {
     public static BoothMapResponse fromEntity(Booth booth) {
         return new BoothMapResponse(
@@ -17,7 +18,8 @@ public record BoothMapResponse(
                 booth.getName(),
                 booth.getXRatio(),
                 booth.getYRatio(),
-                booth.getMapLocationType() != null ? booth.getMapLocationType().name() : null
+                booth.getMapLocationType() != null ? booth.getMapLocationType().name() : null,
+                booth.getMapLocationColor()
         );
     }
 }
