@@ -4,13 +4,18 @@ import kr.ac.knu.festival.domain.canvas.entity.CanvasBoard;
 import kr.ac.knu.festival.domain.canvas.entity.CanvasBoardQuestion;
 import kr.ac.knu.festival.domain.canvas.repository.CanvasBoardQuestionRepository;
 import kr.ac.knu.festival.domain.canvas.repository.CanvasBoardRepository;
+import kr.ac.knu.festival.domain.canvas.repository.CanvasPostitRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class CanvasDataInitializer implements CommandLineRunner {
@@ -30,12 +35,43 @@ public class CanvasDataInitializer implements CommandLineRunner {
 
     private final CanvasBoardQuestionRepository questionRepository;
     private final CanvasBoardRepository boardRepository;
+    private final CanvasPostitRepository postitRepository;
 
     @Override
     @Transactional
     public void run(String... args) {
-        if (questionRepository.count() > 0) return;
+        List<CanvasBoardQuestion> existing = questionRepository.findAllByOrderByOrderIndexAsc();
 
+        if (existing.isEmpty()) {
+            seedAll();
+            return;
+        }
+
+        if (matchesSeed(existing)) return;
+
+        log.info("Canvas question seed mismatch detected — clearing and re-seeding");
+        postitRepository.deleteAllInBatch();
+        boardRepository.deleteAllInBatch();
+        questionRepository.deleteAllInBatch();
+        seedAll();
+    }
+
+    private boolean matchesSeed(List<CanvasBoardQuestion> existing) {
+        if (existing.size() != QUESTIONS.size()) return false;
+        Map<Integer, CanvasBoardQuestion> byOrder = existing.stream()
+                .collect(Collectors.toMap(CanvasBoardQuestion::getOrderIndex, q -> q));
+        for (int i = 0; i < QUESTIONS.size(); i++) {
+            QuestionSeed seed = QUESTIONS.get(i);
+            CanvasBoardQuestion q = byOrder.get(i + 1);
+            if (q == null) return false;
+            if (!seed.content().equals(q.getContent())) return false;
+            if (!seed.description().equals(q.getDescription())) return false;
+            if (seed.boardVariant() != q.getBoardVariant()) return false;
+        }
+        return true;
+    }
+
+    private void seedAll() {
         for (int i = 0; i < QUESTIONS.size(); i++) {
             QuestionSeed seed = QUESTIONS.get(i);
             CanvasBoardQuestion question = questionRepository.save(
@@ -45,5 +81,6 @@ public class CanvasDataInitializer implements CommandLineRunner {
                 boardRepository.save(CanvasBoard.create(question, MAX_NOTE_COUNT));
             }
         }
+        log.info("Canvas seed complete: {} questions, {} boards each", QUESTIONS.size(), BOARDS_PER_QUESTION);
     }
 }
