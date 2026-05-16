@@ -17,7 +17,7 @@ public interface BoothRepository extends JpaRepository<Booth, Long> {
     List<Booth> findAllByOrderByLikeCountDescIdAsc();
 
     @Query("SELECT new kr.ac.knu.festival.presentation.booth.dto.response.BoothMapProjection(" +
-            "b.id, b.name, ml.xRatio, ml.yRatio, ml.type) FROM Booth b LEFT JOIN b.mapLocation ml")
+            "b.id, b.name, ml.xRatio, ml.yRatio, ml.type, ml.color) FROM Booth b LEFT JOIN b.mapLocation ml")
     List<BoothMapProjection> findAllProjectedBy();
 
     /**

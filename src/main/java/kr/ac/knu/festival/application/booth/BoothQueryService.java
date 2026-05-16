@@ -55,8 +55,10 @@ public class BoothQueryService {
     }
 
     private BoothMapResponse toBoothMapResponse(BoothMapProjection p) {
+        String color = p.color() != null ? p.color()
+                : p.type() != null ? p.type().getDefaultColor() : null;
         return new BoothMapResponse(p.id(), p.name(), p.xRatio(), p.yRatio(),
-                p.type() != null ? p.type().name() : null);
+                p.type() != null ? p.type().name() : null, color);
     }
 
 }
