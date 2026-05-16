@@ -122,6 +122,11 @@ public class Booth extends BaseTimeEntity {
         return id != null && id <= TAVERN_MAX_ID ? MapLocationType.TAVERN : MapLocationType.BOOTH;
     }
 
+    public String getMapLocationColor() {
+        if (mapLocation != null) return mapLocation.getEffectiveColor();
+        return getMapLocationType().getDefaultColor();
+    }
+
     public void assignMapLocation(MapLocation mapLocation) {
         this.mapLocation = mapLocation;
     }

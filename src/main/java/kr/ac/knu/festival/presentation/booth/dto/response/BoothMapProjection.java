@@ -4,5 +4,5 @@ import kr.ac.knu.festival.domain.booth.entity.MapLocationType;
 
 import java.math.BigDecimal;
 
-public record BoothMapProjection(Long id, String name, BigDecimal xRatio, BigDecimal yRatio, MapLocationType type) {
+public record BoothMapProjection(Long id, String name, BigDecimal xRatio, BigDecimal yRatio, MapLocationType type, String color) {
 }

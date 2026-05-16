@@ -17,7 +17,8 @@ public record BoothDetailResponse(
         long currentWaitingTeams,
         String department,
         String location,
-        String type
+        String type,
+        String color
 ) {
     public static BoothDetailResponse of(
             Booth booth,
@@ -55,7 +56,8 @@ public record BoothDetailResponse(
                 currentWaitingTeams,
                 booth.getDepartment(),
                 booth.getLocation(),
-                booth.getMapLocationType() != null ? booth.getMapLocationType().name() : null
+                booth.getMapLocationType() != null ? booth.getMapLocationType().name() : null,
+                booth.getMapLocationColor()
         );
     }
 }

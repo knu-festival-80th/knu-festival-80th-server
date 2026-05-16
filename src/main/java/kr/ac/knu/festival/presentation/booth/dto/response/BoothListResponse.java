@@ -17,7 +17,8 @@ public record BoothListResponse(
         long currentWaitingTeams,
         String department,
         String location,
-        String type
+        String type,
+        String color
 ) {
     public static BoothListResponse fromEntity(Booth booth, long currentWaitingTeams, ImageUrlResolver urls) {
         return fromEntity(booth, currentWaitingTeams, booth.getLikeCount(), booth.getTotalWaitingCount(), urls);
@@ -51,7 +52,8 @@ public record BoothListResponse(
                 currentWaitingTeams,
                 booth.getDepartment(),
                 booth.getLocation(),
-                booth.getMapLocationType() != null ? booth.getMapLocationType().name() : null
+                booth.getMapLocationType() != null ? booth.getMapLocationType().name() : null,
+                booth.getMapLocationColor()
         );
     }
 }

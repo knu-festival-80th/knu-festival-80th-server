@@ -1850,6 +1850,9 @@
                     },
                     "type": {
                         "type": "string"
+                    },
+                    "color": {
+                        "type": "string"
                     }
                 }
             },
@@ -2853,6 +2856,9 @@
                     },
                     "type": {
                         "type": "string"
+                    },
+                    "color": {
+                        "type": "string"
                     }
                 }
             },
@@ -2911,6 +2917,9 @@
                         "type": "string"
                     },
                     "type": {
+                        "type": "string"
+                    },
+                    "color": {
                         "type": "string"
                     }
                 }
@@ -2992,6 +3001,9 @@
                         "type": "number"
                     },
                     "type": {
+                        "type": "string"
+                    },
+                    "color": {
                         "type": "string"
                     }
                 }
