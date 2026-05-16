@@ -12,6 +12,7 @@ import kr.ac.knu.festival.global.exception.BusinessException;
 import kr.ac.knu.festival.infra.security.PhoneLookupHasher;
 import kr.ac.knu.festival.infra.security.PhoneNumberEncryptor;
 import kr.ac.knu.festival.presentation.matching.dto.request.MatchingCreateRequest;
+import kr.ac.knu.festival.presentation.matching.dto.request.MatchingMatchUpdateRequest;
 import kr.ac.knu.festival.presentation.matching.dto.request.MatchingStatusUpdateRequest;
 import kr.ac.knu.festival.presentation.matching.dto.response.MatchingJobResponse;
 import kr.ac.knu.festival.presentation.matching.dto.response.MatchingRegisterResponse;
@@ -130,6 +131,16 @@ public class MatchingCommandService {
         // picker 행은 남녀 각각 잡으므로 실제 사람 수는 pickerCount/2 (단, N=1 fallback 도 동일하게 2건).
         int matchedPersonCount = pickerCount / 2;
         return new MatchingJobResponse(matchedPersonCount, result.unmatched().size());
+    }
+
+    public MatchingStatusResponse updateMatch(Long participantId, MatchingMatchUpdateRequest request) {
+        MatchingParticipant participant = matchingParticipantRepository.findById(participantId)
+                .orElseThrow(() -> new BusinessException(BusinessErrorCode.RESOURCE_NOT_FOUND));
+        String normalizedMatchedId = MatchingParticipant.normalizeInstagramId(request.matchedInstagramId());
+        participant.matchWith(normalizedMatchedId);
+        matchingRealtimeCache.evictParticipantResult(participant.getFestivalDay(), participant.getInstagramId());
+        matchingRealtimeCache.cacheParticipantResult(participant);
+        return refreshRealtimeStatus(getOrCreateState(), participant.getFestivalDay());
     }
 
     public MatchingStatusResponse updateStatus(MatchingStatusUpdateRequest request) {
