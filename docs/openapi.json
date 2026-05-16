@@ -1101,6 +1101,48 @@
                 }
             }
         },
+        "/admin/matchings/participants/{participant-id}/match": {
+            "patch": {
+                "tags": [
+                    "\ub9e4\uce6d Command"
+                ],
+                "summary": "[\uad00\ub9ac\uc790] \uc2e0\uccad\uc790 \ub9e4\uce6d \uc0c1\ub300 \uc218\ub3d9 \ubcc0\uacbd",
+                "operationId": "updateMatch",
+                "parameters": [
+                    {
+                        "name": "participant-id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/MatchingMatchUpdateRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiResponseMatchingStatusResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/admin/booths/{booth-id}/waitings/toggle": {
             "patch": {
                 "tags": [
@@ -2552,6 +2594,16 @@
                 "required": [
                     "status"
                 ]
+            },
+            "MatchingMatchUpdateRequest": {
+                "type": "object",
+                "properties": {
+                    "matchedInstagramId": {
+                        "type": "string",
+                        "maxLength": 100,
+                        "minLength": 0
+                    }
+                }
             },
             "WaitingToggleRequest": {
                 "type": "object",
