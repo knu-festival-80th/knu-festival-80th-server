@@ -7,6 +7,7 @@ import kr.ac.knu.festival.global.auth.CurrentAdmin;
 import kr.ac.knu.festival.global.response.ApiResponse;
 import kr.ac.knu.festival.presentation.matching.controller.docs.MatchingCommandControllerDocs;
 import kr.ac.knu.festival.presentation.matching.dto.request.MatchingCreateRequest;
+import kr.ac.knu.festival.presentation.matching.dto.request.MatchingMatchUpdateRequest;
 import kr.ac.knu.festival.presentation.matching.dto.request.MatchingStatusUpdateRequest;
 import kr.ac.knu.festival.presentation.matching.dto.response.MatchingJobResponse;
 import kr.ac.knu.festival.presentation.matching.dto.response.MatchingRegisterResponse;
@@ -88,5 +89,16 @@ public class MatchingCommandController implements MatchingCommandControllerDocs 
     ) {
         admin.requireSuperAdmin();
         return ResponseEntity.ok(ApiResponse.success(matchingCommandService.resetParticipant(participantId)));
+    }
+
+    @Override
+    @PatchMapping("/admin/matchings/participants/{participant-id}/match")
+    public ResponseEntity<ApiResponse<MatchingStatusResponse>> updateMatch(
+            @CurrentAdmin AdminInfo admin,
+            @PathVariable("participant-id") Long participantId,
+            @RequestBody @Valid MatchingMatchUpdateRequest request
+    ) {
+        admin.requireSuperAdmin();
+        return ResponseEntity.ok(ApiResponse.success(matchingCommandService.updateMatch(participantId, request)));
     }
 }

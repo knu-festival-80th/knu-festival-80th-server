@@ -7,6 +7,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import kr.ac.knu.festival.global.auth.AdminInfo;
 import kr.ac.knu.festival.global.response.ApiResponse;
 import kr.ac.knu.festival.presentation.matching.dto.request.MatchingCreateRequest;
+import kr.ac.knu.festival.presentation.matching.dto.request.MatchingMatchUpdateRequest;
 import kr.ac.knu.festival.presentation.matching.dto.request.MatchingStatusUpdateRequest;
 import kr.ac.knu.festival.presentation.matching.dto.response.MatchingJobResponse;
 import kr.ac.knu.festival.presentation.matching.dto.response.MatchingRegisterResponse;
@@ -51,5 +52,12 @@ public interface MatchingCommandControllerDocs {
     ResponseEntity<ApiResponse<MatchingStatusResponse>> resetParticipant(
             @Parameter(hidden = true) AdminInfo admin,
             Long participantId
+    );
+
+    @Operation(summary = "[관리자] 신청자 매칭 상대 수동 변경")
+    ResponseEntity<ApiResponse<MatchingStatusResponse>> updateMatch(
+            @Parameter(hidden = true) AdminInfo admin,
+            Long participantId,
+            MatchingMatchUpdateRequest request
     );
 }
