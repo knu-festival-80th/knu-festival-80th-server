@@ -4,6 +4,7 @@ import jakarta.validation.constraints.DecimalMax;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
+import kr.ac.knu.festival.domain.booth.entity.MapLocationType;
 
 import java.math.BigDecimal;
 
@@ -14,5 +15,6 @@ public record BoothCreateRequest(
         @Size(max = 500) String menuBoardImageUrl,
         @NotBlank String adminPassword,
         @Size(max = 100) String department,
-        @Size(max = 200) String location
+        @Size(max = 200) String location,
+        MapLocationType type
 ) {}

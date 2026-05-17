@@ -2535,6 +2535,14 @@
                         "type": "string",
                         "maxLength": 200,
                         "minLength": 0
+                    },
+                    "type": {
+                        "type": "string",
+                        "enum": [
+                            "TAVERN",
+                            "BOOTH",
+                            "STAGE"
+                        ]
                     }
                 }
             },
