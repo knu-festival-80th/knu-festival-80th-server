@@ -8,7 +8,8 @@ import lombok.RequiredArgsConstructor;
 public enum MapLocationType {
 
     TAVERN("#ff3d3d"),
-    BOOTH("#15ccb1");
+    BOOTH("#15ccb1"),
+    STAGE("#8B5CF6");
 
     private final String defaultColor;
 }
