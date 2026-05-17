@@ -44,10 +44,11 @@ public class BoothCommandService {
     private final AdminSessionRegistry adminSessionRegistry;
 
     public BoothResponse createBooth(BoothCreateRequest request) {
+        MapLocationType type = request.type() != null ? request.type() : MapLocationType.BOOTH;
         MapLocation mapLocation = null;
-        if (request.xRatio() != null || request.yRatio() != null) {
+        if (request.xRatio() != null || request.yRatio() != null || request.type() != null) {
             mapLocation = mapLocationRepository.save(
-                    MapLocation.of(request.xRatio(), request.yRatio(), MapLocationType.BOOTH));
+                    MapLocation.of(request.xRatio(), request.yRatio(), type));
         }
         Booth booth = Booth.createBooth(
                 request.name(),
